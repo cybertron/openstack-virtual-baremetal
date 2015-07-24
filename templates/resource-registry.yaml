@@ -1,0 +1,2 @@
+resource_registry:
+  OS::QuintupleO::BMC: virtual-baremetal-servers.yaml
