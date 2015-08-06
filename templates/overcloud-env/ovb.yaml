@@ -1,0 +1,2 @@
+resource_registry:
+  OS::TripleO::NodeUserData: ovb_patch_nova.yaml

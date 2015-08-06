@@ -1,0 +1,47 @@
+heat_template_version: 2014-10-16
+
+description: >
+   Firstboot patching of Nova to allow PXE booting instances
+
+resources:
+  userdata:
+    type: OS::Heat::MultipartMime
+    properties:
+      parts:
+      - config: {get_resource: patch_nova}
+
+  patch_nova:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      config: |
+        #!/bin/bash
+
+        set -eux
+        set -o pipefail
+
+        pushd /usr/lib/python2.7/site-packages/nova/virt/libvirt
+        cat > pxeboot.patch << EOF
+        *** driver.py   2015-07-02 11:17:25.241844536 -0500
+        --- driver.py   2015-07-02 11:17:55.029472139 -0500
+        ***************
+        *** 4126,4131 ****
+        --- 4126,4135 ----
+                    self._conf_non_lxc_uml(virt_type, guest, root_device_name, rescue,
+                            instance, inst_path, image_meta, disk_info)
+
+        +         if (CONF.libvirt.virt_type in ['qemu', 'kvm'] and
+        +                 instance.metadata.get('libvirt:pxe-first')):
+        +             guest.os_boot_dev = ['network'] + guest.os_boot_dev
+        +
+                self._set_features(guest, instance.os_type, caps, virt_type)
+                self._set_clock(guest, instance.os_type, image_meta, virt_type)
+        EOF
+
+        # I'm not sure why -l is needed, but something with the whitespace
+        # in the patch is getting messed up when run as userdata
+        patch -p0 -l < pxeboot.patch
+        popd
+
+outputs:
+  OS::stack_id:
+    value: {get_resource: userdata}
