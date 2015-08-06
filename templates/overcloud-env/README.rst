@@ -1,15 +1,37 @@
-Overcloud Environment Files
-===========================
+Deploying an Overcloud for Virtual Baremetal
+============================================
+
+The files in this directory can be used to deploy an overcloud
+using RDO Manager that is suitable for use as a virtual
+baremetal host.  The following are instructions on how to do so.
+
+Custom Environment
+------------------
 
 .. note::
 
     This template applies a patch to Nova that may not be suitable
     for production deployments.  Use at your own risk.
 
-These yaml files enable RDO Manager to deploy a host cloud capable
-of booting OpenStack virtual baremetal instances.
-To use them, copy the yaml files in this directory to the undercloud
-and pass ``ovb.yaml`` as an additional env file in the
-overcloud deploy command::
+Copy the yaml files to the undercloud so they can be referenced by
+the overcloud deploy call.  The ``ovb.yaml`` file must be passed
+as an additional ``-e`` parameter.  See _`Overcloud Deployment` for
+an example deploy call.
 
-    openstack overcloud deploy --templates -e ovb.yaml
+Hieradata Changes
+-----------------
+
+Make a copy of the tripleo-heat-templates directory::
+
+    cp -r /usr/share/openstack-tripleo-heat-templates/ custom
+
+Add the necessary hieradata configuration::
+
+    echo "neutron::agents::ml2::ovs::firewall_driver: neutron.agent.firewall.NoopFirewallDriver" >> custom/puppet/hieradata/common.yaml
+
+Overcloud Deployment
+--------------------
+
+Pass both the custom environment and templates to the deploy call::
+
+    openstack overcloud deploy --templates custom -e ovb.yaml
