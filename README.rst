@@ -84,10 +84,10 @@ Preparing the Host Cloud Environment
               Standard tenant and external networks are also needed to
               provide floating ip access to the undercloud and bmc instances
 
-::
+    ::
 
-    neutron net-create provision
-    neutron subnet-create --name provision --no-gateway --disable-dhcp provision 192.0.2.0/24
+        neutron net-create provision
+        neutron subnet-create --name provision --no-gateway --disable-dhcp provision 192.0.2.0/24
 
 #. Add a Nova keypair to be injected into instances::
 
