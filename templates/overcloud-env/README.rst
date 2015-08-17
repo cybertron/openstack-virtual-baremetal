@@ -15,7 +15,7 @@ Custom Environment
 
 Copy the yaml files to the undercloud so they can be referenced by
 the overcloud deploy call.  The ``ovb.yaml`` file must be passed
-as an additional ``-e`` parameter.  See _`Overcloud Deployment` for
+as an additional ``-e`` parameter.  See `Overcloud Deployment`_ for
 an example deploy call.
 
 Hieradata Changes
@@ -34,4 +34,4 @@ Overcloud Deployment
 
 Pass both the custom environment and templates to the deploy call::
 
-    openstack overcloud deploy --templates custom -e ovb.yaml
+    openstack overcloud deploy --libvirt-type kvm --templates custom -e ovb.yaml
