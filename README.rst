@@ -31,7 +31,7 @@ Devstack:
               code.  If/when that happens, the patch will need to
               be applied manually.
 
-::
+  ::
 
     cp patches/kilo/nova-pxe-boot.patch /opt/stack/nova
     cd /opt/stack/nova
@@ -47,8 +47,8 @@ Configuring the Host Cloud
        firewall_driver = neutron.agent.firewall.NoopFirewallDriver
 
 #. In Liberty and later versions, arp spoofing must be disabled.  Edit
-    ``/etc/neutron/plugins/ml2/ml2_conf.ini`` and set the option
-    ``prevent_arp_spoofing`` in the ``[agent]`` section as follows::
+   ``/etc/neutron/plugins/ml2/ml2_conf.ini`` and set the option
+   ``prevent_arp_spoofing`` in the ``[agent]`` section as follows::
 
         prevent_arp_spoofing = False
 
@@ -84,10 +84,10 @@ Preparing the Host Cloud Environment
               Standard tenant and external networks are also needed to
               provide floating ip access to the undercloud and bmc instances
 
-    ::
+  ::
 
-        neutron net-create provision
-        neutron subnet-create --name provision --no-gateway --disable-dhcp provision 192.0.2.0/24
+    neutron net-create provision
+    neutron subnet-create --name provision --no-gateway --disable-dhcp provision 192.0.2.0/24
 
 #. Add a Nova keypair to be injected into instances::
 
@@ -116,7 +116,7 @@ Create the baremetal Heat stack
               minutes, depending on the connection speed to the CentOS
               mirrors.
 
-::
+  ::
 
     heat stack-show baremetal
 
