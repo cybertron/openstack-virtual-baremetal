@@ -31,11 +31,11 @@ Devstack:
               code.  If/when that happens, the patch will need to
               be applied manually.
 
-  ::
+   ::
 
-    cp patches/kilo/nova-pxe-boot.patch /opt/stack/nova
-    cd /opt/stack/nova
-    patch -p1 < nova-pxe-boot.patch
+      cp patches/kilo/nova-pxe-boot.patch /opt/stack/nova
+      cd /opt/stack/nova
+      patch -p1 < nova-pxe-boot.patch
 
 Configuring the Host Cloud
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -84,10 +84,10 @@ Preparing the Host Cloud Environment
               Standard tenant and external networks are also needed to
               provide floating ip access to the undercloud and bmc instances
 
-  ::
+   ::
 
-    neutron net-create provision
-    neutron subnet-create --name provision --no-gateway --disable-dhcp provision 192.0.2.0/24
+      neutron net-create provision
+      neutron subnet-create --name provision --no-gateway --disable-dhcp provision 192.0.2.0/24
 
 #. Add a Nova keypair to be injected into instances::
 
@@ -116,9 +116,9 @@ Create the baremetal Heat stack
               minutes, depending on the connection speed to the CentOS
               mirrors.
 
-  ::
+   ::
 
-    heat stack-show baremetal
+      heat stack-show baremetal
 
 #. Boot a VM to serve as the undercloud::
 
