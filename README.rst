@@ -89,6 +89,10 @@ Preparing the Host Cloud Environment
     neutron net-create provision
     neutron subnet-create --name provision --no-gateway --disable-dhcp provision 192.0.2.0/24
 
+#. Add a Nova keypair to be injected into instances::
+
+    nova keypair-add --pub-key ~/.ssh/id_rsa.pub default
+
 Create the baremetal Heat stack
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
