@@ -92,7 +92,7 @@ resources:
     properties:
       count: {get_param: node_count}
       resource_def:
-        type: OS::QuintupleO::BMC
+        type: OS::OVB::BMC
         properties:
             bmc_flavor: {get_param: bmc_flavor}
             bmc_image: {get_param: bmc_image}
