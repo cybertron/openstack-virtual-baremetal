@@ -1,2 +1,3 @@
 resource_registry:
-  OS::OVB::BMC: virtual-baremetal-servers.yaml
+  OS::OVB::ServerPair: virtual-baremetal-servers.yaml
+  OS::OVB::BaremetalEnvironment: virtual-baremetal.yaml

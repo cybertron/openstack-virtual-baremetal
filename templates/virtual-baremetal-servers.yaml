@@ -22,6 +22,12 @@ parameters:
   baremetal_prefix:
     type: string
 
+  public_net:
+    type: string
+
+  public_sg:
+    type: string
+
   private_net:
     type: string
 
@@ -115,8 +121,10 @@ resources:
             key_name: {get_param: key_name}
             security_groups:
                 - {get_param: provision_sg}
+                - {get_param: public_sg}
             networks:
                 - network: {get_param: provision_net}
+                - network: {get_param: public_net}
             name:
                 list_join:
                     - ''

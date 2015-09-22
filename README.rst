@@ -91,6 +91,24 @@ Preparing the Host Cloud Environment
       neutron net-create provision
       neutron subnet-create --name provision --no-gateway --disable-dhcp provision 192.0.2.0/24
 
+#. Create "public" network.
+
+    .. note:: The CIDR used for the subnet does not matter.
+              This can be used as the network for the public API endpoints
+              on the overcloud, but it does not have to be accessible
+              externally.  Only the undercloud VM will need to have access
+              to this network.
+
+    .. warning:: Do not enable DHCP on this network.  Doing so may cause
+                 conflicts between the host cloud metadata service and the
+                 undercloud metadata service.  Overcloud nodes will be
+                 assigned addresses on this network by the undercloud Neutron.
+
+   ::
+
+       neutron net-create public
+       neutron subnet-create --name public --no-gateway --disable-dhcp public 10.0.0.0/24
+
 #. Add a Nova keypair to be injected into instances::
 
     nova keypair-add --pub-key ~/.ssh/id_rsa.pub default

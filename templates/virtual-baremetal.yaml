@@ -11,7 +11,7 @@ parameters:
 
   bmc_image:
     type: string
-    default: openstack-bmc
+    default: CentOS-7-x86_64-GenericCloud-1503
 
   baremetal_flavor:
     type: string
@@ -29,6 +29,10 @@ parameters:
   node_count:
     type: number
     default: 1
+
+  public_net:
+    type: string
+    default: public
 
   private_net:
     type: string
@@ -63,6 +67,19 @@ parameters:
     type: string
 
 resources:
+  # NOTE(bnemec): This should probably be limited to allowing only
+  # OpenStack API ports, but for now this is simpler and not
+  # completely unreasonable.
+  public_sg:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: public_sg
+      description: Allows all traffic
+      rules:
+      - protocol: icmp
+      - protocol: tcp
+      - protocol: udp
+
   provision_sg:
     type: OS::Neutron::SecurityGroup
     properties:
@@ -92,13 +109,15 @@ resources:
     properties:
       count: {get_param: node_count}
       resource_def:
-        type: OS::OVB::BMC
+        type: OS::OVB::ServerPair
         properties:
             bmc_flavor: {get_param: bmc_flavor}
             bmc_image: {get_param: bmc_image}
             baremetal_flavor: {get_param: baremetal_flavor}
             baremetal_image: {get_param: baremetal_image}
             key_name: {get_param: key_name}
+            public_net: {get_param: public_net}
+            public_sg: {get_resource: public_sg}
             private_net: {get_param: private_net}
             private_sg: {get_resource: private_sg}
             provision_net: {get_param: provision_net}
