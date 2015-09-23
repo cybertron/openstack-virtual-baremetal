@@ -1,0 +1,192 @@
+heat_template_version: 2015-04-30
+
+# Template that wraps virtual-baremetal.yaml and does some additional environment
+# setup automatically:
+# - provisions the public and provision networks
+# - boots an instance to serve as the undercloud
+# - creates a floating ip and associates it with the undercloud instance
+
+parameters:
+  bmc_flavor:
+    type: string
+    default: m1.small
+
+  bmc_image:
+    type: string
+    default: CentOS-7-x86_64-GenericCloud-1503
+
+  baremetal_flavor:
+    type: string
+    default: baremetal
+    description: Recommended to be at least 1 vcpu, 4 GB RAM, 50 GB disk
+
+  baremetal_image:
+    type: string
+    default: empty
+
+  key_name:
+    type: string
+    default: default
+
+  node_count:
+    type: number
+    default: 2
+
+  private_net:
+    type: string
+    default: private
+
+  external_net:
+    type: string
+    default: external
+    description: An external network from which floating ips can be provisioned
+
+  provision_net_name:
+    type: string
+    default: provision
+
+  public_net_name:
+    type: string
+    default: public
+
+  bmc_prefix:
+    type: string
+    default: bmc
+
+  baremetal_prefix:
+    type: string
+    default: baremetal
+
+  undercloud_name:
+    type: string
+    default: undercloud
+
+  undercloud_flavor:
+    type: string
+    default: m1.large
+
+  undercloud_image:
+    type: string
+    default: CentOS-7-x86_64-GenericCloud-1503
+
+  os_user:
+    type: string
+    default: admin
+
+  os_password:
+    type: string
+    default: password
+    hidden: true
+
+  os_tenant:
+    type: string
+    default: admin
+
+  os_auth_url:
+    type: string
+
+  # Ignored compatibility parameters for base virtual-baremetal env files
+  public_net:
+    type: string
+  provision_net:
+    type: string
+
+resources:
+  provision_network:
+    type: OS::Neutron::Net
+    properties:
+        name: {get_param: provision_net_name}
+
+  provision_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+        network: {get_resource: provision_network}
+        name: provision-subnet
+        cidr: 192.0.2.0/24
+        gateway_ip: null
+        enable_dhcp: false
+
+  public_network:
+    type: OS::Neutron::Net
+    properties:
+        name: {get_param: public_net_name}
+
+  public_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+        network: {get_resource: public_network}
+        name: public-subnet
+        cidr: 10.0.0.0/24
+        gateway_ip: null
+        enable_dhcp: false
+
+  undercloud_sg:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: undercloud_sg
+      description: Ping, SSH and IPMI
+      rules:
+      - protocol: icmp
+      - protocol: tcp
+        port_range_min: 22
+        port_range_max: 22
+
+  all_sg:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: all_sg
+      description: Allows all traffic
+      rules:
+      - protocol: icmp
+      - protocol: tcp
+      - protocol: udp
+
+  undercloud_server:
+    type: OS::Nova::Server
+    properties:
+        flavor: {get_param: undercloud_flavor}
+        image: {get_param: undercloud_image}
+        key_name: {get_param: key_name}
+        security_groups:
+            - {get_resource: undercloud_sg}
+            - {get_resource: all_sg}
+            - {get_resource: all_sg}
+        networks:
+            - network: {get_param: private_net}
+            - network: {get_resource: provision_network}
+            - network: {get_resource: public_network}
+        name: {get_param: undercloud_name}
+
+  undercloud_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: {get_param: external_net}
+
+  undercloud_floating_ip_assoc:
+    type: OS::Neutron::FloatingIPAssociation
+    properties:
+      floatingip_id: {get_resource: undercloud_floating_ip}
+      port_id: {get_attr: [undercloud_server, addresses, {get_param: private_net}, 0, port]}
+
+  baremetal_env:
+    type: OS::OVB::BaremetalEnvironment
+    properties:
+        baremetal_flavor: {get_param: baremetal_flavor}
+        baremetal_image: {get_param: baremetal_image}
+        key_name: {get_param: key_name}
+        node_count: {get_param: node_count}
+        public_net: {get_resource: public_network}
+        private_net: {get_param: private_net}
+        provision_net: {get_resource: provision_network}
+        bmc_prefix: {get_param: bmc_prefix}
+        bmc_image: {get_param: bmc_image}
+        baremetal_prefix: {get_param: baremetal_prefix}
+        os_user: {get_param: os_user}
+        os_password: {get_param: os_password}
+        os_tenant: {get_param: os_tenant}
+        os_auth_url: {get_param: os_auth_url}
+
+outputs:
+  undercloud_host:
+    value:
+      get_attr: [undercloud_floating_ip, floating_ip_address]

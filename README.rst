@@ -118,8 +118,8 @@ Create the baremetal Heat stack
 
 #. Copy the example env file and edit it to reflect the host environment::
 
-    cp templates/env.json.example env.json
-    vi env.json
+    cp templates/env.yaml.example env.yaml
+    vi env.yaml
 
 #. Deploy the stack::
 
