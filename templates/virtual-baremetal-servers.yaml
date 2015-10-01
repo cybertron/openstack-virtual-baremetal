@@ -109,7 +109,6 @@ resources:
     OpenStackBaremetalServer:
         type: OS::Nova::Server
         properties:
-            flavor: {get_resource: BaremetalFlavor}
             flavor: {get_param: baremetal_flavor}
             image: {get_param: baremetal_image}
             config_drive: false
