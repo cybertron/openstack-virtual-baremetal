@@ -78,6 +78,8 @@ Preparing the Host Cloud Environment
     nova flavor-create baremetal auto 4096 50 2
     nova flavor-create bmc auto 512 20 1
 
+#. Source an rc file that will provide user credentials for the host cloud.
+
 #. Create provisioning network.
 
     .. note:: The CIDR used for the subnet does not matter.
