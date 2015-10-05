@@ -131,21 +131,21 @@ resources:
       resource_def:
         type: OS::OVB::ServerPair
         properties:
-            bmc_flavor: {get_param: bmc_flavor}
-            bmc_image: {get_param: bmc_image}
-            baremetal_flavor: {get_param: baremetal_flavor}
-            baremetal_image: {get_param: baremetal_image}
-            key_name: {get_param: key_name}
-            public_net: {get_param: public_net}
-            public_sg: {get_resource: public_sg}
-            private_net: {get_param: private_net}
-            private_sg: {get_resource: private_sg}
-            provision_net: {get_param: provision_net}
-            provision_sg: {get_resource: provision_sg}
-            suffix: _%index%
-            bmc_prefix: {get_param: bmc_prefix}
-            baremetal_prefix: {get_param: baremetal_prefix}
-            os_user: {get_param: os_user}
-            os_password: {get_param: os_password}
-            os_tenant: {get_param: os_tenant}
-            os_auth_url: {get_param: os_auth_url}
+          bmc_flavor: {get_param: bmc_flavor}
+          bmc_image: {get_param: bmc_image}
+          baremetal_flavor: {get_param: baremetal_flavor}
+          baremetal_image: {get_param: baremetal_image}
+          key_name: {get_param: key_name}
+          public_net: {get_param: public_net}
+          public_sg: {get_resource: public_sg}
+          private_net: {get_param: private_net}
+          private_sg: {get_resource: private_sg}
+          provision_net: {get_param: provision_net}
+          provision_sg: {get_resource: provision_sg}
+          suffix: _%index%
+          bmc_prefix: {get_param: bmc_prefix}
+          baremetal_prefix: {get_param: baremetal_prefix}
+          os_user: {get_param: os_user}
+          os_password: {get_param: os_password}
+          os_tenant: {get_param: os_tenant}
+          os_auth_url: {get_param: os_auth_url}

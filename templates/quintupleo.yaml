@@ -100,25 +100,25 @@ resources:
   provision_subnet:
     type: OS::Neutron::Subnet
     properties:
-        network: {get_resource: provision_network}
-        name: provision-subnet
-        cidr: 192.0.2.0/24
-        gateway_ip: null
-        enable_dhcp: false
+      network: {get_resource: provision_network}
+      name: provision-subnet
+      cidr: 192.0.2.0/24
+      gateway_ip: null
+      enable_dhcp: false
 
   public_network:
     type: OS::Neutron::Net
     properties:
-        name: {get_param: public_net_name}
+      name: {get_param: public_net_name}
 
   public_subnet:
     type: OS::Neutron::Subnet
     properties:
-        network: {get_resource: public_network}
-        name: public-subnet
-        cidr: 10.0.0.0/24
-        gateway_ip: null
-        enable_dhcp: false
+      network: {get_resource: public_network}
+      name: public-subnet
+      cidr: 10.0.0.0/24
+      gateway_ip: null
+      enable_dhcp: false
 
   undercloud_sg:
     type: OS::Neutron::SecurityGroup
@@ -144,18 +144,18 @@ resources:
   undercloud_server:
     type: OS::Nova::Server
     properties:
-        flavor: {get_param: undercloud_flavor}
-        image: {get_param: undercloud_image}
-        key_name: {get_param: key_name}
-        security_groups:
-            - {get_resource: undercloud_sg}
-            - {get_resource: all_sg}
-            - {get_resource: all_sg}
-        networks:
-            - network: {get_param: private_net}
-            - network: {get_resource: provision_network}
-            - network: {get_resource: public_network}
-        name: {get_param: undercloud_name}
+      flavor: {get_param: undercloud_flavor}
+      image: {get_param: undercloud_image}
+      key_name: {get_param: key_name}
+      security_groups:
+      - {get_resource: undercloud_sg}
+      - {get_resource: all_sg}
+      - {get_resource: all_sg}
+      networks:
+      - network: {get_param: private_net}
+      - network: {get_resource: provision_network}
+      - network: {get_resource: public_network}
+      name: {get_param: undercloud_name}
 
   undercloud_floating_ip:
     type: OS::Neutron::FloatingIP
@@ -171,20 +171,20 @@ resources:
   baremetal_env:
     type: OS::OVB::BaremetalEnvironment
     properties:
-        baremetal_flavor: {get_param: baremetal_flavor}
-        baremetal_image: {get_param: baremetal_image}
-        key_name: {get_param: key_name}
-        node_count: {get_param: node_count}
-        public_net: {get_resource: public_network}
-        private_net: {get_param: private_net}
-        provision_net: {get_resource: provision_network}
-        bmc_prefix: {get_param: bmc_prefix}
-        bmc_image: {get_param: bmc_image}
-        baremetal_prefix: {get_param: baremetal_prefix}
-        os_user: {get_param: os_user}
-        os_password: {get_param: os_password}
-        os_tenant: {get_param: os_tenant}
-        os_auth_url: {get_param: os_auth_url}
+      baremetal_flavor: {get_param: baremetal_flavor}
+      baremetal_image: {get_param: baremetal_image}
+      key_name: {get_param: key_name}
+      node_count: {get_param: node_count}
+      public_net: {get_resource: public_network}
+      private_net: {get_param: private_net}
+      provision_net: {get_resource: provision_network}
+      bmc_prefix: {get_param: bmc_prefix}
+      bmc_image: {get_param: bmc_image}
+      baremetal_prefix: {get_param: baremetal_prefix}
+      os_user: {get_param: os_user}
+      os_password: {get_param: os_password}
+      os_tenant: {get_param: os_tenant}
+      os_auth_url: {get_param: os_auth_url}
 
 outputs:
   undercloud_host:
