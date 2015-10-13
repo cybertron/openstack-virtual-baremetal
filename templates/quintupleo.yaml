@@ -32,6 +32,16 @@ parameters:
     type: number
     default: 2
 
+  controller_node_count:
+    type: number
+    default: 0
+    description: Number of additional nodes to deploy with alternate controller flavor
+
+  controller_flavor:
+    type: string
+    default: baremetal
+    description: Alternate flavor specific to controller nodes
+
   private_net:
     type: string
     default: private
@@ -175,6 +185,8 @@ resources:
       baremetal_image: {get_param: baremetal_image}
       key_name: {get_param: key_name}
       node_count: {get_param: node_count}
+      controller_node_count: {get_param: controller_node_count}
+      controller_flavor: {get_param: controller_flavor}
       public_net: {get_resource: public_network}
       private_net: {get_param: private_net}
       provision_net: {get_resource: provision_network}

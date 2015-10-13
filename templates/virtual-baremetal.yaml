@@ -30,6 +30,16 @@ parameters:
     type: number
     default: 1
 
+  controller_node_count:
+    type: number
+    default: 0
+    description: Number of additional nodes to deploy with alternate controller flavor
+
+  controller_flavor:
+    type: string
+    default: baremetal
+    description: Alternate flavor specific to controller nodes
+
   public_net:
     type: string
     default: public
@@ -124,7 +134,7 @@ resources:
         port_range_min: 623
         port_range_max: 623
 
-  openstack_bmc_servers:
+  openstack_baremetal_servers:
     type: OS::Heat::ResourceGroup
     properties:
       count: {get_param: node_count}
@@ -145,6 +155,40 @@ resources:
           suffix: _%index%
           bmc_prefix: {get_param: bmc_prefix}
           baremetal_prefix: {get_param: baremetal_prefix}
+          os_user: {get_param: os_user}
+          os_password: {get_param: os_password}
+          os_tenant: {get_param: os_tenant}
+          os_auth_url: {get_param: os_auth_url}
+
+  openstack_controller_servers:
+    type: OS::Heat::ResourceGroup
+    properties:
+      count: {get_param: controller_node_count}
+      resource_def:
+        type: OS::OVB::ServerPair
+        properties:
+          bmc_flavor: {get_param: bmc_flavor}
+          bmc_image: {get_param: bmc_image}
+          baremetal_flavor: {get_param: controller_flavor}
+          baremetal_image: {get_param: baremetal_image}
+          key_name: {get_param: key_name}
+          public_net: {get_param: public_net}
+          public_sg: {get_resource: public_sg}
+          private_net: {get_param: private_net}
+          private_sg: {get_resource: private_sg}
+          provision_net: {get_param: provision_net}
+          provision_sg: {get_resource: provision_sg}
+          suffix: _%index%
+          bmc_prefix:
+            list_join:
+              - '_'
+              - - {get_param: bmc_prefix}
+                - 'controller'
+          baremetal_prefix:
+            list_join:
+              - '_'
+              - - {get_param: baremetal_prefix}
+                - 'controller'
           os_user: {get_param: os_user}
           os_password: {get_param: os_password}
           os_tenant: {get_param: os_tenant}
