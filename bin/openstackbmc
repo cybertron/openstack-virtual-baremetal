@@ -47,10 +47,10 @@ class OpenStackBmc(bmc.Bmc):
             try:
                 self._find_instance(instance)
                 if self.instance is not None:
-                    print 'Managing instance: %s' % self.instance
+                    self.log('Managing instance: %s' % self.instance)
                     break
             except Exception as e:
-                print 'Exception finding instance "%s": %s' % (instance, e)
+                self.log('Exception finding instance "%s": %s' % (instance, e))
                 time.sleep(1)
 
     def _find_instance(self, instance):
@@ -61,18 +61,18 @@ class OpenStackBmc(bmc.Bmc):
             name_regex = '^%s$' % instance
             i = self.novaclient.servers.list(search_opts={'name': name_regex})
             if len(i) > 1:
-                print 'Ambiguous instance name %s' % instance
+                self.log('Ambiguous instance name %s' % instance)
                 sys.exit(1)
             try:
                 self.instance = i[0].id
             except IndexError:
-                print 'Could not find specified instance %s' % instance
+                self.log('Could not find specified instance %s' % instance)
                 sys.exit(1)
 
     def get_boot_device(self):
         server = self.novaclient.servers.get(self.instance)
         retval = 'network' if server.metadata.get('libvirt:pxe-first') else 'hd'
-        print 'Reporting boot device', retval
+        self.log('Reporting boot device', retval)
         return retval
 
     def set_boot_device(self, bootdevice):
@@ -81,35 +81,35 @@ class OpenStackBmc(bmc.Bmc):
             self.novaclient.servers.set_meta_item(server, 'libvirt:pxe-first', '1')
         else:
             self.novaclient.servers.set_meta_item(server, 'libvirt:pxe-first', '')
-        print 'Set boot device to', bootdevice
+        self.log('Set boot device to', bootdevice)
 
     def cold_reset(self):
         # Reset of the BMC, not managed system, here we will exit the demo
-        print 'Shutting down in response to BMC cold reset request'
+        self.log('Shutting down in response to BMC cold reset request')
         sys.exit(0)
 
     def _instance_active(self):
         return self.novaclient.servers.get(self.instance).status == 'ACTIVE'
 
     def get_power_state(self):
-        print 'Getting power state for %s' % self.instance
+        self.log('Getting power state for %s' % self.instance)
         return self._instance_active()
 
     def power_off(self):
         # this should be power down without waiting for clean shutdown
         if self._instance_active():
             self.novaclient.servers.stop(self.instance)
-            print 'Powered off %s' % self.instance
+            self.log('Powered off %s' % self.instance)
         else:
-            print '%s is already off.' % self.instance
+            self.log('%s is already off.' % self.instance)
             return 0xd5
 
     def power_on(self):
         if not self._instance_active():
             self.novaclient.servers.start(self.instance)
-            print 'Powered on %s' % self.instance
+            self.log('Powered on %s' % self.instance)
         else:
-            print '%s is already on.' % self.instance
+            self.log('%s is already on.' % self.instance)
             return 0xd5
 
     def power_reset(self):
@@ -118,7 +118,11 @@ class OpenStackBmc(bmc.Bmc):
     def power_shutdown(self):
         # should attempt a clean shutdown
         self.novaclient.servers.stop(self.instance)
-        print 'Politely shut down %s' % self.instance
+        self.log('Politely shut down %s' % self.instance)
+
+    def log(self, *msg):
+        print(' '.join(msg))
+        sys.stdout.flush()
 
 
 if __name__ == '__main__':
