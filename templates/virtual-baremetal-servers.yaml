@@ -123,10 +123,11 @@ resources:
       key_name: {get_param: key_name}
       security_groups:
       - {get_param: provision_sg}
-      - {get_param: public_sg}
+      # TODO(bnemec): Reattach these when it doesn't wreak havoc on TripleO to have multiple nics.
+      #- {get_param: public_sg}
       networks:
       - network: {get_param: provision_net}
-      - network: {get_param: public_net}
+      #- network: {get_param: public_net}
       name:
         list_join:
         - ''
