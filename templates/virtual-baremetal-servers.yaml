@@ -109,7 +109,7 @@ resources:
             yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
             yum install -y https://rdo.fedorapeople.org/rdo-release.rpm
             yum install -y python-pip python-crypto python-novaclient
-            pip install --no-deps pyghmi
+            pip install --no-deps "pyghmi==0.8.0"
             systemctl enable openstack-bmc
             systemctl start openstack-bmc
             systemctl status openstack-bmc
