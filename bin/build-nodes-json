@@ -5,6 +5,7 @@ import json
 import os
 import sys
 
+from neutronclient.v2_0 import client as neutronclient
 from novaclient import client as novaclient
 
 def main():
@@ -51,25 +52,31 @@ def main():
         }
 
     if not username or not password or not tenant or not auth_url:
-        print 'Source an appropriate rc file first'
+        print('Source an appropriate rc file first')
         sys.exit(1)
 
     nova = novaclient.Client(2, username, password, tenant, auth_url)
+    neutron = neutronclient.Client(
+        username=username,
+        password=password,
+        tenant_name=tenant,
+        auth_url=auth_url
+    )
 
-    bmcs = nova.servers.list(search_opts={'name': bmc_base + '_.*'})
-    baremetals = nova.servers.list(search_opts={'name': baremetal_base + '_.*'})
-    bmcs = sorted(bmcs, key=lambda x: x.name)
-    baremetals = sorted(baremetals, key=lambda x: x.name)
-    if len(bmcs) != len(baremetals):
-        raise RuntimeException('Found different numbers of baremetal and '
-                               'bmc vms.')
+    all_ports = sorted(neutron.list_ports()['ports'], key=lambda x: x['name'])
+    bmc_ports = list([p for p in all_ports
+                     if p['name'].startswith(bmc_base)])
+    bm_ports = list([p for p in all_ports
+                    if p['name'].startswith(baremetal_base)])
+    if len(bmc_ports) != len(bm_ports):
+        raise RuntimeError('Found different numbers of baremetal and '
+                           'bmc ports.')
     nodes = []
 
-    for pair in zip(bmcs, baremetals):
-        bmc = pair[0]
-        baremetal = pair[1]
+    for bmc_port, baremetal_port in zip(bmc_ports, bm_ports):
+        baremetal = nova.servers.get(baremetal_port['device_id'])
         node = dict(node_template)
-        node['pm_addr'] = bmc.addresses[private_net][0]['addr']
+        node['pm_addr'] = bmc_port['fixed_ips'][0]['ip_address']
         node['mac'] = [baremetal.addresses[provision_net][0]['OS-EXT-IPS-MAC:mac_addr']]
         flavor = nova.flavors.get(baremetal.flavor['id'])
         node['cpu'] = flavor.vcpus
@@ -78,9 +85,9 @@ def main():
         nodes.append(node)
 
     with open('nodes.json', 'w') as node_file:
-        contents = json.dumps({'nodes': nodes})
+        contents = json.dumps({'nodes': nodes}, indent=2)
         node_file.write(contents)
-        print contents
+        print(contents)
 
 if __name__ == '__main__':
     main()

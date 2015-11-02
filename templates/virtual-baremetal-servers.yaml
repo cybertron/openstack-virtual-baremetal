@@ -57,79 +57,50 @@ parameters:
     type: string
 
 resources:
-  OpenStackBMCServer:
-    type: OS::Nova::Server
+
+  bmc_port:
+    type: OS::Neutron::Port
     properties:
-      flavor: {get_param: bmc_flavor}
-      image: {get_param: bmc_image}
-      key_name: {get_param: key_name}
-      security_groups:
-      - {get_param: private_sg}
-      networks:
-      - network: {get_param: private_net}
       name:
         list_join:
         - ''
         - - {get_param: bmc_prefix}
           - {get_param: suffix}
-      user_data_format: RAW
-      user_data:
-        str_replace:
-          params:
-            $bm_instance: {get_resource: OpenStackBaremetalServer}
-            $os_user: {get_param: os_user}
-            $os_password: {get_param: os_password}
-            $os_tenant: {get_param: os_tenant}
-            $os_auth_url: {get_param: os_auth_url}
-            $openstackbmc_script: {get_file: ../bin/openstackbmc}
-          template: |
-            #!/bin/bash
-            set -x
-            cat <<EOF >/usr/lib/systemd/system/openstack-bmc.service
-            [Unit]
-            Description=openstack-bmc Service
+      network: {get_param: private_net}
+      security_groups:
+      - {get_param: private_sg}
 
-            [Service]
-            ExecStart=/usr/local/bin/openstackbmc  --os-user $os_user --os-password $os_password --os-tenant $os_tenant --os-auth-url $os_auth_url --instance $bm_instance
-            User=root
-            StandardOutput=kmsg+console
-            StandardError=inherit
+  baremetal_port:
+    type: OS::Neutron::Port
+    properties:
+      name:
+        list_join:
+        - ''
+        - - {get_param: baremetal_prefix}
+          - {get_param: suffix}
+      network: {get_param: provision_net}
+      security_groups:
+      - {get_param: provision_sg}
 
-            [Install]
-            WantedBy=multi-user.target
-            Alias=openstack-bmc.service
-            EOF
-
-            cat <<EOF >/usr/local/bin/openstackbmc
-            $openstackbmc_script
-            EOF
-            chmod +x /usr/local/bin/openstackbmc
-
-            yum -y update centos-release # required for rdo-release install to work
-            yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-            yum install -y https://rdo.fedorapeople.org/rdo-release.rpm
-            yum install -y python-pip python-crypto python-novaclient
-            pip install --no-deps "pyghmi==0.8.0"
-            systemctl enable openstack-bmc
-            systemctl start openstack-bmc
-            systemctl status openstack-bmc
-
-  OpenStackBaremetalServer:
+  baremetal_server:
     type: OS::Nova::Server
     properties:
       flavor: {get_param: baremetal_flavor}
       image: {get_param: baremetal_image}
       config_drive: false
       key_name: {get_param: key_name}
-      security_groups:
-      - {get_param: provision_sg}
+      # security_groups:
       # TODO(bnemec): Reattach these when it doesn't wreak havoc on TripleO to have multiple nics.
       #- {get_param: public_sg}
       networks:
-      - network: {get_param: provision_net}
+      - port: {get_resource: baremetal_port}
       #- network: {get_param: public_net}
       name:
         list_join:
         - ''
         - - {get_param: baremetal_prefix}
           - {get_param: suffix}
+
+outputs:
+  bmc_nic:
+    value: {port: {get_resource: bmc_port}}

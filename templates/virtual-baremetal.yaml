@@ -134,6 +134,28 @@ resources:
         port_range_min: 623
         port_range_max: 623
 
+  bmc_server:
+    type: OS::Nova::Server
+    properties:
+      flavor: {get_param: bmc_flavor}
+      image: {get_param: bmc_image}
+      key_name: {get_param: key_name}
+      networks: {get_attr: [openstack_baremetal_servers, bmc_nic]}
+      name: {get_param: bmc_prefix}
+      user_data_format: RAW
+      user_data:
+        str_replace:
+          params:
+            $os_user: {get_param: os_user}
+            $os_password: {get_param: os_password}
+            $os_tenant: {get_param: os_tenant}
+            $os_auth_url: {get_param: os_auth_url}
+            $bm_node_count: {get_param: node_count}
+            $bmc_prefix: {get_param: bmc_prefix}
+            $bm_prefix: {get_param: baremetal_prefix}
+            $openstackbmc_script: {get_file: ../bin/openstackbmc}
+          template: {get_file: ../bin/install_openstackbmc.sh}
+
   openstack_baremetal_servers:
     type: OS::Heat::ResourceGroup
     properties:
