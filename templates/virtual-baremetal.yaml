@@ -140,7 +140,10 @@ resources:
       flavor: {get_param: bmc_flavor}
       image: {get_param: bmc_image}
       key_name: {get_param: key_name}
-      networks: {get_attr: [openstack_baremetal_servers, bmc_nic]}
+      #networks: {get_attr: [openstack_baremetal_servers, bmc_nic]}
+      networks:
+        - network: {get_param: private_net}
+        - network: {get_param: private_net}
       name: {get_param: bmc_prefix}
       user_data_format: RAW
       user_data:
@@ -153,6 +156,7 @@ resources:
             $bm_node_count: {get_param: node_count}
             $bmc_prefix: {get_param: bmc_prefix}
             $bm_prefix: {get_param: baremetal_prefix}
+            $private_net: {get_param: private_net}
             $openstackbmc_script: {get_file: ../bin/openstackbmc}
           template: {get_file: ../bin/install_openstackbmc.sh}
 

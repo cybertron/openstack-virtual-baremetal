@@ -14,18 +14,19 @@ chmod +x /usr/local/bin/openstackbmc
 
 mkdir /etc/os-net-config
 echo "network_config:" > /etc/os-net-config/config.yaml
-
-for i in $(seq 2 $bm_node_count)
-do
-    nic="eth$(($i-1))"
-    echo "- {name: $nic, type: interface, use_dhcp: true, defroute: no}" >> /etc/os-net-config/config.yaml
-done
-os-net-config --verbose
+echo "  -" >> /etc/os-net-config/config.yaml
+echo "    type: interface" >> /etc/os-net-config/config.yaml
+echo "    name: eth1" >> /etc/os-net-config/config.yaml
+echo "    use_dhcp: false" >> /etc/os-net-config/config.yaml
+echo "    routes: []" >> /etc/os-net-config/config.yaml
+echo "    addresses:" >> /etc/os-net-config/config.yaml
 
 export OS_USERNAME=$os_user
 export OS_TENANT_NAME=$os_tenant
 export OS_PASSWORD=$os_password
 export OS_AUTH_URL=$os_auth_url
+
+prefix_len=$(neutron subnet-show -f value -c cidr $private_net | awk -F / '{print $2}')
 
 for i in $(seq 1 $bm_node_count)
 do
@@ -51,6 +52,15 @@ WantedBy=multi-user.target
 Alias=openstack-bmc.service
 EOF
 
+echo "    - ip_netmask: $bmc_ip/$prefix_len" >> /etc/os-net-config/config.yaml
+done
+
+os-net-config --verbose
+
+for i in $(seq 1 $bm_node_count)
+do
+    bm_port="$bm_prefix_$(($i-1))"
+    unit="openstack-bmc-$bm_port.service"
     systemctl enable $unit
     systemctl start $unit
     systemctl status $unit
