@@ -32,16 +32,6 @@ parameters:
     type: number
     default: 2
 
-  controller_node_count:
-    type: number
-    default: 0
-    description: Number of additional nodes to deploy with alternate controller flavor
-
-  controller_flavor:
-    type: string
-    default: baremetal
-    description: Alternate flavor specific to controller nodes
-
   private_net:
     type: string
     default: private

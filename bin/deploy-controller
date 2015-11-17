@@ -1,0 +1,4 @@
+#!/bin/bash
+
+op=${1:-create}
+heat stack-$op -f templates/virtual-baremetal.yaml -e controller.yaml -e templates/resource-registry.yaml controller
