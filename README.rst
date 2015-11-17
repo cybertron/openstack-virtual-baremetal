@@ -27,9 +27,9 @@ RDO Kilo::
 
 Devstack:
 
-    .. note:: The patch may not apply cleanly against master Nova
-              code.  If/when that happens, the patch will need to
-              be applied manually.
+   .. note:: The patch may not apply cleanly against master Nova
+             code.  If/when that happens, the patch will need to
+             be applied manually.
 
    ::
 
@@ -87,13 +87,20 @@ Preparing the Host Cloud Environment
     nova flavor-create baremetal auto 4096 50 2
     nova flavor-create bmc auto 512 20 1
 
+   These flavors can be customized if desired.  For very large environments
+   with a lot of baremetal instances it may be wise to give the bmc flavor
+   more memory.
+
 #. Source an rc file that will provide user credentials for the host cloud.
 
 #. Create provisioning network.
 
-    .. note:: The CIDR used for the subnet does not matter.
-              Standard tenant and external networks are also needed to
-              provide floating ip access to the undercloud and bmc instances
+   .. note:: The CIDR used for the subnet does not matter.
+             Standard tenant and external networks are also needed to
+             provide floating ip access to the undercloud and bmc instances
+
+   .. warning:: Do not enable DHCP on this network.  Addresses will be
+                assigned by the undercloud Neutron.
 
    ::
 
@@ -102,16 +109,16 @@ Preparing the Host Cloud Environment
 
 #. Create "public" network.
 
-    .. note:: The CIDR used for the subnet does not matter.
-              This can be used as the network for the public API endpoints
-              on the overcloud, but it does not have to be accessible
-              externally.  Only the undercloud VM will need to have access
-              to this network.
+   .. note:: The CIDR used for the subnet does not matter.
+             This can be used as the network for the public API endpoints
+             on the overcloud, but it does not have to be accessible
+             externally.  Only the undercloud VM will need to have access
+             to this network.
 
-    .. warning:: Do not enable DHCP on this network.  Doing so may cause
-                 conflicts between the host cloud metadata service and the
-                 undercloud metadata service.  Overcloud nodes will be
-                 assigned addresses on this network by the undercloud Neutron.
+   .. warning:: Do not enable DHCP on this network.  Doing so may cause
+                conflicts between the host cloud metadata service and the
+                undercloud metadata service.  Overcloud nodes will be
+                assigned addresses on this network by the undercloud Neutron.
 
    ::
 
@@ -136,14 +143,14 @@ Create the baremetal Heat stack
 
 #. Wait for Heat stack to complete:
 
-    .. note:: The BMC instances do post-deployment configuration that can
-              take a while to complete, so the Heat stack completing does
-              not necessarily mean the environment is entirely ready for
-              use.  If the BMC instances are not responding to IPMI traffic
-              it likely indicates that the BMC service is still being
-              configured.  This part of the process can take up to 15
-              minutes, depending on the connection speed to the CentOS
-              mirrors.
+   .. note:: The BMC instance does post-deployment configuration that can
+             take a while to complete, so the Heat stack completing does
+             not necessarily mean the environment is entirely ready for
+             use.  If the BMC instance is not responding to IPMI traffic
+             it likely indicates that the BMC services are still being
+             configured.  This part of the process can take up to 15
+             minutes, depending on the connection speed to the CentOS
+             mirrors.
 
    ::
 
@@ -160,6 +167,10 @@ Create the baremetal Heat stack
 
     bin/build-nodes-json
     scp nodes.json centos@[undercloud floating ip]:~/instackenv.json
+
+   .. note:: ``build-nodes-json`` also outputs a file named ``bmc_bm_pairs``
+             that lists which BMC address corresponds to a given baremetal
+             instance.
 
 #. The undercloud vm can now be used with something like RDO Manager
    to do a baremetal-style deployment to the virtual baremetal instances
