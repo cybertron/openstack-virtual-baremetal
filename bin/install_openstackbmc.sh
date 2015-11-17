@@ -5,7 +5,7 @@ yum -y update centos-release # required for rdo-release install to work
 yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 yum install -y https://rdo.fedorapeople.org/rdo-release.rpm
 yum install -y python-pip python-crypto os-net-config python-novaclient python-neutronclient git jq
-pip install --no-deps git+https://github.com/steveb/pyghmi.git@custom-bind-address
+pip install pyghmi
 
 cat <<EOF >/usr/local/bin/openstackbmc
 $openstackbmc_script
