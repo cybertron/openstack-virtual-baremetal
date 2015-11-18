@@ -21,6 +21,23 @@ echo "    use_dhcp: false" >> /etc/os-net-config/config.yaml
 echo "    routes: []" >> /etc/os-net-config/config.yaml
 echo "    addresses:" >> /etc/os-net-config/config.yaml
 
+cat <<EOF >/usr/lib/systemd/system/config-bmc-ips.service
+[Unit]
+Description=config-bmc-ips Service
+Requires=network.target
+After=network.target
+
+[Service]
+ExecStart=/bin/os-net-config --verbose
+Type=oneshot
+User=root
+StandardOutput=kmsg+console
+StandardError=inherit
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
 export OS_USERNAME=$os_user
 export OS_TENANT_NAME=$os_tenant
 export OS_PASSWORD=$os_password
@@ -38,7 +55,9 @@ do
 
     cat <<EOF >/usr/lib/systemd/system/$unit
 [Unit]
-Description=openstack-bmc Service
+Description=openstack-bmc $bm_port Service
+Requires=config-bmc-ips.service
+After=config-bmc-ips.service
 
 [Service]
 ExecStart=/usr/local/bin/openstackbmc  --os-user $os_user --os-password $os_password --os-tenant $os_tenant --os-auth-url $os_auth_url --instance $bm_instance --address $bmc_ip
@@ -49,13 +68,14 @@ StandardError=inherit
 
 [Install]
 WantedBy=multi-user.target
-Alias=openstack-bmc.service
 EOF
 
-echo "    - ip_netmask: $bmc_ip/$prefix_len" >> /etc/os-net-config/config.yaml
+    echo "    - ip_netmask: $bmc_ip/$prefix_len" >> /etc/os-net-config/config.yaml
 done
 
-os-net-config --verbose
+# It will be automatically started because the bmc services depend on it,
+# but to avoid confusion also explicitly enable it.
+systemctl enable config-bmc-ips
 
 for i in $(seq 1 $bm_node_count)
 do
