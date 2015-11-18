@@ -58,10 +58,10 @@ Configuring the Host Cloud
 
         shutdown_timeout=15
 
-    in nova.conf as well.  This causes Nova to wait less time when shutting
-    down an instance gracefully, and since graceful shutdown will never
-    happen with the baremetal instances booted from an empty image it speeds
-    things up a bit.
+   in nova.conf as well.  This causes Nova to wait less time when shutting
+   down an instance gracefully, and since graceful shutdown will never
+   happen with the baremetal instances booted from an empty image it speeds
+   things up a bit.
 
 #. Restart ``nova-compute`` and ``neutron-openvswitch-agent`` to apply the
    changes above.
