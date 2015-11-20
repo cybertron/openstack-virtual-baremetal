@@ -87,9 +87,10 @@ Preparing the Host Cloud Environment
     nova flavor-create baremetal auto 4096 50 2
     nova flavor-create bmc auto 512 20 1
 
-   These flavors can be customized if desired.  For very large environments
-   with a lot of baremetal instances it may be wise to give the bmc flavor
-   more memory.
+   These flavors can be customized if desired.  For large environments
+   with many baremetal instances it may be wise to give the bmc flavor
+   more memory.  A 512 MB BMC will run out of memory around 20 baremetal
+   instances.
 
 #. Source an rc file that will provide user credentials for the host cloud.
 
@@ -146,11 +147,11 @@ Create the baremetal Heat stack
    .. note:: The BMC instance does post-deployment configuration that can
              take a while to complete, so the Heat stack completing does
              not necessarily mean the environment is entirely ready for
-             use.  If the BMC instance is not responding to IPMI traffic
-             it likely indicates that the BMC services are still being
-             configured.  This part of the process can take up to 15
-             minutes, depending on the connection speed to the CentOS
-             mirrors.
+             use.  To determine whether the BMC is finished starting up,
+             run ``nova console-log bmc``.  The BMC service outputs a
+             message like "Managing instance [uuid]" when it is fully
+             configured.  There should be one of these messages for each
+             baremetal instance.
 
    ::
 
