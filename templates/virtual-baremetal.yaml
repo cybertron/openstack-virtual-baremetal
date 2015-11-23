@@ -130,7 +130,6 @@ resources:
       flavor: {get_param: bmc_flavor}
       image: {get_param: bmc_image}
       key_name: {get_param: key_name}
-      #networks: {get_attr: [openstack_baremetal_servers, bmc_nic]}
       networks:
         - network: {get_param: private_net}
         - network: {get_param: private_net}
