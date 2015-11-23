@@ -67,8 +67,6 @@ resources:
         - - {get_param: bmc_prefix}
           - {get_param: suffix}
       network: {get_param: private_net}
-      security_groups:
-      - {get_param: private_sg}
 
   baremetal_port:
     type: OS::Neutron::Port
@@ -79,8 +77,6 @@ resources:
         - - {get_param: baremetal_prefix}
           - {get_param: suffix}
       network: {get_param: provision_net}
-      security_groups:
-      - {get_param: provision_sg}
 
   baremetal_server:
     type: OS::Nova::Server

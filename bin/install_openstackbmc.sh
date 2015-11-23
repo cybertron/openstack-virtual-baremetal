@@ -43,7 +43,8 @@ export OS_TENANT_NAME=$os_tenant
 export OS_PASSWORD=$os_password
 export OS_AUTH_URL=$os_auth_url
 
-prefix_len=$(neutron subnet-show -f value -c cidr $private_net | awk -F / '{print $2}')
+private_subnet=$(neutron net-show -f value -c subnets $private_net)
+prefix_len=$(neutron subnet-show -f value -c cidr $private_subnet | awk -F / '{print $2}')
 
 for i in $(seq 1 $bm_node_count)
 do
