@@ -1,3 +1,4 @@
 resource_registry:
   OS::OVB::ServerPair: virtual-baremetal-servers.yaml
   OS::OVB::BaremetalEnvironment: virtual-baremetal.yaml
+  OS::OVB::UndercloudFloating: undercloud-floating.yaml

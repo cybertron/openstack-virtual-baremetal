@@ -1,0 +1,31 @@
+heat_template_version: 2015-04-30
+
+# Template that creates a new floating IP to access the undercloud
+
+parameters:
+  external_net:
+    type: string
+    default: external
+    description: An external network from which floating ips can be provisioned
+
+  undercloud_port:
+    type: string
+    description: Port id of undercloud server for floating ip
+
+resources:
+
+  undercloud_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: {get_param: external_net}
+
+  undercloud_floating_ip_assoc:
+    type: OS::Neutron::FloatingIPAssociation
+    properties:
+      floatingip_id: {get_resource: undercloud_floating_ip}
+      port_id: {get_param: undercloud_port}
+
+outputs:
+  undercloud_host:
+    value:
+      get_attr: [undercloud_floating_ip, floating_ip_address]
