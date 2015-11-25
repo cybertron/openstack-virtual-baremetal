@@ -1,0 +1,17 @@
+heat_template_version: 2015-04-30
+
+# Template that creates a new floating IP to access the undercloud
+
+parameters:
+  external_net:
+    type: string
+    default: external
+    description: An external network from which floating ips can be provisioned
+
+  undercloud_port:
+    type: string
+    description: Port id of undercloud server for floating ip
+
+outputs:
+  undercloud_host:
+    value: 'none'

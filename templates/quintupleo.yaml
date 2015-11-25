@@ -158,15 +158,10 @@ resources:
       name: {get_param: undercloud_name}
 
   undercloud_floating_ip:
-    type: OS::Neutron::FloatingIP
+    type: OS::OVB::UndercloudFloating
     properties:
-      floating_network: {get_param: external_net}
-
-  undercloud_floating_ip_assoc:
-    type: OS::Neutron::FloatingIPAssociation
-    properties:
-      floatingip_id: {get_resource: undercloud_floating_ip}
-      port_id: {get_attr: [undercloud_server, addresses, {get_param: private_net}, 0, port]}
+      external_net: {get_param: external_net}
+      undercloud_port: {get_attr: [undercloud_server, addresses, {get_param: private_net}, 0, port]}
 
   baremetal_env:
     type: OS::OVB::BaremetalEnvironment
