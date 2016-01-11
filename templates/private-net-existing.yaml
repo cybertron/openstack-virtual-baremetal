@@ -1,0 +1,19 @@
+heat_template_version: 2015-04-30
+
+# Template which provides a private network which is routed to an external
+# network. This template just passes through the name of an already created
+# private network.
+
+parameters:
+  external_net:
+    type: string
+    default: private
+    description: An external network from which floating ips can be provisioned
+
+  private_net:
+    type: string
+    description: Name of private network
+
+outputs:
+  private_net:
+    value: {get_param: private_net}
