@@ -1,0 +1,48 @@
+heat_template_version: 2015-04-30
+
+# Template which creates a private network which is routed to an external
+# network.
+
+parameters:
+  external_net:
+    type: string
+    description: An external network for the private network to route to
+
+  private_net:
+    type: string
+    description: Name of private network
+
+  private_net_cidr:
+    type: string
+    description: CIDR for private network subnet
+    default: 10.0.1.0/24
+
+resources:
+
+  network:
+    type: OS::Neutron::Net
+    properties:
+      name: {get_param: private_net}
+
+  subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      network: {get_resource: network}
+      name: {get_param: private_net}
+      cidr: {get_param: private_net_cidr}
+
+  router:
+    type: OS::Neutron::Router
+    properties:
+      external_gateway_info:
+        network: {get_param: external_net}
+
+  router_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: {get_resource: router}
+      subnet: {get_resource: subnet}
+
+outputs:
+  private_net:
+    value: {get_param: private_net}
