@@ -63,6 +63,10 @@ Configuring the Host Cloud
    happen with the baremetal instances booted from an empty image it speeds
    things up a bit.
 
+#. ``/etc/nova/nova.conf`` needs ``allow_duplicate_networks=true`` in the
+   ``[neutron]`` section so that the BMC instance can have multiple nics on the
+   same network.
+
 #. Restart ``nova-compute`` and ``neutron-openvswitch-agent`` to apply the
    changes above.
 
