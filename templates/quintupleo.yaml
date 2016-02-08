@@ -185,4 +185,4 @@ resources:
 outputs:
   undercloud_host:
     value:
-      get_attr: [undercloud_floating_ip, floating_ip_address]
+      get_attr: [undercloud_floating_ip, undercloud_host]
