@@ -183,6 +183,7 @@ resources:
       os_auth_url: {get_param: os_auth_url}
 
 outputs:
-  undercloud_host:
+  undercloud_host_floating_ip:
+    description: "floating ip of the undercloud instance"
     value:
       get_attr: [undercloud_floating_ip, undercloud_host]
