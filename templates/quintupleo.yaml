@@ -69,11 +69,11 @@ parameters:
     type: string
     default: CentOS-7-x86_64-GenericCloud-1503
 
-  user_data:
+  undercloud_user_data:
     type: string
     default: ""
 
-  user_data_format:
+  undercloud_user_data_format:
     type: string
     default: RAW
 
@@ -164,8 +164,8 @@ resources:
       - network: {get_resource: provision_network}
       - network: {get_resource: public_network}
       name: {get_param: undercloud_name}
-      user_data_format: {get_param: user_data_format}
-      user_data: {get_param: user_data}
+      user_data_format: {get_param: undercloud_user_data_format}
+      user_data: {get_param: undercloud_user_data}
 
   undercloud_floating_ip:
     type: OS::OVB::UndercloudFloating
