@@ -1,4 +1,5 @@
 #!/bin/bash
 
 op=${1:-create}
-heat stack-$op -f templates/quintupleo.yaml -e templates/resource-registry.yaml -e env.yaml quintupleo
+stack_name=${2:-quintupleo}
+heat stack-$op -f templates/quintupleo.yaml -e templates/resource-registry.yaml -e env.yaml $stack_name
