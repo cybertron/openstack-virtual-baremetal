@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 import sys
+import yaml
 
 from neutronclient.v2_0 import client as neutronclient
 from novaclient import client as novaclient
@@ -13,6 +14,10 @@ def main():
         prog='build-nodes-json.py',
         description='Tool for collecting virtual IPMI details',
     )
+    parser.add_argument('--env',
+                        dest='env',
+                        default=None,
+                        help='YAML file containing OVB environment details')
     parser.add_argument('--bmc_prefix',
                         dest='bmc_prefix',
                         default='bmc',
@@ -31,10 +36,18 @@ def main():
                         help='Provisioning network name')
     args = parser.parse_args()
 
-    bmc_base = args.bmc_prefix
-    baremetal_base = args.baremetal_prefix
-    private_net = args.private_net
-    provision_net = args.provision_net
+    if args.env is None:
+        bmc_base = args.bmc_prefix
+        baremetal_base = args.baremetal_prefix
+        private_net = args.private_net
+        provision_net = args.provision_net
+    else:
+        with open(args.env) as f:
+            e = yaml.safe_load(f)
+        bmc_base = e['parameters']['bmc_prefix']
+        baremetal_base = e['parameters']['baremetal_prefix']
+        private_net = e['parameters']['private_net']
+        provision_net = e['parameters']['provision_net']
     username = os.environ.get('OS_USERNAME')
     password = os.environ.get('OS_PASSWORD')
     tenant = os.environ.get('OS_TENANT_NAME')

@@ -41,11 +41,11 @@ parameters:
     default: external
     description: An external network from which floating ips can be provisioned
 
-  provision_net_name:
+  provision_net:
     type: string
     default: provision
 
-  public_net_name:
+  public_net:
     type: string
     default: public
 
@@ -93,17 +93,11 @@ parameters:
   os_auth_url:
     type: string
 
-  # Ignored compatibility parameters for base virtual-baremetal env files
-  public_net:
-    type: string
-  provision_net:
-    type: string
-
 resources:
   provision_network:
     type: OS::Neutron::Net
     properties:
-        name: {get_param: provision_net_name}
+        name: {get_param: provision_net}
 
   provision_subnet:
     type: OS::Neutron::Subnet
@@ -117,7 +111,7 @@ resources:
   public_network:
     type: OS::Neutron::Net
     properties:
-      name: {get_param: public_net_name}
+      name: {get_param: public_net}
 
   public_subnet:
     type: OS::Neutron::Subnet
