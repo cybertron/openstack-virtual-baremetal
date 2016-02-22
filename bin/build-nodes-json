@@ -76,11 +76,12 @@ def main():
         auth_url=auth_url
     )
 
+    bmc_id = [ s.id for s in nova.servers.list() if bmc_base in s.name ]
+    bm_id = [ s.id for s in nova.servers.list() if baremetal_base in s.name ]
+
     all_ports = sorted(neutron.list_ports()['ports'], key=lambda x: x['name'])
-    bmc_ports = list([p for p in all_ports
-                     if p['name'].startswith(bmc_base)])
-    bm_ports = list([p for p in all_ports
-                    if p['name'].startswith(baremetal_base)])
+    bmc_ports = [p for p in all_ports if p['device_id'] in bmc_id]
+    bm_ports = [p for p in all_ports if p['device_id'] in bm_id]
     if len(bmc_ports) != len(bm_ports):
         raise RuntimeError('Found different numbers of baremetal and '
                            'bmc ports.')
