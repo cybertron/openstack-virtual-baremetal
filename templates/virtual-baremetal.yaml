@@ -124,6 +124,16 @@ resources:
         port_range_min: 623
         port_range_max: 623
 
+  bmc_port:
+    type: OS::Neutron::Port
+    properties:
+      name:
+        list_join:
+        - '_'
+        - - 'utility'
+          - {get_param: bmc_prefix}
+      network: {get_param: private_net}
+
   bmc_server:
     type: OS::Nova::Server
     properties:
@@ -131,8 +141,7 @@ resources:
       image: {get_param: bmc_image}
       key_name: {get_param: key_name}
       networks:
-        - network: {get_param: private_net}
-        - network: {get_param: private_net}
+        - port: {get_resource: bmc_port}
       name: {get_param: bmc_prefix}
       user_data_format: RAW
       user_data:
@@ -144,6 +153,7 @@ resources:
             $os_auth_url: {get_param: os_auth_url}
             $bm_node_count: {get_param: node_count}
             $bmc_prefix: {get_param: bmc_prefix}
+            $bmc_utility: {get_attr: [bmc_port, fixed_ips, 0, ip_address]}
             $bm_prefix: {get_param: baremetal_prefix}
             $private_net: {get_param: private_net}
             $openstackbmc_script: {get_file: ../bin/openstackbmc}

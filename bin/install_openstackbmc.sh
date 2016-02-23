@@ -12,14 +12,25 @@ $openstackbmc_script
 EOF
 chmod +x /usr/local/bin/openstackbmc
 
+export OS_USERNAME=$os_user
+export OS_TENANT_NAME=$os_tenant
+export OS_PASSWORD=$os_password
+export OS_AUTH_URL=$os_auth_url
+private_subnet=$(neutron net-show -f value -c subnets $private_net)
+default_gw=$(neutron subnet-show $private_subnet -f value -c gateway_ip)
+prefix_len=$(neutron subnet-show -f value -c cidr $private_subnet | awk -F / '{print $2}')
+
 mkdir /etc/os-net-config
 echo "network_config:" > /etc/os-net-config/config.yaml
 echo "  -" >> /etc/os-net-config/config.yaml
 echo "    type: interface" >> /etc/os-net-config/config.yaml
-echo "    name: eth1" >> /etc/os-net-config/config.yaml
+echo "    name: eth0" >> /etc/os-net-config/config.yaml
 echo "    use_dhcp: false" >> /etc/os-net-config/config.yaml
-echo "    routes: []" >> /etc/os-net-config/config.yaml
+echo "    routes:" >> /etc/os-net-config/config.yaml
+echo "      - default: true" >> /etc/os-net-config/config.yaml
+echo "        next_hop: $default_gw" >> /etc/os-net-config/config.yaml
 echo "    addresses:" >> /etc/os-net-config/config.yaml
+echo "    - ip_netmask: $bmc_utility/$prefix_len" >> /etc/os-net-config/config.yaml
 
 cat <<EOF >/usr/lib/systemd/system/config-bmc-ips.service
 [Unit]
@@ -37,14 +48,6 @@ StandardError=inherit
 [Install]
 WantedBy=multi-user.target
 EOF
-
-export OS_USERNAME=$os_user
-export OS_TENANT_NAME=$os_tenant
-export OS_PASSWORD=$os_password
-export OS_AUTH_URL=$os_auth_url
-
-private_subnet=$(neutron net-show -f value -c subnets $private_net)
-prefix_len=$(neutron subnet-show -f value -c cidr $private_subnet | awk -F / '{print $2}')
 
 for i in $(seq 1 $bm_node_count)
 do
