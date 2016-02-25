@@ -66,6 +66,10 @@ parameters:
   os_auth_url:
     type: string
 
+  default_sg:
+    type: string
+    default: all_sg
+
   # Ignored parameters for compatibility with QuintupleO env files
   undercloud_image:
     type: string
@@ -90,26 +94,6 @@ resources:
   # NOTE(bnemec): This should probably be limited to allowing only
   # OpenStack API ports, but for now this is simpler and not
   # completely unreasonable.
-  public_sg:
-    type: OS::Neutron::SecurityGroup
-    properties:
-      name: public_sg
-      description: Allows all traffic
-      rules:
-      - protocol: icmp
-      - protocol: tcp
-      - protocol: udp
-
-  provision_sg:
-    type: OS::Neutron::SecurityGroup
-    properties:
-      name: provision_sg
-      description: Allows all traffic
-      rules:
-      - protocol: icmp
-      - protocol: tcp
-      - protocol: udp
-
   private_sg:
     type: OS::Neutron::SecurityGroup
     properties:
@@ -172,11 +156,11 @@ resources:
           baremetal_image: {get_param: baremetal_image}
           key_name: {get_param: key_name}
           public_net: {get_param: public_net}
-          public_sg: {get_resource: public_sg}
+          public_sg: {get_param: default_sg}
           private_net: {get_param: private_net}
           private_sg: {get_resource: private_sg}
           provision_net: {get_param: provision_net}
-          provision_sg: {get_resource: provision_sg}
+          provision_sg: {get_param: default_sg}
           suffix: _%index%
           bmc_prefix: {get_param: bmc_prefix}
           baremetal_prefix: {get_param: baremetal_prefix}
