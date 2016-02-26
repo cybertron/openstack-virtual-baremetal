@@ -17,10 +17,10 @@ parameters:
     description: CIDR for private network subnet
     default: 10.0.1.0/24
 
-  dns_nameserver:
-    type: string
-    description: DNS server for the private network
-    default: 8.8.8.8
+  dns_nameservers:
+    default: ["8.8.8.8", ]
+    description: List of DNS servers for the private network
+    type: comma_delimited_list
 
 resources:
 
@@ -35,8 +35,7 @@ resources:
       network: {get_resource: network}
       name: {get_param: private_net}
       cidr: {get_param: private_net_cidr}
-      dns_nameservers:
-        - {get_param: dns_nameserver}
+      dns_nameservers: {get_param: dns_nameservers}
 
   router:
     type: OS::Neutron::Router
