@@ -22,15 +22,12 @@ parameters:
 
 resources:
 
-  baremetal_port:
-    type: OS::Neutron::Port
+  baremetal_ports:
+    type: OS::OVB::BaremetalPorts
     properties:
-      name:
-        list_join:
-        - ''
-        - - {get_param: baremetal_prefix}
-          - {get_param: suffix}
-      network: {get_param: provision_net}
+      suffix: {get_param: suffix}
+      baremetal_prefix: {get_param: baremetal_prefix}
+      provision_net: {get_param: provision_net}
 
   baremetal_server:
     type: OS::Nova::Server
@@ -39,8 +36,7 @@ resources:
       image: {get_param: baremetal_image}
       config_drive: false
       key_name: {get_param: key_name}
-      networks:
-      - port: {get_resource: baremetal_port}
+      networks: {get_attr: [baremetal_ports, ports]}
       name:
         list_join:
         - ''

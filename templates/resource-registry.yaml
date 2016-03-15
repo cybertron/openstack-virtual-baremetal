@@ -3,3 +3,5 @@ resource_registry:
   OS::OVB::BaremetalEnvironment: virtual-baremetal.yaml
   OS::OVB::UndercloudFloating: undercloud-floating.yaml
   OS::OVB::PrivateNetwork: private-net-existing.yaml
+  OS::OVB::BaremetalNetworks: baremetal-networks-none.yaml
+  OS::OVB::BaremetalPorts: baremetal-ports-default.yaml

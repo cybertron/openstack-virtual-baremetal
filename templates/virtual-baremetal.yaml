@@ -137,8 +137,12 @@ resources:
             $openstackbmc_script: {get_file: ../bin/openstackbmc}
           template: {get_file: ../bin/install_openstackbmc.sh}
 
+  baremetal_networks:
+    type: OS::OVB::BaremetalNetworks
+
   openstack_baremetal_servers:
     type: OS::Heat::ResourceGroup
+    depends_on: baremetal_networks
     properties:
       count: {get_param: node_count}
       resource_def:
