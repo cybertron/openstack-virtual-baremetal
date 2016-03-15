@@ -1,11 +1,6 @@
 heat_template_version: 2014-10-16
 
 parameters:
-  bmc_flavor:
-    type: string
-
-  bmc_image:
-    type: string
 
   baremetal_flavor:
     type: string
@@ -22,38 +17,13 @@ parameters:
   baremetal_prefix:
     type: string
 
-  public_net:
-    type: string
-
-  public_sg:
-    type: string
-
   private_net:
-    type: string
-
-  private_sg:
     type: string
 
   provision_net:
     type: string
 
-  provision_sg:
-    type: string
-
   suffix:
-    type: string
-
-  os_user:
-    type: string
-
-  os_password:
-    type: string
-    hidden: true
-
-  os_tenant:
-    type: string
-
-  os_auth_url:
     type: string
 
 resources:
@@ -85,12 +55,8 @@ resources:
       image: {get_param: baremetal_image}
       config_drive: false
       key_name: {get_param: key_name}
-      # security_groups:
-      # TODO(bnemec): Reattach these when it doesn't wreak havoc on TripleO to have multiple nics.
-      #- {get_param: public_sg}
       networks:
       - port: {get_resource: baremetal_port}
-      #- network: {get_param: public_net}
       name:
         list_join:
         - ''
