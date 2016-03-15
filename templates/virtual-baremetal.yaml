@@ -98,6 +98,20 @@ resources:
           - {get_param: bmc_prefix}
       network: {get_param: private_net}
 
+  bmc_other_ports:
+    type: OS::Heat::ResourceGroup
+    properties:
+      count: {get_param: node_count}
+      resource_def:
+        type: OS::Neutron::Port
+        properties:
+          name:
+            list_join:
+            - ''
+            - - {get_param: bmc_prefix}
+              - _%index%
+          network: {get_param: private_net}
+
   bmc_server:
     type: OS::Nova::Server
     properties:
@@ -133,8 +147,6 @@ resources:
           baremetal_flavor: {get_param: baremetal_flavor}
           baremetal_image: {get_param: baremetal_image}
           key_name: {get_param: key_name}
-          private_net: {get_param: private_net}
           provision_net: {get_param: provision_net}
           suffix: _%index%
-          bmc_prefix: {get_param: bmc_prefix}
           baremetal_prefix: {get_param: baremetal_prefix}

@@ -11,13 +11,7 @@ parameters:
   key_name:
     type: string
 
-  bmc_prefix:
-    type: string
-
   baremetal_prefix:
-    type: string
-
-  private_net:
     type: string
 
   provision_net:
@@ -27,16 +21,6 @@ parameters:
     type: string
 
 resources:
-
-  bmc_port:
-    type: OS::Neutron::Port
-    properties:
-      name:
-        list_join:
-        - ''
-        - - {get_param: bmc_prefix}
-          - {get_param: suffix}
-      network: {get_param: private_net}
 
   baremetal_port:
     type: OS::Neutron::Port
