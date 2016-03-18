@@ -26,6 +26,7 @@ echo "  -" >> /etc/os-net-config/config.yaml
 echo "    type: interface" >> /etc/os-net-config/config.yaml
 echo "    name: eth0" >> /etc/os-net-config/config.yaml
 echo "    use_dhcp: false" >> /etc/os-net-config/config.yaml
+echo "    mtu: 1450" >> /etc/os-net-config/config.yaml
 echo "    routes:" >> /etc/os-net-config/config.yaml
 echo "      - default: true" >> /etc/os-net-config/config.yaml
 echo "        next_hop: $default_gw" >> /etc/os-net-config/config.yaml
