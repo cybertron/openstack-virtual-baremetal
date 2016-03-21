@@ -54,9 +54,30 @@ Configuring the Host Cloud
 
 #. The Nova option ``force_config_drive`` must _not_ be set.
 
+#. Ideally, jumbo frames should be enabled on the host cloud.  This
+   avoids MTU problems when deploying to instances over tunneled
+   Neutron networks with VXLAN or GRE.
+
+   For TripleO-based host clouds, this can be done by setting ``mtu``
+   on all interfaces and vlans in the network isolation nic-configs.
+   A value of at least 1550 should be sufficient to avoid problems.
+
+   If this cannot be done (perhaps because you don't have access to make
+   such a change on the host cloud), it will likely be necessary to
+   configure a smaller MTU on the deployed virtual instances.  For a
+   TripleO undercloud, Neutron should be configured to advertise a
+   smaller MTU to instances.  Run the following as root::
+
+       echo "dhcp-option-force=26,1450" >> /etc/dnsmasq-ironic.conf
+       systemctl restart neutron-*
+
+   If network isolation is in use, the templates must also configure
+   mtu as discussed above, except the mtu should be set to 1450 instead
+   of 1550.
+
 #. (Optional) It can be helpful to set::
 
-        shutdown_timeout=15
+       shutdown_timeout=15
 
    in nova.conf as well.  This causes Nova to wait less time when shutting
    down an instance gracefully, and since graceful shutdown will never
