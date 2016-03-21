@@ -194,6 +194,6 @@ Create the baremetal Heat stack
              that lists which BMC address corresponds to a given baremetal
              instance.
 
-#. The undercloud vm can now be used with something like RDO Manager
+#. The undercloud vm can now be used with something like TripleO
    to do a baremetal-style deployment to the virtual baremetal instances
    deployed previously.

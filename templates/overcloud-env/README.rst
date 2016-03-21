@@ -2,7 +2,7 @@ Deploying an Overcloud for Virtual Baremetal
 ============================================
 
 The files in this directory can be used to deploy an overcloud
-using RDO Manager that is suitable for use as a virtual
+using TripleO that is suitable for use as a virtual
 baremetal host.  The following are instructions on how to do so.
 
 Custom Environment
