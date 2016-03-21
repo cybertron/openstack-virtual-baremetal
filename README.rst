@@ -99,9 +99,9 @@ Preparing the Host Cloud Environment
 
 #. Upload a CentOS 7 image for use as the base BMC instance::
 
-    wget http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-1503.qcow2
+    wget http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2
 
-    glance image-create --name CentOS-7-x86_64-GenericCloud-1503 --disk-format qcow2 --container-format bare < CentOS-7-x86_64-GenericCloud-1503.qcow2
+    glance image-create --name CentOS-7-x86_64-GenericCloud --disk-format qcow2 --container-format bare < CentOS-7-x86_64-GenericCloud.qcow2
 
 #. Create recommended flavors::
 
