@@ -151,6 +151,7 @@ resources:
 
   undercloud_server:
     type: OS::Nova::Server
+    depends_on: provision_subnet
     properties:
       flavor: {get_param: undercloud_flavor}
       image: {get_param: undercloud_image}
@@ -181,6 +182,7 @@ resources:
 
   baremetal_env:
     type: OS::OVB::BaremetalEnvironment
+    depends_on: provision_subnet
     properties:
       baremetal_flavor: {get_param: baremetal_flavor}
       baremetal_image: {get_param: baremetal_image}
