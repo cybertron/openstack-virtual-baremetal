@@ -45,9 +45,20 @@ parameters:
     type: string
     default: provision
 
+  provision_net_cidr:
+    type: string
+    description: CIDR for provision network subnet
+    default: 192.0.2.0/24
+
   public_net:
     type: string
+    description: Name of the overcloud external network
     default: public
+
+  public_net_cidr:
+    type: string
+    description: CIDR for external network subnet
+    default: 10.0.0.0/24
 
   bmc_prefix:
     type: string
@@ -104,7 +115,7 @@ resources:
     properties:
       network: {get_resource: provision_network}
       name: provision-subnet
-      cidr: 192.0.2.0/24
+      cidr: {get_param: provision_net_cidr}
       gateway_ip: null
       enable_dhcp: false
 
@@ -117,8 +128,8 @@ resources:
     type: OS::Neutron::Subnet
     properties:
       network: {get_resource: public_network}
-      name: public-subnet
-      cidr: 10.0.0.0/24
+      name: {get_param: public_net}
+      cidr: {get_param: public_net_cidr}
       gateway_ip: null
       enable_dhcp: false
 
@@ -151,7 +162,7 @@ resources:
 
   undercloud_server:
     type: OS::Nova::Server
-    depends_on: provision_subnet
+    depends_on: [provision_subnet, public_subnet]
     properties:
       flavor: {get_param: undercloud_flavor}
       image: {get_param: undercloud_image}
@@ -182,7 +193,7 @@ resources:
 
   baremetal_env:
     type: OS::OVB::BaremetalEnvironment
-    depends_on: provision_subnet
+    depends_on: [provision_subnet, public_subnet]
     properties:
       baremetal_flavor: {get_param: baremetal_flavor}
       baremetal_image: {get_param: baremetal_image}

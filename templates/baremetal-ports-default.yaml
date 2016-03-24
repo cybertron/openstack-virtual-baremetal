@@ -8,6 +8,11 @@ parameters:
   provision_net:
     type: string
 
+  public_net:
+    type: string
+    description: Name of external network
+    default: public
+
   suffix:
     type: string
 

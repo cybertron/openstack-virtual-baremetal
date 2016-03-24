@@ -152,5 +152,6 @@ resources:
           baremetal_image: {get_param: baremetal_image}
           key_name: {get_param: key_name}
           provision_net: {get_param: provision_net}
+          public_net: {get_param: public_net}
           suffix: _%index%
           baremetal_prefix: {get_param: baremetal_prefix}

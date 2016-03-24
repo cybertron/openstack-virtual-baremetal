@@ -17,6 +17,9 @@ parameters:
   provision_net:
     type: string
 
+  public_net:
+    type: string
+
   suffix:
     type: string
 
@@ -28,6 +31,7 @@ resources:
       suffix: {get_param: suffix}
       baremetal_prefix: {get_param: baremetal_prefix}
       provision_net: {get_param: provision_net}
+      public_net: {get_param: public_net}
 
   baremetal_server:
     type: OS::Nova::Server
