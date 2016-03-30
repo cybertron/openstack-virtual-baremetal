@@ -81,7 +81,7 @@ Configuring the Host Cloud
 
    in nova.conf as well.  This causes Nova to wait less time when shutting
    down an instance gracefully, and since graceful shutdown will never
-   happen with the baremetal instances booted from an empty image it speeds
+   happen with the baremetal instances booted from a ipxe-boot image it speeds
    things up a bit.
 
 #. Restart ``nova-compute`` and ``neutron-openvswitch-agent`` to apply the
@@ -92,10 +92,9 @@ Preparing the Host Cloud Environment
 
 #. Source an rc file that will provide admin credentials for the host cloud.
 
-#. Create an empty base image for the baremetal instances::
+#. Upload an ipxe-boot image for the baremetal instances::
 
-    qemu-img create -f qcow2 empty.qcow2 40G
-    glance image-create --name empty --disk-format qcow2 --container-format bare < empty.qcow2
+    glance image-create --name ipxe-boot --disk-format qcow2 --container-format bare < ipxe/ipxe-boot.qcow2
 
 #. Upload a CentOS 7 image for use as the base BMC instance::
 
