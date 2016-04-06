@@ -11,7 +11,7 @@ parameters:
 
   bmc_image:
     type: string
-    default: CentOS-7-x86_64-GenericCloud-1503
+    default: CentOS-7-x86_64-GenericCloud
 
   baremetal_flavor:
     type: string
