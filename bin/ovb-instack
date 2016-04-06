@@ -1,0 +1,37 @@
+#!/bin/bash
+
+set -ex
+
+# These params need to be configured for the environment
+export http_proxy=http://roxy:3128
+curl -O http://openstack/CentOS-7-x86_64-GenericCloud-1602.qcow2
+curl -O http://openstack/fedora-user.qcow2
+
+export DIB_LOCAL_IMAGE=CentOS-7-x86_64-GenericCloud-1602.qcow2
+export DIB_DISTRIBUTION_MIRROR=http://mirror.centos.org/centos
+export no_proxy=9.1.1.1,192.0.2.1,9.1.1.2,192.0.2.2
+
+sudo yum install -y git
+rm -rf git-tripleo-ci
+git clone https://git.openstack.org/openstack-infra/tripleo-ci git-tripleo-ci
+echo '#!/bin/bash' > tripleo.sh
+echo 'git-tripleo-ci/scripts/tripleo.sh $@' >> tripleo.sh
+chmod +x tripleo.sh
+
+export OVERCLOUD_PINGTEST_OLD_HEATCLIENT=0
+export TRIPLEOSH=/home/centos/tripleo.sh
+
+$TRIPLEOSH --repo-setup
+
+cat << EOF > undercloud.conf
+[DEFAULT]
+undercloud_hostname=undercloud.localdomain
+EOF
+
+$TRIPLEOSH --undercloud
+$TRIPLEOSH --overcloud-images
+$TRIPLEOSH --register-nodes
+sleep 60
+export OVERCLOUD_DEPLOY_ARGS="--libvirt-type qemu"
+$TRIPLEOSH --overcloud-deploy
+$TRIPLEOSH --overcloud-pingtest

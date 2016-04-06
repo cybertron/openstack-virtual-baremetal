@@ -1,4 +1,7 @@
 #!/bin/bash
 
-op=${1:-create}
+op=create
+if heat stack-list | grep " baremetal "; then
+    op=update
+fi
 heat stack-$op -f templates/virtual-baremetal.yaml -e templates/resource-registry.yaml baremetal -e env.yaml

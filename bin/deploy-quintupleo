@@ -1,5 +1,8 @@
 #!/bin/bash
 
-op=${1:-create}
-stack_name=${2:-quintupleo}
+stack_name=${1:-quintupleo}
+op=create
+if heat stack-list | grep " $stack_name "; then
+    op=update
+fi
 heat stack-$op -f templates/quintupleo.yaml -e templates/resource-registry.yaml -e env.yaml $stack_name
