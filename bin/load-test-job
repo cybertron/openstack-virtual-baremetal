@@ -48,7 +48,7 @@ echo 'resource_registry:' >> env.yaml
 echo '  OS::OVB::UndercloudFloating: templates/undercloud-floating.yaml' >> env.yaml
 
 cp -r $BIN_DIR ./bin
-$BIN_DIR/deploy-quintupleo create quintupleo-$MY_ID
+$BIN_DIR/deploy-quintupleo quintupleo-$MY_ID
 sleep 60
 UNDERCLOUD_IP=$(heat output-show quintupleo-$MY_ID undercloud_host_floating_ip | sed -e 's/"//g')
 #bin/build-nodes-json --env env.yaml #--bmc_prefix $BMC_PREFIX --baremetal_prefix $BAREMETAL_PREFIX --provision_net $PROVISION_NET_NAME
