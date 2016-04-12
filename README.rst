@@ -197,3 +197,7 @@ Create the baremetal Heat stack
 #. The undercloud vm can now be used with something like TripleO
    to do a baremetal-style deployment to the virtual baremetal instances
    deployed previously.
+
+#. If using the full network isolation provided by OS::OVB::BaremetalNetworks
+   then the overcloud can be created with the network templates in
+   the ``network-templates`` directory.
