@@ -48,10 +48,29 @@ def main():
         baremetal_base = e['parameters']['baremetal_prefix']
         private_net = e['parameters']['private_net']
         provision_net = e['parameters']['provision_net']
-    username = os.environ.get('OS_USERNAME')
-    password = os.environ.get('OS_PASSWORD')
-    tenant = os.environ.get('OS_TENANT_NAME')
-    auth_url = os.environ.get('OS_AUTH_URL')
+
+    cloud = os.environ.get('OS_CLOUD')
+    if cloud:
+        import os_client_config
+        nova = os_client_config.make_client('compute', cloud=cloud)
+        neutron = os_client_config.make_client('network', cloud=cloud)
+
+    else:
+        username = os.environ.get('OS_USERNAME')
+        password = os.environ.get('OS_PASSWORD')
+        tenant = os.environ.get('OS_TENANT_NAME')
+        auth_url = os.environ.get('OS_AUTH_URL')
+        if not username or not password or not tenant or not auth_url:
+            print('Source an appropriate rc file first')
+            sys.exit(1)
+
+        nova = novaclient.Client(2, username, password, tenant, auth_url)
+        neutron = neutronclient.Client(
+            username=username,
+            password=password,
+            tenant_name=tenant,
+            auth_url=auth_url
+        )
     node_template = {
         'pm_type': 'pxe_ipmitool',
         'mac': '',
@@ -62,19 +81,7 @@ def main():
         'pm_user': 'admin',
         'pm_password': 'password',
         'pm_addr': '',
-        }
-
-    if not username or not password or not tenant or not auth_url:
-        print('Source an appropriate rc file first')
-        sys.exit(1)
-
-    nova = novaclient.Client(2, username, password, tenant, auth_url)
-    neutron = neutronclient.Client(
-        username=username,
-        password=password,
-        tenant_name=tenant,
-        auth_url=auth_url
-    )
+    }
 
     all_ports = sorted(neutron.list_ports()['ports'], key=lambda x: x['name'])
     bmc_ports = list([p for p in all_ports
