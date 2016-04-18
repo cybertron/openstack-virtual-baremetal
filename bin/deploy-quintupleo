@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo 'WARNING: This script is deprecated.  deploy.py should now be used instead.'
+
 stack_name=${1:-quintupleo}
 op=create
 if heat stack-list | grep " $stack_name "; then

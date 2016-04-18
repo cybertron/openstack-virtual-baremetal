@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo 'WARNING: This script is deprecated.  deploy.py should now be used instead.'
+
 op=create
 if heat stack-list | grep " baremetal "; then
     op=update
