@@ -70,6 +70,20 @@ parameters:
     type: string
     default: all_sg
 
+  # Ignored parameters for compatibility with QuintupleO env files
+  undercloud_image:
+    type: string
+    default: ''
+  undercloud_flavor:
+    type: string
+    default: ''
+  undercloud_name:
+    type: string
+    default: ''
+  external_net:
+    type: string
+    default: ''
+
 resources:
   # NOTE(bnemec): This should probably be limited to allowing only
   # OpenStack API ports, but for now this is simpler and not
