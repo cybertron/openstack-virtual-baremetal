@@ -13,6 +13,6 @@ do
     jobid=${jobid:1:8}
     date
     echo "Starting job $jobid, logging to /tmp/$jobid.log"
-    $BIN_DIR/load-test-job $jobid > /tmp/$jobid.log 2>&1 &
+    $BIN_DIR/test-job $jobid > /tmp/$jobid.log 2>&1 &
     sleep $DELAY
 done

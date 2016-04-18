@@ -22,8 +22,10 @@ BMC_PREFIX=bmc-$MY_ID
 BAREMETAL_PREFIX=baremetal-$MY_ID
 UNDERCLOUD_NAME=undercloud-$MY_ID
 PUBLIC_NET=public-$MY_ID
-PROVISION_NET=${BAREMETAL_PREFIX}_0 #provision-$MY_ID
+PROVISION_NET=provision-$MY_ID
 
+# NOTE(bnemec): I'm intentionally not adding a trap to clean this up because
+# if something fails it may be helpful to look at the contents of the tempdir.
 TEMPDIR=$(mktemp -d)
 echo "Working in $TEMPDIR"
 cd $TEMPDIR
