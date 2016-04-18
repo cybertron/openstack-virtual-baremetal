@@ -5,9 +5,9 @@ AUTH_URL=http://11.1.1.78:5000/v2.0
 USER=admin
 PASSWORD=password
 TENANT=admin
-BMC_IMAGE=centos7.1-base
+BMC_IMAGE=centos7-base
 KEY_NAME=bnemec
-UNDERCLOUD_IMAGE=centos7.1-base
+UNDERCLOUD_IMAGE=centos7-base
 UNDERCLOUD_FLAVOR=m1.large
 BAREMETAL_FLAVOR=baremetal-6
 
@@ -38,28 +38,24 @@ sed -i "s|os_password: .*|os_password: $PASSWORD|" env.yaml
 sed -i "s|os_tenant: .*|os_tenant: $TENANT|" env.yaml
 sed -i "s/bmc_image: .*/bmc_image: $BMC_IMAGE/" env.yaml
 sed -i "s/key_name: .*/key_name: $KEY_NAME/" env.yaml
-sed -i "s/bmc_prefix: .*/bmc_prefix: $BMC_PREFIX/" env.yaml
-sed -i "s/baremetal_prefix: .*/baremetal_prefix: $BAREMETAL_PREFIX/" env.yaml
 sed -i "s/baremetal_flavor: .*/baremetal_flavor: $BAREMETAL_FLAVOR/" env.yaml
-sed -i "s/undercloud_name: .*/undercloud_name: $UNDERCLOUD_NAME/" env.yaml
 sed -i "s/undercloud_image: .*/undercloud_image: $UNDERCLOUD_IMAGE/" env.yaml
 sed -i "s/undercloud_flavor: .*/undercloud_flavor: $UNDERCLOUD_FLAVOR/" env.yaml
-sed -i "s/public_net: .*/public_net: $PUBLIC_NET/" env.yaml
-sed -i "s/provision_net: .*/provision_net: $PROVISION_NET/" env.yaml
 echo 'resource_registry:' >> env.yaml
 echo '  OS::OVB::UndercloudFloating: templates/undercloud-floating.yaml' >> env.yaml
 
 cp -r $BIN_DIR ./bin
-$BIN_DIR/deploy-quintupleo quintupleo-$MY_ID
+STACK_NAME=ovb-test
+$BIN_DIR/deploy.py --quintupleo --id $MY_ID --name $STACK_NAME
 sleep 60
-UNDERCLOUD_IP=$(heat output-show quintupleo-$MY_ID undercloud_host_floating_ip | sed -e 's/"//g')
+UNDERCLOUD_IP=$(heat output-show $STACK_NAME-$MY_ID undercloud_host_floating_ip | sed -e 's/"//g')
 #bin/build-nodes-json --env env.yaml #--bmc_prefix $BMC_PREFIX --baremetal_prefix $BAREMETAL_PREFIX --provision_net $PROVISION_NET_NAME
 bin/build-nodes-json --bmc_prefix $BMC_PREFIX --baremetal_prefix $BAREMETAL_PREFIX --provision_net $PROVISION_NET
 SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 scp $SSH_OPTS bin/ovb-instack centos@$UNDERCLOUD_IP:/tmp
 scp $SSH_OPTS nodes.json centos@$UNDERCLOUD_IP:~/instackenv.json
 ssh -t -t $SSH_OPTS centos@$UNDERCLOUD_IP /tmp/ovb-instack
-heat stack-delete quintupleo-$MY_ID
+heat stack-delete $STACK_NAME-$MY_ID
 
 date
 echo 'Finished'

@@ -5,7 +5,6 @@ set -ex
 # These params need to be configured for the environment
 export http_proxy=http://roxy:3128
 curl -O http://openstack/CentOS-7-x86_64-GenericCloud-1602.qcow2
-curl -O http://openstack/fedora-user.qcow2
 
 export DIB_LOCAL_IMAGE=CentOS-7-x86_64-GenericCloud-1602.qcow2
 export DIB_DISTRIBUTION_MIRROR=http://mirror.centos.org/centos
