@@ -160,7 +160,7 @@ Create the baremetal Heat stack
 
 #. Deploy the stack::
 
-    bin/deploy-stack
+    bin/deploy.py
 
 #. Wait for Heat stack to complete:
 
