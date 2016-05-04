@@ -8,10 +8,14 @@ parameters:
   bmc_flavor:
     type: string
     default: m1.small
+    description: The Nova flavor to use for the bmc instance
 
   bmc_image:
     type: string
     default: CentOS-7-x86_64-GenericCloud
+    description: |
+      The base image for the bmc instance.  A CentOS 7 image is currently the
+      only one supported.
 
   baremetal_flavor:
     type: string
@@ -21,50 +25,67 @@ parameters:
   baremetal_image:
     type: string
     default: empty
+    description: The base image to use for baremetal instances
 
   key_name:
     type: string
     default: default
+    description: Nova keypair to inject into the undercloud and bmc
 
   node_count:
     type: number
     default: 1
+    description: Number of baremetal nodes to deploy
 
   public_net:
     type: string
+    description: |
+      An additional network that will be attached to the baremetal instances,
+      intended to be used for non-provisioning traffic
     default: public
 
   private_net:
     type: string
     default: private
+    description: Name of a private network which can have floating ips associated with it
 
   provision_net:
     type: string
     default: provision
+    description: Name of a network that will be used for provisioning traffic
 
   bmc_prefix:
     type: string
     default: bmc
+    description: Prefix for the name of the bmc instance
 
   baremetal_prefix:
     type: string
     default: baremetal
+    description: Prefix for the name of the baremetal instances
 
   os_user:
     type: string
     default: admin
+    description: |
+      The user on the host cloud that will be used to provision the
+      environment
 
   os_password:
     type: string
     default: password
     hidden: true
+    description: The password for os_user
 
   os_tenant:
     type: string
     default: admin
+    description: The tenant for os_user
 
   os_auth_url:
     type: string
+    default: http://127.0.0.1:5000/v2.0
+    description: The Keystone auth_url of the host cloud
 
   default_sg:
     type: string

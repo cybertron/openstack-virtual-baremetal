@@ -2,7 +2,7 @@ heat_template_version: 2015-04-30
 
 # Template that wraps virtual-baremetal.yaml and does some additional environment
 # setup automatically:
-# - provisions the public and provision networks
+# - provisions the needed networks
 # - boots an instance to serve as the undercloud
 # - creates a floating ip and associates it with the undercloud instance
 
@@ -10,10 +10,14 @@ parameters:
   bmc_flavor:
     type: string
     default: m1.small
+    description: The Nova flavor to use for the bmc instance
 
   bmc_image:
     type: string
     default: CentOS-7-x86_64-GenericCloud
+    description: |
+      The base image for the bmc instance.  A CentOS 7 image is currently the
+      only one supported.
 
   baremetal_flavor:
     type: string
@@ -23,18 +27,22 @@ parameters:
   baremetal_image:
     type: string
     default: empty
+    description: The base image to use for baremetal instances
 
   key_name:
     type: string
     default: default
+    description: Nova keypair to inject into the undercloud and bmc
 
   node_count:
     type: number
     default: 2
+    description: Number of baremetal nodes to deploy
 
   private_net:
     type: string
     default: private
+    description: Name of a private network which can have floating ips associated with it
 
   external_net:
     type: string
@@ -44,6 +52,7 @@ parameters:
   provision_net:
     type: string
     default: provision
+    description: Name of a network that will be used for provisioning traffic
 
   provision_net_cidr:
     type: string
@@ -63,46 +72,60 @@ parameters:
   bmc_prefix:
     type: string
     default: bmc
+    description: Prefix for the name of the bmc instance
 
   baremetal_prefix:
     type: string
     default: baremetal
+    description: Prefix for the name of the baremetal instances
 
   undercloud_name:
     type: string
     default: undercloud
+    description: Name of the undercloud instance
 
   undercloud_flavor:
     type: string
     default: m1.large
+    description: Nova flavor to use for the undercloud instance
 
   undercloud_image:
     type: string
     default: CentOS-7-x86_64-GenericCloud-1503
+    description: Image to boot as the undercloud instance
 
   undercloud_user_data:
     type: string
     default: ""
+    description: Userdata to inject into the undercloud instance
 
   undercloud_user_data_format:
     type: string
     default: RAW
+    description: Format of undercloud userdata
 
   os_user:
     type: string
     default: admin
+    description: |
+      The user on the host cloud that will be used to provision the
+      environment
 
   os_password:
     type: string
     default: password
     hidden: true
+    description: The password for os_user
 
   os_tenant:
     type: string
     default: admin
+    description: The tenant for os_user
 
   os_auth_url:
     type: string
+    default: http://127.0.0.1:5000/v2.0
+    description: The Keystone auth_url of the host cloud
 
 resources:
   provision_network:
