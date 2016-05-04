@@ -94,7 +94,10 @@ Preparing the Host Cloud Environment
 
 #. Upload an ipxe-boot image for the baremetal instances::
 
-    glance image-create --name ipxe-boot --disk-format qcow2 --container-format bare < ipxe/ipxe-boot.qcow2
+    glance image-create --name ipxe-boot --disk-format qcow2 --property os_shutdown_timeout=5 --container-format bare < ipxe/ipxe-boot.qcow2
+
+   .. note:: os_shutdown_timeout=5 is to avoid server shutdown delays since
+             since these servers won't respond to graceful shutdown requests.
 
 #. Upload a CentOS 7 image for use as the base BMC instance::
 
