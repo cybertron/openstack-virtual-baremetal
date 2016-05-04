@@ -7,7 +7,7 @@ parameters:
   overcloud_internal_net:
     type: string
     description: Name of internal API network
-    default: overcloud_internal_net
+    default: overcloud_internal
 
   overcloud_internal_net_cidr:
     type: string
@@ -17,7 +17,7 @@ parameters:
   overcloud_storage_net:
     type: string
     description: Name of storage network
-    default: overcloud_storage_net
+    default: overcloud_storage
 
   overcloud_storage_net_cidr:
     type: string
@@ -27,7 +27,7 @@ parameters:
   overcloud_storage_mgmt_net:
     type: string
     description: Name of storage management network
-    default: overcloud_storage_mgmt_net
+    default: overcloud_storage_mgmt
 
   overcloud_storage_mgmt_net_cidr:
     type: string
@@ -37,7 +37,7 @@ parameters:
   overcloud_tenant_net:
     type: string
     description: Name of tenant network
-    default: overcloud_tenant_net
+    default: overcloud_tenant
 
   overcloud_tenant_net_cidr:
     type: string
