@@ -94,6 +94,7 @@ def main():
         'pm_user': 'admin',
         'pm_password': 'password',
         'pm_addr': '',
+        'capabilities': 'boot_option:local',
     }
 
     all_ports = sorted(neutron.list_ports()['ports'], key=lambda x: x['name'])
