@@ -7,8 +7,11 @@ for testing deployment systems.
 How-To
 ------
 
-Instructions for patching the host cloud, setting up the base environment,
+Instructions for patching the host cloud[1], setting up the base environment,
 and deploying a virtual baremetal Heat stack.
+
+1: The host cloud is any OpenStack cloud providing the necessary functionality
+to run OVB.  In a TripleO deployment, this would be the overcloud.
 
 .. warning:: This process requires patches and configuration settings that
              may not be appropriate for production clouds.
@@ -19,13 +22,18 @@ Patching the Host Cloud
 Apply the Nova pxe boot patch file in the ``patches`` directory to the host
 cloud Nova.  Examples:
 
-RDO Kilo::
+TripleO/RDO::
 
     sudo cp patches/kilo/nova-pxe-boot.patch /usr/lib/python2.7/site-packages/nova
     cd /usr/lib/python2.7/site-packages/nova
     sudo patch -p1 < nova-pxe-boot.patch
 
 Devstack:
+
+   .. note:: You probably don't want to try to run this with devstack anymore.
+             Devstack no longer supports rejoining an existing stack, so if you
+             have to reboot your host cloud you will have to rebuild from
+             scratch.
 
    .. note:: The patch may not apply cleanly against master Nova
              code.  If/when that happens, the patch will need to
