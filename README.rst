@@ -125,7 +125,7 @@ Preparing the Host Cloud Environment
 
 #. Source an rc file that will provide user credentials for the host cloud.
 
-#. Create a keypair to be injected into instances::
+#. Add a Nova keypair to be injected into instances::
 
     nova keypair-add --pub-key ~/.ssh/id_rsa.pub default
 
@@ -160,10 +160,6 @@ Preparing the Host Cloud Environment
 
        neutron net-create public
        neutron subnet-create --name public --no-gateway --disable-dhcp public 10.0.0.0/24
-
-#. Add a Nova keypair to be injected into instances::
-
-    nova keypair-add --pub-key ~/.ssh/id_rsa.pub default
 
 Create the baremetal Heat stack
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
