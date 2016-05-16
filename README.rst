@@ -125,6 +125,10 @@ Preparing the Host Cloud Environment
 
 #. Source an rc file that will provide user credentials for the host cloud.
 
+#. Create a keypair to be injected into instances::
+
+    nova keypair-add --pub-key ~/.ssh/id_rsa.pub default
+
 #. Create provisioning network.
 
    .. note:: The CIDR used for the subnet does not matter.
