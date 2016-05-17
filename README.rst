@@ -19,6 +19,9 @@ to run OVB.  In a TripleO deployment, this would be the overcloud.
 Patching the Host Cloud
 ^^^^^^^^^^^^^^^^^^^^^^^
 
+The changes described in this section apply to compute nodes in the
+host cloud.
+
 Apply the Nova pxe boot patch file in the ``patches`` directory to the host
 cloud Nova.  Examples:
 
@@ -47,6 +50,9 @@ Devstack:
 
 Configuring the Host Cloud
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The changes described in this section apply to compute nodes in the
+host cloud.
 
 #. Neutron must be configured to use the NoopFirewallDriver.  Edit
    ``/etc/neutron/plugins/ml2/ml2_conf.ini`` and set the option
