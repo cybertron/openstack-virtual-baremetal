@@ -82,11 +82,14 @@ host cloud.
    TripleO undercloud, Neutron should be configured to advertise a
    smaller MTU to instances.  Run the following as root::
 
-       echo -e "\ndhcp-option-force=26,1450" >> /etc/dnsmasq-ironic.conf
-       systemctl restart neutron-*
+       # Replace 'eth1' with the actual device to be used for the
+       # provisioning network
+       ip link set eth1 mtu 1350
+       echo "dhcp-option-force=26,1350" >> /etc/dnsmasq-ironic.conf
+       systemctl restart 'neutron-*'
 
    If network isolation is in use, the templates must also configure
-   mtu as discussed above, except the mtu should be set to 1450 instead
+   mtu as discussed above, except the mtu should be set to 1350 instead
    of 1550.
 
 #. (Optional) It can be helpful to set::
