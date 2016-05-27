@@ -89,7 +89,7 @@ resources:
                 - /
                 - - {get_param: ControlPlaneIp}
                   - {get_param: ControlPlaneSubnetCidr}
-            mtu: 1400
+            mtu: 1350
             name: nic1
             routes:
             - ip_netmask: 169.254.169.254/32
@@ -100,13 +100,13 @@ resources:
             use_dhcp: false
           - addresses:
             - ip_netmask: {get_param: InternalApiIpSubnet}
-            mtu: 1400
+            mtu: 1350
             name: nic3
             type: interface
             use_dhcp: false
           - addresses:
             - ip_netmask: {get_param: StorageIpSubnet}
-            mtu: 1400
+            mtu: 1350
             name: nic4
             type: interface
             use_dhcp: false
@@ -117,7 +117,7 @@ resources:
             - name: nic6
               primary: true
               type: interface
-            mtu: 1400
+            mtu: 1350
             name: br-tenant
             type: ovs_bridge
             use_dhcp: false
