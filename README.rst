@@ -85,7 +85,7 @@ host cloud.
        # Replace 'eth1' with the actual device to be used for the
        # provisioning network
        ip link set eth1 mtu 1350
-       echo "dhcp-option-force=26,1350" >> /etc/dnsmasq-ironic.conf
+       echo -e "\ndhcp-option-force=26,1350" >> /etc/dnsmasq-ironic.conf
        systemctl restart 'neutron-*'
 
    If network isolation is in use, the templates must also configure
