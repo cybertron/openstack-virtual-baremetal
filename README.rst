@@ -146,7 +146,7 @@ Preparing the Host Cloud Environment
     neutron quota-update --port -1
     neutron quota-update --network -1
     neutron quota-update --subnet -1
-    nova quota-update --instances -1 --cores -1 --ram -1 [admin tenant uuid]
+    nova quota-update --instances -1 --cores -1 --ram -1 [tenant uuid]
 
 
 #. Create provisioning network.
