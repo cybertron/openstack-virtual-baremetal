@@ -47,6 +47,10 @@ def main():
                         dest='provision_net',
                         default='provision',
                         help='Provisioning network name')
+    parser.add_argument('--nodes_json',
+                        dest='nodes_json',
+                        default='nodes.json',
+                        help='Destination to store the nodes json file too')
     args = parser.parse_args()
 
     if args.env is None:
@@ -120,7 +124,7 @@ def main():
         node['disk'] = flavor.disk
         nodes.append(node)
 
-    with open('nodes.json', 'w') as node_file:
+    with open(args.nodes_json, 'w') as node_file:
         contents = json.dumps({'nodes': nodes}, indent=2)
         node_file.write(contents)
         print(contents)
