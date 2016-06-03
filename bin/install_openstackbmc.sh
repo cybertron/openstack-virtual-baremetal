@@ -1,11 +1,27 @@
 #!/bin/bash
 set -x
 
-yum -y update centos-release # required for rdo-release install to work
-yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-yum install -y https://rdo.fedorapeople.org/rdo-release.rpm
-yum install -y python-pip python-crypto os-net-config python-novaclient python-neutronclient git jq
-pip install pyghmi
+required_packages="python-pip python2-crypto os-net-config python-novaclient python-neutronclient git jq"
+
+function have_packages() {
+    for i in $required_packages; do
+        if ! rpm -qa | grep -q $i; then
+            return 1
+        fi
+    done
+    if ! pip freeze | grep -q pyghmi; then
+        return 1
+    fi
+    return 0
+}
+
+if ! have_packages; then
+    yum -y update centos-release # required for rdo-release install to work
+    yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    yum install -y https://rdo.fedorapeople.org/rdo-release.rpm
+    yum install -y $required_packages
+    pip install pyghmi
+fi
 
 cat <<EOF >/usr/local/bin/openstackbmc
 $openstackbmc_script
