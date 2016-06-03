@@ -27,7 +27,7 @@ cloud Nova.  Examples:
 
 TripleO/RDO::
 
-    sudo cp patches/kilo/nova-pxe-boot.patch /usr/lib/python2.7/site-packages/nova
+    sudo cp patches/nova/nova-pxe-boot.patch /usr/lib/python2.7/site-packages/nova
     cd /usr/lib/python2.7/site-packages/nova
     sudo patch -p1 < nova-pxe-boot.patch
 
@@ -44,7 +44,7 @@ Devstack:
 
    ::
 
-      cp patches/kilo/nova-pxe-boot.patch /opt/stack/nova
+      cp patches/nova/nova-pxe-boot.patch /opt/stack/nova
       cd /opt/stack/nova
       patch -p1 < nova-pxe-boot.patch
 
