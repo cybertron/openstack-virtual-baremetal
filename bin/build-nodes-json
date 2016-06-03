@@ -50,7 +50,7 @@ def main():
     parser.add_argument('--nodes_json',
                         dest='nodes_json',
                         default='nodes.json',
-                        help='Destination to store the nodes json file too')
+                        help='Destination to store the nodes json file to')
     args = parser.parse_args()
 
     if args.env is None:
