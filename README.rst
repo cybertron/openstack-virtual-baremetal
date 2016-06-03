@@ -138,6 +138,17 @@ Preparing the Host Cloud Environment
 
     nova keypair-add --pub-key ~/.ssh/id_rsa.pub default
 
+#. (Optional) Configure quotas.  When running in a dedicated OVB cloud, it may
+   be helpful to set some quotas to very large/unlimited values to avoid
+   running out of quota when deploying multiple or large environments::
+
+    neutron quota-update --security_group 1000
+    neutron quota-update --port -1
+    neutron quota-update --network -1
+    neutron quota-update --subnet -1
+    nova quota-update --instances -1 --cores -1 --ram -1 [admin tenant uuid]
+
+
 #. Create provisioning network.
 
    .. note:: The CIDR used for the subnet does not matter.
