@@ -106,23 +106,6 @@ parameters:
     default: ''
 
 resources:
-  # NOTE(bnemec): This should probably be limited to allowing only
-  # OpenStack API ports, but for now this is simpler and not
-  # completely unreasonable.
-  private_sg:
-    type: OS::Neutron::SecurityGroup
-    properties:
-      name: private_sg
-      description: Ping, SSH and IPMI
-      rules:
-      - protocol: icmp
-      - protocol: tcp
-        port_range_min: 22
-        port_range_max: 22
-      - protocol: udp
-        port_range_min: 623
-        port_range_max: 623
-
   bmc_port:
     type: OS::Neutron::Port
     properties:
