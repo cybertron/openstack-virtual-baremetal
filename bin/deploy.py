@@ -60,22 +60,35 @@ def _process_args(args):
         stack_template = 'templates/quintupleo.yaml'
     return stack_name, stack_template
 
-def _add_identifier(env_data, name, identifier, parameter=True):
+def _add_identifier(env_data, name, identifier, default=None, parameter=True):
     param_key = 'parameters'
     if not parameter:
         param_key = 'parameter_defaults'
-    original = env_data[param_key][name]
+    if param_key not in env_data or not env_data[param_key]:
+        env_data[param_key] = {}
+    original = env_data[param_key].get(name)
+    if original is None:
+        original = default
+    if original is None:
+        raise RuntimeError('No base value found when adding id')
     env_data[param_key][name] = '%s-%s' % (original, identifier)
 
 def _generate_id_env(args):
     with open(args.env) as f:
         env_data = yaml.safe_load(f)
-    _add_identifier(env_data, 'provision_net', args.id)
-    _add_identifier(env_data, 'public_net', args.id)
-    _add_identifier(env_data, 'baremetal_prefix', args.id)
-    _add_identifier(env_data, 'bmc_prefix', args.id)
-    if 'undercloud_name' in env_data['parameters']:
-        _add_identifier(env_data, 'undercloud_name', args.id)
+    _add_identifier(env_data, 'provision_net', args.id, default='provision')
+    _add_identifier(env_data, 'public_net', args.id, default='public')
+    _add_identifier(env_data, 'baremetal_prefix', args.id, default='baremetal')
+    _add_identifier(env_data, 'bmc_prefix', args.id, default='bmc')
+    _add_identifier(env_data, 'undercloud_name', args.id, default='undercloud')
+    _add_identifier(env_data, 'overcloud_internal_net', args.id,
+                    default='internal', parameter=False)
+    _add_identifier(env_data, 'overcloud_storage_net', args.id,
+                    default='storage', parameter=False)
+    _add_identifier(env_data, 'overcloud_storage_mgmt_net', args.id,
+                    default='storage_mgmt', parameter=False)
+    _add_identifier(env_data, 'overcloud_tenant_net', args.id,
+                    default='tenant', parameter=False)
     env_path = 'env-%s.yaml' % args.id
     with open(env_path, 'w') as f:
         yaml.safe_dump(env_data, f, default_flow_style=False)
@@ -136,5 +149,4 @@ if __name__ == '__main__':
     stack_name, stack_template = _process_args(args)
     if args.id:
         env_path = _generate_id_env(args)
-        stack_name = '%s-%s' % (stack_name, args.id)
     _deploy(stack_name, stack_template, env_path)
