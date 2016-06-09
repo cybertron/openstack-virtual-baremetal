@@ -132,6 +132,7 @@ resources:
 
   bmc_server:
     type: OS::Nova::Server
+    depends_on: openstack_baremetal_servers
     properties:
       flavor: {get_param: bmc_flavor}
       image: {get_param: bmc_image}
