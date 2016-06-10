@@ -26,7 +26,7 @@ def _parse_args():
     parser = argparse.ArgumentParser(description='Deploy an OVB environment')
     parser.add_argument('--env',
                         help='Path to Heat environment file describing the OVB '
-                             'environment to be deployed.',
+                             'environment to be deployed. Default: %(default)s',
                         default='env.yaml')
     parser.add_argument('--id',
                         help='Identifier to add to all resource names. The '
@@ -35,7 +35,10 @@ def _parse_args():
                              'the resource names. If an id is specified, a new '
                              'environment file will be written to env-ID.yaml. ')
     parser.add_argument('--name',
-                        help='Name for the Heat stack to be created.')
+                        help='Name for the Heat stack to be created. Defaults '
+                             'to "baremetal" in a standard deployment. If '
+                             '--quintupleo is specified then the default is '
+                             '"quintupleo".')
     parser.add_argument('--quintupleo',
                         help='Deploy a full environment suitable for TripleO '
                              'development.',
