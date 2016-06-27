@@ -92,15 +92,6 @@ host cloud.
    mtu as discussed above, except the mtu should be set to 1350 instead
    of 1550.
 
-#. (Optional) It can be helpful to set::
-
-       shutdown_timeout=15
-
-   in nova.conf as well.  This causes Nova to wait less time when shutting
-   down an instance gracefully, and since graceful shutdown will never
-   happen with the baremetal instances booted from a ipxe-boot image it speeds
-   things up a bit.
-
 #. Restart ``nova-compute`` and ``neutron-openvswitch-agent`` to apply the
    changes above.
 
