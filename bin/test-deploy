@@ -67,14 +67,22 @@ test_env = u"""parameters:
   public_net: public
   baremetal_prefix: baremetal
   bmc_prefix: bmc
+  os_user: admin
 """
-test_env_output = {'parameters':
-  {'provision_net': 'provision-foo',
-   'public_net': 'public-foo',
-   'baremetal_prefix': 'baremetal-foo',
-   'bmc_prefix': 'bmc-foo',
-   }
-  }
+test_env_output = {
+    'parameter_defaults':
+        {'overcloud_internal_net': 'internal-foo',
+         'overcloud_storage_net': 'storage-foo',
+         'overcloud_storage_mgmt_net': 'storage_mgmt-foo',
+         'overcloud_tenant_net': 'tenant-foo'},
+    'parameters':
+        {'baremetal_prefix': 'baremetal-foo',
+         'undercloud_name': 'undercloud-foo',
+         'provision_net': 'provision-foo',
+         'public_net': 'public-foo',
+         'bmc_prefix': 'bmc-foo',
+         'os_user': 'admin'}
+    }
 
 
 class TestIdEnv(unittest.TestCase):
@@ -85,7 +93,7 @@ class TestIdEnv(unittest.TestCase):
 
     def test_add_identifier_defaults(self):
         env_data = {'parameter_defaults': {'foo': 'bar'}}
-        deploy._add_identifier(env_data, 'foo', 'baz', False)
+        deploy._add_identifier(env_data, 'foo', 'baz', parameter=False)
         self.assertEqual('bar-baz', env_data['parameter_defaults']['foo'])
 
     @mock.patch('yaml.safe_dump')
