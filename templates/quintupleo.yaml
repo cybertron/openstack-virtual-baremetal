@@ -156,51 +156,26 @@ resources:
       gateway_ip: null
       enable_dhcp: false
 
-  undercloud_sg:
-    type: OS::Neutron::SecurityGroup
-    properties:
-      name: undercloud_sg
-      description: Ping and SSH
-      rules:
-      - protocol: icmp
-      - protocol: tcp
-        port_range_min: 22
-        port_range_max: 22
-
   private_network:
     type: OS::OVB::PrivateNetwork
     properties:
       external_net: {get_param: external_net}
       private_net: {get_param: private_net}
 
-  undercloud_server:
-    type: OS::Nova::Server
+  undercloud_env:
+    type: OS::OVB::UndercloudEnvironment
     depends_on: [provision_subnet, public_subnet]
     properties:
-      flavor: {get_param: undercloud_flavor}
-      image: {get_param: undercloud_image}
+      undercloud_flavor: {get_param: undercloud_flavor}
+      undercloud_image: {get_param: undercloud_image}
       key_name: {get_param: key_name}
-      security_groups:
-      - {get_resource: undercloud_sg}
-      networks:
-      - network: {get_attr: [private_network, private_net]}
-      - network: {get_resource: provision_network}
-      - network: {get_resource: public_network}
-      name: {get_param: undercloud_name}
-      user_data_format: {get_param: undercloud_user_data_format}
-      user_data: {get_param: undercloud_user_data}
-
-  undercloud_floating_ip:
-    type: OS::OVB::UndercloudFloating
-    properties:
+      undercloud_name: {get_param: undercloud_name}
+      undercloud_user_data_format: {get_param: undercloud_user_data_format}
+      undercloud_user_data: {get_param: undercloud_user_data}
+      private_net: {get_attr: [private_network, private_net]}
+      provision_net: {get_resource: provision_network}
+      public_net: {get_resource: public_network}
       external_net: {get_param: external_net}
-      undercloud_port:
-        get_attr:
-        - undercloud_server
-        - addresses
-        - {get_attr: [private_network, private_net]}
-        - 0
-        - port
 
   baremetal_env:
     type: OS::OVB::BaremetalEnvironment
@@ -227,4 +202,4 @@ outputs:
   undercloud_host_floating_ip:
     description: "floating ip of the undercloud instance"
     value:
-      get_attr: [undercloud_floating_ip, undercloud_host]
+      get_attr: [undercloud_env, undercloud_host_floating_ip]

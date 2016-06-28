@@ -1,0 +1,69 @@
+heat_template_version: 2015-04-30
+
+parameters:
+  undercloud_flavor:
+    type: string
+  undercloud_image:
+    type: string
+  key_name:
+    type: string
+  undercloud_name:
+    type: string
+  undercloud_user_data_format:
+    type: string
+  undercloud_user_data:
+    type: string
+  private_net:
+    type: string
+  provision_net:
+    type: string
+  public_net:
+    type: string
+  external_net:
+    type: string
+
+resources:
+  undercloud_sg:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: undercloud_sg
+      description: Ping and SSH
+      rules:
+      - protocol: icmp
+      - protocol: tcp
+        port_range_min: 22
+        port_range_max: 22
+
+  undercloud_server:
+    type: OS::Nova::Server
+    properties:
+      flavor: {get_param: undercloud_flavor}
+      image: {get_param: undercloud_image}
+      key_name: {get_param: key_name}
+      security_groups:
+      - {get_resource: undercloud_sg}
+      networks:
+      - network: {get_param: private_net}
+      - network: {get_param: provision_net}
+      - network: {get_param: public_net}
+      name: {get_param: undercloud_name}
+      user_data_format: {get_param: undercloud_user_data_format}
+      user_data: {get_param: undercloud_user_data}
+
+  undercloud_floating_ip:
+    type: OS::OVB::UndercloudFloating
+    properties:
+      external_net: {get_param: external_net}
+      undercloud_port:
+        get_attr:
+        - undercloud_server
+        - addresses
+        - {get_param: private_net}
+        - 0
+        - port
+
+outputs:
+  undercloud_host_floating_ip:
+    description: "floating ip of the undercloud instance"
+    value:
+      get_attr: [undercloud_floating_ip, undercloud_host]
