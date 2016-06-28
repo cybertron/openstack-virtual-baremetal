@@ -107,11 +107,23 @@ Preparing the Host Cloud Environment
    .. note:: os_shutdown_timeout=5 is to avoid server shutdown delays since
              since these servers won't respond to graceful shutdown requests.
 
-#. Upload a CentOS 7 image for use as the base BMC instance::
+#. Upload a CentOS 7 image for use as the base image::
 
     wget http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2
 
     glance image-create --name CentOS-7-x86_64-GenericCloud --disk-format qcow2 --container-format bare < CentOS-7-x86_64-GenericCloud.qcow2
+
+#. (Optional) Create a pre-populated base BMC image.  This is a CentOS 7 image
+   with the required packages for the BMC pre-installed.  This eliminates one
+   potential point of failure during the deployment of an OVB environment
+   because the BMC will not require any external network resources::
+
+    wget https://repos.fedorapeople.org/repos/openstack-m/ovb/bmc-base.qcow2
+
+    glance image-create --name bmc-base --disk-format qcow2 --container-format bare < bmc-base.qcow2
+
+   To use this image, configure ``bmc_image`` in env.yaml to be ``bmc-base`` instead
+   of the generic CentOS 7 image.
 
 #. Create recommended flavors::
 
