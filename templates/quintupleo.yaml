@@ -137,7 +137,7 @@ resources:
     type: OS::Neutron::Subnet
     properties:
       network: {get_resource: provision_network}
-      name: provision-subnet
+      name: {get_param: provision_net}
       cidr: {get_param: provision_net_cidr}
       gateway_ip: null
       enable_dhcp: false
