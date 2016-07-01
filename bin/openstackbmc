@@ -47,7 +47,9 @@ class OpenStackBmc(bmc.Bmc):
             try:
                 self._find_instance(instance)
                 if self.instance is not None:
-                    self.log('Managing instance: %s' % self.instance)
+                    name = self.novaclient.servers.get(self.instance).name
+                    self.log('Managing instance: %s UUID: %s' %
+                             (name, self.instance))
                     break
             except Exception as e:
                 self.log('Exception finding instance "%s": %s' % (instance, e))
