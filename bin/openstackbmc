@@ -100,16 +100,28 @@ class OpenStackBmc(bmc.Bmc):
     def power_off(self):
         # this should be power down without waiting for clean shutdown
         if self._instance_active():
-            self.novaclient.servers.stop(self.instance)
-            self.log('Powered off %s' % self.instance)
+            try:
+                self.novaclient.servers.stop(self.instance)
+                self.log('Powered off %s' % self.instance)
+            except exceptions.Conflict as e:
+                # This can happen if we get two requests to start a server in
+                # short succession.  The instance may then be in a powering-on
+                # state, which means it is invalid to start it again.
+                self.log('Ignoring exception: "%s"' % e)
         else:
             self.log('%s is already off.' % self.instance)
             return 0xd5
 
     def power_on(self):
         if not self._instance_active():
-            self.novaclient.servers.start(self.instance)
-            self.log('Powered on %s' % self.instance)
+            try:
+                self.novaclient.servers.start(self.instance)
+                self.log('Powered on %s' % self.instance)
+            except exceptions.Conflict as e:
+                # This can happen if we get two requests to start a server in
+                # short succession.  The instance may then be in a powering-on
+                # state, which means it is invalid to start it again.
+                self.log('Ignoring exception: "%s"' % e)
         else:
             self.log('%s is already on.' % self.instance)
             return 0xd5
