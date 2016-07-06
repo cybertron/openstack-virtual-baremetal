@@ -16,6 +16,7 @@
 import argparse
 import os
 import random
+import sys
 import yaml
 
 from heatclient import client as heat_client
