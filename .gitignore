@@ -1,3 +1,10 @@
 nodes.json
 env.yaml
 bmc_bm_pairs
+*.pyc
+*.pyo
+.coverage
+cover
+.testrepository
+.tox
+*.egg-info

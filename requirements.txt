@@ -1,0 +1,5 @@
+pyghmi
+PyYAML
+python-heatclient
+python-keystoneclient
+python-novaclient
