@@ -5,11 +5,11 @@ AUTH_URL=http://11.1.1.78:5000/v2.0
 USER=admin
 PASSWORD=password
 TENANT=admin
-BMC_IMAGE=centos7-base
-KEY_NAME=bnemec
+BMC_IMAGE=bmc-base
+KEY_NAME=default
 UNDERCLOUD_IMAGE=centos7-base
-UNDERCLOUD_FLAVOR=m1.large
-BAREMETAL_FLAVOR=baremetal-6
+UNDERCLOUD_FLAVOR=undercloud-12
+BAREMETAL_FLAVOR=baremetal
 
 set -ex
 
@@ -46,17 +46,18 @@ echo 'resource_registry:' >> env.yaml
 echo '  OS::OVB::UndercloudFloating: templates/undercloud-floating.yaml' >> env.yaml
 
 cp -r $BIN_DIR ./bin
-STACK_NAME=ovb-test
+cp -r $BIN_DIR/../openstack_virtual_baremetal .
+STACK_NAME=$MY_ID
 $BIN_DIR/deploy.py --quintupleo --id $MY_ID --name $STACK_NAME
 sleep 60
-UNDERCLOUD_IP=$(heat output-show $STACK_NAME-$MY_ID undercloud_host_floating_ip | sed -e 's/"//g')
+UNDERCLOUD_IP=$(heat output-show $STACK_NAME undercloud_host_floating_ip | sed -e 's/"//g')
 #bin/build-nodes-json --env env.yaml #--bmc_prefix $BMC_PREFIX --baremetal_prefix $BAREMETAL_PREFIX --provision_net $PROVISION_NET_NAME
 bin/build-nodes-json --bmc_prefix $BMC_PREFIX --baremetal_prefix $BAREMETAL_PREFIX --provision_net $PROVISION_NET
 SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 scp $SSH_OPTS bin/ovb-instack centos@$UNDERCLOUD_IP:/tmp
 scp $SSH_OPTS nodes.json centos@$UNDERCLOUD_IP:~/instackenv.json
 ssh -t -t $SSH_OPTS centos@$UNDERCLOUD_IP /tmp/ovb-instack
-heat stack-delete $STACK_NAME-$MY_ID
+heat stack-delete -y $STACK_NAME
 
 date
 end_seconds=$(date +%s)
