@@ -1,5 +1,7 @@
+os-client-config
 pyghmi
 PyYAML
 python-heatclient
 python-keystoneclient
+python-neutronclient
 python-novaclient

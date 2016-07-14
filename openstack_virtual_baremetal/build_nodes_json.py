@@ -104,7 +104,8 @@ def _get_ports(neutron, bmc_base, baremetal_base):
                     if p['name'].startswith(baremetal_base)])
     if len(bmc_ports) != len(bm_ports):
         raise RuntimeError('Found different numbers of baremetal and '
-                           'bmc ports.')
+                           'bmc ports. bmc: %s baremetal: %s' % (bmc_ports,
+                                                                 bm_ports))
     return bmc_ports, bm_ports
 
 
