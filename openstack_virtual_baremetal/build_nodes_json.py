@@ -145,17 +145,20 @@ def _write_nodes(nodes, args):
         contents = json.dumps({'nodes': nodes}, indent=2)
         node_file.write(contents)
         print(contents)
+        print('Wrote node definitions to %s' % args.nodes_json)
 
 
 # TODO(bnemec): parameterize this based on args.nodes_json
 def _write_pairs(bmc_bm_pairs):
-    with open('bmc_bm_pairs', 'w') as pairs_file:
+    filename = 'bmc_bm_pairs'
+    with open(filename, 'w') as pairs_file:
         pairs_file.write('# A list of BMC addresses and the name of the '
                          'instance that BMC manages.\n')
         for i in bmc_bm_pairs:
             pair = '%s %s' % i
             pairs_file.write(pair + '\n')
             print(pair)
+        print('Wrote BMC to instance mapping file to %s' % filename)
 
 
 def main():
