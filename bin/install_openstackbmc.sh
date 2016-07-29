@@ -1,7 +1,9 @@
 #!/bin/bash
 set -x
 
-required_packages="python-pip python2-crypto os-net-config python-novaclient python-neutronclient git jq"
+# Also python-crypto, but that requires special handling because we used to
+# install python2-crypto from EPEL
+required_packages="python-pip os-net-config python-novaclient python-neutronclient git jq"
 
 function have_packages() {
     for i in $required_packages; do
@@ -9,6 +11,9 @@ function have_packages() {
             return 1
         fi
     done
+    if ! (rpm -qa | egrep -q "python-crypto|python2-crypto"); then
+        return 1
+    fi
     if ! pip freeze | grep -q pyghmi; then
         return 1
     fi
@@ -17,9 +22,8 @@ function have_packages() {
 
 if ! have_packages; then
     yum -y update centos-release # required for rdo-release install to work
-    yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
     yum install -y https://rdo.fedorapeople.org/rdo-release.rpm
-    yum install -y $required_packages
+    yum install -y $required_packages python-crypto
     pip install pyghmi
 fi
 
