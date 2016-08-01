@@ -174,8 +174,13 @@ def main():
                         required=True,
                         help='The OpenStack Keystone auth url')
     args = parser.parse_args()
+    # Default to ipv6 format, but if we get an ipv4 address passed in use the
+    # appropriate format for pyghmi to listen on it.
+    addr_format = '%s'
+    if ':' not in args.address:
+        addr_format = '::ffff:%s'
     mybmc = OpenStackBmc({'admin': 'password'}, port=args.port,
-                         address='::ffff:%s' % args.address,
+                         address=addr_format % args.address,
                          instance=args.instance,
                          user=args.user,
                          password=args.password,
