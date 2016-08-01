@@ -284,3 +284,24 @@ class TestMain(unittest.TestCase):
                                          auth_url='http://host:5000/v2.0'
                                          )
         mock_instance.listen.assert_called_once_with()
+
+    @mock.patch('openstack_virtual_baremetal.openstackbmc.OpenStackBmc')
+    def test_main_default_addr(self, mock_bmc):
+        mock_instance = mock.Mock()
+        mock_bmc.return_value = mock_instance
+        mock_argv = ['openstackbmc', '--port', '111',
+                     '--instance', 'foobar', '--os-user', 'admin',
+                     '--os-password', 'password', '--os-tenant', 'admin',
+                     '--os-auth-url', 'http://host:5000/v2.0']
+        with mock.patch.object(sys, 'argv', mock_argv):
+            openstackbmc.main()
+        mock_bmc.assert_called_once_with({'admin': 'password'},
+                                         port=111,
+                                         address='::',
+                                         instance='foobar',
+                                         user='admin',
+                                         password='password',
+                                         tenant='admin',
+                                         auth_url='http://host:5000/v2.0'
+                                         )
+        mock_instance.listen.assert_called_once_with()
