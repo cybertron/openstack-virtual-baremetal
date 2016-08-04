@@ -114,10 +114,10 @@ resources:
             - ip_netmask: {get_param: TenantIpSubnet}
             dns_servers: {get_param: DnsServers}
             members:
-            - name: nic6
+            - mtu: 1350
+              name: nic6
               primary: true
               type: interface
-            mtu: 1350
             name: br-tenant
             type: ovs_bridge
             use_dhcp: false

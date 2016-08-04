@@ -16,10 +16,12 @@ resource_registry:
   OS::TripleO::Network::Ports::StorageVipPort: ../network/ports/storage.yaml
   OS::TripleO::Controller::Ports::StoragePort: ../network/ports/storage.yaml
   OS::TripleO::Compute::Ports::StoragePort: ../network/ports/storage.yaml
+  OS::TripleO::CephStorage::Ports::StoragePort: ../network/ports/storage.yaml
   # StorageMgmt
   OS::TripleO::Network::StorageMgmt: ../network/storage_mgmt.yaml
   OS::TripleO::Network::Ports::StorageMgmtVipPort: ../network/ports/storage_mgmt.yaml
   OS::TripleO::Controller::Ports::StorageMgmtPort: ../network/ports/storage_mgmt.yaml
+  OS::TripleO::CephStorage::Ports::StorageMgmtPort: ../network/ports/storage_mgmt.yaml
   # Tenant
   OS::TripleO::Network::Tenant: ../network/tenant.yaml
   OS::TripleO::Network::Ports::TenantVipPort: ../network/ports/tenant.yaml
