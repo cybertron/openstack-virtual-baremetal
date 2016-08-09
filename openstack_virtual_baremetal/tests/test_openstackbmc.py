@@ -103,6 +103,8 @@ class TestOpenStackBmc(unittest.TestCase):
                                              )
         self.bmc.novaclient = self.mock_client
         self.bmc.instance = 'abc-123'
+        self.bmc.cached_status = None
+        self.bmc.target_status = None
 
     def test_find_instance(self, mock_nova, mock_log, mock_init):
         self._create_bmc(mock_nova)
@@ -194,6 +196,22 @@ class TestOpenStackBmc(unittest.TestCase):
         self.mock_client.servers.get.return_value = mock_server
         self.assertFalse(self.bmc._instance_active())
 
+    def test_instance_active_mismatch(self, mock_nova, mock_log, mock_init):
+        self._create_bmc(mock_nova)
+        mock_server = mock.Mock()
+        mock_server.status = 'ACTIVE'
+        self.mock_client.servers.get.return_value = mock_server
+        self.bmc.target_status = 'ACTIVE'
+        self.bmc.cached_status = 'SHUTOFF'
+        self.assertTrue(self.bmc._instance_active())
+
+    def test_instance_active_cached(self, mock_nova, mock_log, mock_init):
+        self._create_bmc(mock_nova)
+        self.bmc.target_status = 'ACTIVE'
+        self.bmc.cached_status = 'ACTIVE'
+        self.assertTrue(self.bmc._instance_active())
+        self.assertFalse(self.mock_client.servers.get.called)
+
     @mock.patch('openstack_virtual_baremetal.openstackbmc.OpenStackBmc.'
                 '_instance_active')
     def test_get_power_state(self, mock_active, mock_nova, mock_log,
@@ -209,6 +227,7 @@ class TestOpenStackBmc(unittest.TestCase):
         mock_active.return_value = True
         self.bmc.power_off()
         self.mock_client.servers.stop.assert_called_once_with('abc-123')
+        self.assertEqual('SHUTOFF', self.bmc.target_status)
 
     @mock.patch('openstack_virtual_baremetal.openstackbmc.OpenStackBmc.'
                 '_instance_active')
@@ -239,6 +258,7 @@ class TestOpenStackBmc(unittest.TestCase):
         mock_active.return_value = False
         self.bmc.power_on()
         self.mock_client.servers.start.assert_called_once_with('abc-123')
+        self.assertEqual('ACTIVE', self.bmc.target_status)
 
     @mock.patch('openstack_virtual_baremetal.openstackbmc.OpenStackBmc.'
                 '_instance_active')

@@ -39,6 +39,8 @@ class OpenStackBmc(bmc.Bmc):
         self.novaclient = novaclient.Client(2, user, password,
                                             tenant, auth_url)
         self.instance = None
+        self.cached_status = None
+        self.target_status = None
         # At times the bmc service is started before important things like
         # networking have fully initialized.  Keep trying to find the
         # instance indefinitely, since there's no point in continuing if
@@ -91,7 +93,9 @@ class OpenStackBmc(bmc.Bmc):
         sys.exit(0)
 
     def _instance_active(self):
-        return self.novaclient.servers.get(self.instance).status == 'ACTIVE'
+        if self.cached_status is None or self.cached_status != self.target_status:
+            self.cached_status = self.novaclient.servers.get(self.instance).status
+        return self.cached_status == 'ACTIVE'
 
     def get_power_state(self):
         self.log('Getting power state for %s' % self.instance)
@@ -99,6 +103,7 @@ class OpenStackBmc(bmc.Bmc):
 
     def power_off(self):
         # this should be power down without waiting for clean shutdown
+        self.target_status = 'SHUTOFF'
         if self._instance_active():
             try:
                 self.novaclient.servers.stop(self.instance)
@@ -113,6 +118,7 @@ class OpenStackBmc(bmc.Bmc):
             return 0xd5
 
     def power_on(self):
+        self.target_status = 'ACTIVE'
         if not self._instance_active():
             try:
                 self.novaclient.servers.start(self.instance)
@@ -131,6 +137,7 @@ class OpenStackBmc(bmc.Bmc):
 
     def power_shutdown(self):
         # should attempt a clean shutdown
+        self.target_status = 'ACTIVE'
         self.novaclient.servers.stop(self.instance)
         self.log('Politely shut down %s' % self.instance)
 
