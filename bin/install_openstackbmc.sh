@@ -86,6 +86,7 @@ After=config-bmc-ips.service
 
 [Service]
 ExecStart=/usr/local/bin/openstackbmc  --os-user $os_user --os-password $os_password --os-tenant $os_tenant --os-auth-url $os_auth_url --instance $bm_instance --address $bmc_ip
+Restart=always
 
 User=root
 StandardOutput=kmsg+console
