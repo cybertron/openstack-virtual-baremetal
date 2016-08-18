@@ -59,6 +59,11 @@ parameters:
     description: CIDR for provision network subnet
     default: 192.0.2.0/24
 
+  provision_net_shared:
+    type: boolean
+    description: Whether this network should be shared across all tenants
+    default: false
+
   public_net:
     type: string
     description: Name of the overcloud external network
@@ -68,6 +73,11 @@ parameters:
     type: string
     description: CIDR for external network subnet
     default: 10.0.0.0/24
+
+  public_net_shared:
+    type: boolean
+    description: Whether this network should be shared across all tenants
+    default: false
 
   bmc_prefix:
     type: string
@@ -132,6 +142,7 @@ resources:
     type: OS::Neutron::Net
     properties:
         name: {get_param: provision_net}
+        shared: {get_param: provision_net_shared}
 
   provision_subnet:
     type: OS::Neutron::Subnet
@@ -146,6 +157,7 @@ resources:
     type: OS::Neutron::Net
     properties:
       name: {get_param: public_net}
+      shared: {get_param: public_net_shared}
 
   public_subnet:
     type: OS::Neutron::Subnet
