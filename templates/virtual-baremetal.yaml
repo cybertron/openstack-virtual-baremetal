@@ -104,6 +104,12 @@ parameters:
   external_net:
     type: string
     default: ''
+  public_net_shared:
+    type: string
+    default: ''
+  provision_net_shared:
+    type: string
+    default: ''
 
 resources:
   bmc_port:
