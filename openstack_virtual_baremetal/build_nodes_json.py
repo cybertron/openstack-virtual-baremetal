@@ -121,6 +121,7 @@ def _build_nodes(nova, bmc_ports, bm_ports, provision_net):
         'pm_password': 'password',
         'pm_addr': '',
         'capabilities': 'boot_option:local',
+        'name': '',
     }
 
     nodes = []
@@ -136,6 +137,9 @@ def _build_nodes(nova, bmc_ports, bm_ports, provision_net):
         node['cpu'] = flavor.vcpus
         node['memory'] = flavor.ram
         node['disk'] = flavor.disk
+        # NOTE(bnemec): Older versions of Ironic won't allow _ characters in
+        # node names, so translate to the allowed character -
+        node['name'] = baremetal.name.replace('_', '-')
         nodes.append(node)
     return nodes, bmc_bm_pairs
 
