@@ -1,5 +1,5 @@
 os-client-config
-pyghmi
+python-pyghmi
 PyYAML
 python-heatclient
 python-keystoneclient
