@@ -140,6 +140,13 @@ def _build_nodes(nova, bmc_ports, bm_ports, provision_net):
         # NOTE(bnemec): Older versions of Ironic won't allow _ characters in
         # node names, so translate to the allowed character -
         node['name'] = baremetal.name.replace('_', '-')
+
+        # If a node has uefi firmware ironic needs to be aware of this, in nova
+        # this is set using a image property called "hw_firmware_type"
+        image = nova.images.get(baremetal.image['id'])
+        if image.metadata.get('hw_firmware_type') == 'uefi':
+            node['capabilities'] = node['capabilities'] + ",boot_mode:uefi"
+
         nodes.append(node)
     return nodes, bmc_bm_pairs
 
