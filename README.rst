@@ -105,6 +105,10 @@ Preparing the Host Cloud Environment
    .. note:: os_shutdown_timeout=5 is to avoid server shutdown delays since
              since these servers won't respond to graceful shutdown requests.
 
+   .. note:: On a UEFI enabled openstack cloud, to boot the baremetal instances
+             with uefi (instead of the default bios firmware) the image should
+             be created with the parameters --property="hw_firmware_type=uefi".
+
 #. Upload a CentOS 7 image for use as the base image::
 
     wget http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2

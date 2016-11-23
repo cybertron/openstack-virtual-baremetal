@@ -126,20 +126,31 @@ def _build_nodes(nova, bmc_ports, bm_ports, provision_net):
 
     nodes = []
     bmc_bm_pairs = []
-
+    cache = {}
     for bmc_port, baremetal_port in zip(bmc_ports, bm_ports):
         baremetal = nova.servers.get(baremetal_port['device_id'])
         node = dict(node_template)
         node['pm_addr'] = bmc_port['fixed_ips'][0]['ip_address']
         bmc_bm_pairs.append((node['pm_addr'], baremetal.name))
         node['mac'] = [baremetal.addresses[provision_net][0]['OS-EXT-IPS-MAC:mac_addr']]
-        flavor = nova.flavors.get(baremetal.flavor['id'])
+        if not cache.get(baremetal.flavor['id']):
+            cache[baremetal.flavor['id']] = nova.flavors.get(baremetal.flavor['id'])
+        flavor = cache.get(baremetal.flavor['id'])
         node['cpu'] = flavor.vcpus
         node['memory'] = flavor.ram
         node['disk'] = flavor.disk
         # NOTE(bnemec): Older versions of Ironic won't allow _ characters in
         # node names, so translate to the allowed character -
         node['name'] = baremetal.name.replace('_', '-')
+
+        # If a node has uefi firmware ironic needs to be aware of this, in nova
+        # this is set using a image property called "hw_firmware_type"
+        if not cache.get(baremetal.image['id']):
+            cache[baremetal.image['id']] = nova.images.get(baremetal.image['id'])
+        image = cache.get(baremetal.image['id'])
+        if image.metadata.get('hw_firmware_type') == 'uefi':
+            node['capabilities'] = node['capabilities'] + ",boot_mode:uefi"
+
         nodes.append(node)
     return nodes, bmc_bm_pairs
 
