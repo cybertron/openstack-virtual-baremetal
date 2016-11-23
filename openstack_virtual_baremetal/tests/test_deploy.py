@@ -26,6 +26,7 @@ class TestProcessArgs(unittest.TestCase):
         mock_args.name = None
         mock_args.quintupleo = False
         mock_args.id = None
+        mock_args.role = []
         name, template = deploy._process_args(mock_args)
         self.assertEqual('baremetal', name)
         self.assertEqual('templates/virtual-baremetal.yaml', template)
@@ -35,6 +36,7 @@ class TestProcessArgs(unittest.TestCase):
         mock_args.name = 'foo'
         mock_args.quintupleo = False
         mock_args.id = None
+        mock_args.role = []
         name, template = deploy._process_args(mock_args)
         self.assertEqual('foo', name)
         self.assertEqual('templates/virtual-baremetal.yaml', template)
@@ -123,10 +125,92 @@ class TestIdEnv(unittest.TestCase):
             mock_safe_dump.assert_called_once_with(env_output, mock.ANY,
                                                    default_flow_style=False)
 
+# _process_role test data
+role_base_data = {
+    'parameter_defaults': {
+        'overcloud_storage_mgmt_net': 'storage_mgmt-foo',
+        'overcloud_internal_net': 'internal-foo',
+        'overcloud_storage_net': 'storage-foo',
+        'role': 'control',
+        'overcloud_tenant_net': 'tenant-foo'
+        },
+    'parameters': {
+        'os_user': 'admin',
+        'key_name': 'default',
+        'undercloud_name': 'undercloud-foo',
+        'bmc_image': 'bmc-base',
+        'baremetal_flavor': 'baremetal',
+        'os_auth_url': 'http://1.1.1.1:5000/v2.0',
+        'provision_net': 'provision-foo',
+        'os_password': 'password',
+        'os_tenant': 'admin',
+        'bmc_prefix': 'bmc-foo',
+        'public_net': 'public-foo',
+        'undercloud_image': 'centos7-base',
+        'baremetal_image': 'ipxe-boot',
+        'external_net': 'external',
+        'private_net': 'private',
+        'baremetal_prefix': 'baremetal-foo-control',
+        'undercloud_flavor': 'undercloud-16',
+        'node_count': 3,
+        'bmc_flavor': 'bmc'
+        },
+    'resource_registry': {
+        'OS::OVB::BaremetalNetworks': 'templates/baremetal-networks-all.yaml',
+        'OS::OVB::BaremetalPorts': 'templates/baremetal-ports-public-bond.yaml'
+        }
+    }
+role_specific_data = {
+    'parameter_defaults': {
+        'role': 'compute',
+        },
+    'parameters': {
+        'key_name': 'default',
+        'baremetal_flavor': 'baremetal',
+        'bmc_image': 'bmc-base',
+        'bmc_prefix': 'bmc',
+        'node_count': 2,
+        'bmc_flavor': 'bmc'
+        },
+    'resource_registry': {
+        'OS::OVB::BaremetalNetworks': 'templates/baremetal-networks-all.yaml',
+        'OS::OVB::BaremetalPorts': 'templates/baremetal-ports-all.yaml'
+        }
+    }
+role_original_data = {
+    'parameter_defaults': {
+        'role': 'control',
+        },
+    'parameters': {
+        'os_user': 'admin',
+        'key_name': 'default',
+        'undercloud_name': 'undercloud',
+        'baremetal_flavor': 'baremetal',
+        'os_auth_url': 'http://1.1.1.1:5000/v2.0',
+        'provision_net': 'provision',
+        'bmc_image': 'bmc-base',
+        'os_tenant': 'admin',
+        'bmc_prefix': 'bmc',
+        'public_net': 'public',
+        'undercloud_image': 'centos7-base',
+        'baremetal_image': 'ipxe-boot',
+        'external_net': 'external',
+        'os_password': 'password',
+        'private_net': 'private',
+        'baremetal_prefix': 'baremetal',
+        'undercloud_flavor': 'undercloud-16',
+        'node_count': 3,
+        'bmc_flavor': 'bmc'
+        },
+    'resource_registry': {
+        'OS::OVB::BaremetalNetworks': 'templates/baremetal-networks-all.yaml',
+        'OS::OVB::BaremetalPorts': 'templates/baremetal-ports-public-bond.yaml'
+        }
+    }
+# end _process_role test data
+
 class TestDeploy(unittest.TestCase):
-    @mock.patch('deploy.template_utils')
-    @mock.patch('deploy._get_heat_client')
-    def test_deploy(self, mock_ghc, mock_tu):
+    def _test_deploy(self, mock_ghc, mock_tu, mock_poll, poll=False):
         mock_client = mock.Mock()
         mock_ghc.return_value = mock_client
         template_files = {'template.yaml': {'foo': 'bar'}}
@@ -143,7 +227,7 @@ class TestDeploy(unittest.TestCase):
         all_files = {}
         all_files.update(template_files)
         all_files.update(env_files)
-        deploy._deploy('test', 'template.yaml', 'env.yaml')
+        deploy._deploy('test', 'template.yaml', 'env.yaml', poll)
         mock_tu.get_template_contents.assert_called_once_with('template.yaml')
         process = mock_tu.process_multiple_environments_and_files
         process.assert_called_once_with(['templates/resource-registry.yaml',
@@ -152,6 +236,96 @@ class TestDeploy(unittest.TestCase):
                                                           template=template,
                                                           environment=env,
                                                           files=all_files)
+        if not poll:
+            mock_poll.assert_not_called()
+        else:
+            mock_poll.assert_called_once_with('test', mock_client)
+
+    @mock.patch('deploy._poll_stack')
+    @mock.patch('deploy.template_utils')
+    @mock.patch('deploy._get_heat_client')
+    def test_deploy(self, mock_ghc, mock_tu, mock_poll):
+        self._test_deploy(mock_ghc, mock_tu, mock_poll)
+
+    @mock.patch('deploy._poll_stack')
+    @mock.patch('deploy.template_utils')
+    @mock.patch('deploy._get_heat_client')
+    def test_deploy_poll(self, mock_ghc, mock_tu, mock_poll):
+        self._test_deploy(mock_ghc, mock_tu, mock_poll, True)
+
+    @mock.patch('time.sleep')
+    def test_poll(self, mock_sleep):
+        hclient = mock.Mock()
+        stacks = [mock.Mock(), mock.Mock()]
+        stacks[0].status = 'IN_PROGRESS'
+        stacks[1].status = 'COMPLETE'
+        hclient.stacks.get.side_effect = stacks
+        deploy._poll_stack('foo', hclient)
+        self.assertEqual([mock.call('foo', resolve_outputs=False),
+                          mock.call('foo', resolve_outputs=False)],
+                          hclient.stacks.get.mock_calls)
+
+    @mock.patch('time.sleep')
+    def test_poll_fail(self, mock_sleep):
+        hclient = mock.Mock()
+        stacks = [mock.Mock(), mock.Mock()]
+        stacks[0].status = 'IN_PROGRESS'
+        stacks[1].status = 'FAILED'
+        hclient.stacks.get.side_effect = stacks
+        self.assertRaises(RuntimeError, deploy._poll_stack, 'foo', hclient)
+        self.assertEqual([mock.call('foo', resolve_outputs=False),
+                          mock.call('foo', resolve_outputs=False)],
+                          hclient.stacks.get.mock_calls)
+
+    @mock.patch('deploy._write_role_file')
+    @mock.patch('deploy._load_role_data')
+    def test_process_role(self, mock_load, mock_write):
+        mock_load.return_value = (role_base_data, role_specific_data,
+                                  role_original_data)
+        args = mock.Mock()
+        args.id = 'foo'
+        role_file, role = deploy._process_role('foo-compute.yaml', 'foo.yaml',
+                                               'foo', args)
+        mock_load.assert_called_once_with('foo.yaml', 'foo-compute.yaml', args)
+        self.assertEqual('env-foo-compute.yaml', role_file)
+        self.assertEqual('compute', role)
+        output = mock_write.call_args[0][0]
+        # These values are computed in _process_role
+        self.assertEqual('baremetal-foo-compute',
+                         output['parameters']['baremetal_prefix'])
+        self.assertEqual('bmc-foo-compute',
+                         output['parameters']['bmc_prefix'])
+        # These should be inherited
+        self.assertEqual('ipxe-boot', output['parameters']['baremetal_image'])
+        self.assertEqual('tenant-foo',
+                         output['parameter_defaults']['overcloud_tenant_net'])
+        # This should not be present in a role env, even if set in the file
+        self.assertNotIn('OS::OVB::BaremetalNetworks',
+                         output['resource_registry'])
+        # This should be the value set in the role env, not the base one
+        self.assertEqual('templates/baremetal-ports-all.yaml',
+                         output['resource_registry']['OS::OVB::BaremetalPorts'])
+
+    @mock.patch('deploy._deploy')
+    @mock.patch('deploy._process_role')
+    def test_deploy_roles(self, mock_process, mock_deploy):
+        args = mock.Mock()
+        args.role = ['foo-compute.yaml']
+        mock_process.return_value = ('env-foo-compute.yaml', 'compute')
+        deploy._deploy_roles('foo', args, 'foo.yaml')
+        mock_process.assert_called_once_with('foo-compute.yaml', 'foo.yaml',
+                                             'foo', args)
+        mock_deploy.assert_called_once_with('foo-compute',
+                                            'templates/virtual-baremetal.yaml',
+                                            'env-foo-compute.yaml',
+                                            poll=True)
+
+    @mock.patch('deploy._process_role')
+    def test_deploy_roles_empty(self, mock_process):
+        args = mock.Mock()
+        args.role = []
+        deploy._deploy_roles('foo', args, 'foo.yaml')
+        mock_process.assert_not_called()
 
 if __name__ == '__main__':
     unittest.main()

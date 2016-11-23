@@ -17,6 +17,7 @@ import argparse
 import os
 import random
 import sys
+import time
 import yaml
 
 from heatclient import client as heat_client
@@ -45,11 +46,19 @@ def _parse_args():
                              'development.',
                         action='store_true',
                         default=False)
+    parser.add_argument('--role',
+                        help='Additional environment file describing a '
+                             'secondary role to be deployed alongside the '
+                             'primary one described in the main environment.',
+                        action='append',
+                        default=[])
     return parser.parse_args()
 
 def _process_args(args):
     if args.id and not args.quintupleo:
         raise RuntimeError('--id requires --quintupleo')
+    if args.role and not args.quintupleo:
+        raise RuntimeError('--role requires --quintupleo')
 
     env_path = args.env
     if args.name:
@@ -132,7 +141,7 @@ def _get_heat_client():
 
         return heat_client.Client('1', endpoint=heat_endpoint, token=token_id)
 
-def _deploy(stack_name, stack_template, env_path):
+def _deploy(stack_name, stack_template, env_path, poll):
     hclient = _get_heat_client()
 
     template_files, template = template_utils.get_template_contents(
@@ -149,6 +158,90 @@ def _deploy(stack_name, stack_template, env_path):
                           files=all_files)
 
     print 'Deployment of stack "%s" started.' % stack_name
+    if poll:
+        _poll_stack(stack_name, hclient)
+
+def _poll_stack(stack_name,  hclient):
+    """Poll status for stack_name until it completes or fails"""
+    print 'Waiting for stack to complete',
+    done = False
+    while not done:
+        print '.',
+        stack = hclient.stacks.get(stack_name, resolve_outputs=False)
+        sys.stdout.flush()
+        if stack.status == 'COMPLETE':
+            print 'Stack %s created successfully' % stack_name
+            done = True
+        elif stack.status == 'FAILED':
+            raise RuntimeError('Failed to create stack %s' % stack_name)
+        else:
+            time.sleep(10)
+
+# Abstract out the role file interactions for easier unit testing
+def _load_role_data(base_env, role_file, args):
+    with open(base_env) as f:
+        base_data = yaml.safe_load(f)
+    with open(role_file) as f:
+        role_data = yaml.safe_load(f)
+    with open(args.env) as f:
+        orig_data = yaml.safe_load(f)
+    return base_data, role_data, orig_data
+
+def _write_role_file(role_env, role_file):
+    with open(role_file, 'w') as f:
+        yaml.safe_dump(role_env, f, default_flow_style=False)
+
+def _process_role(role_file, base_env, stack_name, args):
+    """Merge a partial role env with the base env
+
+    :param role: Filename of an environment file containing the definition
+        of the role.
+    :param base_env: Filename of the environment file used to deploy the
+        stack containing shared resources such as the undercloud and
+        networks.
+    :param stack_name: Name of the stack deployed using base_env.
+    :param args: The command-line arguments object from argparse.
+    """
+    base_data, role_data, orig_data = _load_role_data(base_env, role_file,
+                                                      args)
+    inherited_keys = ['baremetal_image', 'bmc_flavor', 'bmc_image',
+                      'external_net', 'key_name', 'os_auth_url',
+                      'os_password', 'os_tenant', 'os_user',
+                      'private_net', 'provision_net', 'public_net',
+                      'overcloud_internal_net', 'overcloud_storage_mgmt_net',
+                      'overcloud_storage_net','overcloud_tenant_net',
+                      ]
+    allowed_registry_keys = ['OS::OVB::BaremetalPorts']
+    role_env = role_data
+    # resource_registry is intentionally omitted as it should not be inherited
+    for section in ['parameters', 'parameter_defaults']:
+        role_env[section].update({
+            k: v for k, v in base_data.get(section, {}).items()
+            if k in inherited_keys})
+    # Most of the resource_registry should not be included in role envs.
+    # Only allow specific entries that may be needed.
+    role_env['resource_registry'] = {
+        k: v for k, v in role_env.get('resource_registry', {}).items()
+        if k in allowed_registry_keys}
+    # We need to start with the unmodified prefix
+    base_prefix = orig_data['parameters']['baremetal_prefix']
+    # But we do need to add the id if one is in use
+    if args.id:
+        base_prefix += '-%s' % args.id
+    bmc_prefix = base_data['parameters']['bmc_prefix']
+    role = role_data['parameter_defaults']['role']
+    role_env['parameters']['baremetal_prefix'] = '%s-%s' % (base_prefix, role)
+    role_env['parameters']['bmc_prefix'] = '%s-%s' % (bmc_prefix, role)
+    role_file = 'env-%s-%s.yaml' % (stack_name, role)
+    _write_role_file(role_env, role_file)
+    return role_file, role
+
+def _deploy_roles(stack_name, args, env_path):
+    for r in args.role:
+        role_env, role_name = _process_role(r, env_path, stack_name, args)
+        _deploy(stack_name + '-%s' % role_name,
+                'templates/virtual-baremetal.yaml',
+                role_env, poll=True)
 
 if __name__ == '__main__':
     args = _parse_args()
@@ -156,4 +249,8 @@ if __name__ == '__main__':
     stack_name, stack_template = _process_args(args)
     if args.id:
         env_path = _generate_id_env(args)
-    _deploy(stack_name, stack_template, env_path)
+    poll = False
+    if args.role:
+        poll = True
+    _deploy(stack_name, stack_template, env_path, poll=poll)
+    _deploy_roles(stack_name, args, env_path)

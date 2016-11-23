@@ -83,7 +83,8 @@ class TestBuildNodesJson(testtools.TestCase):
                         {'bmc_prefix': 'bmc-foo',
                          'baremetal_prefix': 'baremetal-foo',
                          'provision_net': 'provision-foo'
-                         }
+                         },
+                    'parameter_defaults': {}
                     }
         mock_load.return_value = mock_env
         bmc_base, baremetal_base, provision_net = build_nodes_json._get_names(
@@ -191,7 +192,8 @@ class TestBuildNodesJson(testtools.TestCase):
         nova.flavors.get.return_value = mock_flavor
         nodes, bmc_bm_pairs = build_nodes_json._build_nodes(nova, bmc_ports,
                                                             bm_ports,
-                                                            'provision')
+                                                            'provision',
+                                                            'bm')
         expected_nodes = TEST_NODES
         self.assertEqual(expected_nodes, nodes)
         self.assertEqual([('1.1.1.1', 'bm_0'), ('1.1.1.2', 'bm_1')],
@@ -256,7 +258,7 @@ class TestBuildNodesJson(testtools.TestCase):
         mock_get_ports.assert_called_once_with(neutron, bmc_base,
                                                baremetal_base)
         mock_build_nodes.assert_called_once_with(nova, bmc_ports, bm_ports,
-                                                 provision_net)
+                                                 provision_net, baremetal_base)
         mock_write_nodes.assert_called_once_with(nodes, args)
         mock_write_pairs.assert_called_once_with(pairs)
 
