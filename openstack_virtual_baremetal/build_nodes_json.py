@@ -67,6 +67,9 @@ def _get_names(args):
         bmc_base = e['parameters']['bmc_prefix']
         baremetal_base = e['parameters']['baremetal_prefix']
         provision_net = e['parameters']['provision_net']
+        role = e['parameter_defaults'].get('role')
+        if role:
+            baremetal_base = baremetal_base[:-len(role) - 1]
     return bmc_base, baremetal_base, provision_net
 
 
@@ -109,7 +112,7 @@ def _get_ports(neutron, bmc_base, baremetal_base):
     return bmc_ports, bm_ports
 
 
-def _build_nodes(nova, bmc_ports, bm_ports, provision_net):
+def _build_nodes(nova, bmc_ports, bm_ports, provision_net, baremetal_base):
     node_template = {
         'pm_type': 'pxe_ipmitool',
         'mac': '',
@@ -149,7 +152,12 @@ def _build_nodes(nova, bmc_ports, bm_ports, provision_net):
             cache[baremetal.image['id']] = nova.images.get(baremetal.image['id'])
         image = cache.get(baremetal.image['id'])
         if image.metadata.get('hw_firmware_type') == 'uefi':
-            node['capabilities'] = node['capabilities'] + ",boot_mode:uefi"
+            node['capabilities'] += ",boot_mode:uefi"
+
+        bm_name_end = baremetal.name[len(baremetal_base):]
+        if '-' in bm_name_end:
+            profile = bm_name_end[1:].split('_')[0]
+            node['capabilities'] += ',profile:%s' % profile
 
         nodes.append(node)
     return nodes, bmc_bm_pairs
@@ -181,7 +189,8 @@ def main():
     bmc_base, baremetal_base, provision_net = _get_names(args)
     nova, neutron = _get_clients()
     bmc_ports, bm_ports = _get_ports(neutron, bmc_base, baremetal_base)
-    nodes, bmc_bm_pairs = _build_nodes(nova, bmc_ports, bm_ports, provision_net)
+    nodes, bmc_bm_pairs = _build_nodes(nova, bmc_ports, bm_ports,
+                                       provision_net, baremetal_base)
     _write_nodes(nodes, args)
     _write_pairs(bmc_bm_pairs)
 
