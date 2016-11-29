@@ -28,7 +28,7 @@ TEST_NODES = [{'arch': 'x86_64',
                'disk': 1024,
                'mac': ['aa:aa:aa:aa:aa:aa'],
                'memory': 145055,
-               'name': 'bm_0',
+               'name': 'bm-0',
                'pm_addr': '1.1.1.1',
                'pm_password': 'password',
                'pm_type': 'pxe_ipmitool',
@@ -39,7 +39,7 @@ TEST_NODES = [{'arch': 'x86_64',
                'disk': 1024,
                'mac': ['aa:aa:aa:aa:aa:ab'],
                'memory': 145055,
-               'name': 'bm_1',
+               'name': 'bm-1',
                'pm_addr': '1.1.1.2',
                'pm_password': 'password',
                'pm_type': 'pxe_ipmitool',
@@ -178,10 +178,12 @@ class TestBuildNodesJson(testtools.TestCase):
         servers[0].flavor = {'id': '1'}
         servers[0].addresses = {'provision': [{'OS-EXT-IPS-MAC:mac_addr':
                                                    'aa:aa:aa:aa:aa:aa'}]}
+        servers[0].image = {'id': 'f00'}
         servers[1].name = 'bm_1'
         servers[1].flavor = {'id': '1'}
         servers[1].addresses = {'provision': [{'OS-EXT-IPS-MAC:mac_addr':
                                                    'aa:aa:aa:aa:aa:ab'}]}
+        servers[1].image = {'id': 'f00'}
         mock_flavor = mock.Mock()
         mock_flavor.vcpus = 128
         mock_flavor.ram = 145055
