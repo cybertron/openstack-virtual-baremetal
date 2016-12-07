@@ -115,7 +115,6 @@ class OpenStackBmc(bmc.Bmc):
                 self.log('Ignoring exception: "%s"' % e)
         else:
             self.log('%s is already off.' % self.instance)
-            return 0xd5
 
     def power_on(self):
         self.target_status = 'ACTIVE'
@@ -130,7 +129,6 @@ class OpenStackBmc(bmc.Bmc):
                 self.log('Ignoring exception: "%s"' % e)
         else:
             self.log('%s is already on.' % self.instance)
-            return 0xd5
 
     def power_reset(self):
         pass
