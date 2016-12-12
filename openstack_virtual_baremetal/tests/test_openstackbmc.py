@@ -248,7 +248,7 @@ class TestOpenStackBmc(unittest.TestCase):
         self._create_bmc(mock_nova)
         mock_active.return_value = False
         val = self.bmc.power_off()
-        self.assertEqual(0xd5, val)
+        self.assertIsNone(val)
         mock_log.assert_called_once_with('abc-123 is already off.')
 
     @mock.patch('openstack_virtual_baremetal.openstackbmc.OpenStackBmc.'
@@ -279,7 +279,7 @@ class TestOpenStackBmc(unittest.TestCase):
         self._create_bmc(mock_nova)
         mock_active.return_value = True
         val = self.bmc.power_on()
-        self.assertEqual(0xd5, val)
+        self.assertIsNone(val)
         mock_log.assert_called_once_with('abc-123 is already on.')
 
 
