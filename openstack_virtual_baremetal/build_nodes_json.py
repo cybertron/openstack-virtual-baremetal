@@ -52,15 +52,22 @@ def _parse_args():
                         dest='nodes_json',
                         default='nodes.json',
                         help='Destination to store the nodes json file to')
+    parser.add_argument('--add_undercloud',
+                        dest='add_undercloud',
+                        action='store_true',
+                        help='Adds the undercloud details to the json file.')
     args = parser.parse_args()
     return args
 
 
 def _get_names(args):
+    undercloud_name = None
     if args.env is None:
         bmc_base = args.bmc_prefix
         baremetal_base = args.baremetal_prefix
         provision_net = args.provision_net
+        if args.add_undercloud:
+            undercloud_name = 'undercloud'
     else:
         with open(args.env) as f:
             e = yaml.safe_load(f)
@@ -70,7 +77,9 @@ def _get_names(args):
         role = e['parameter_defaults'].get('role')
         if role:
             baremetal_base = baremetal_base[:-len(role) - 1]
-    return bmc_base, baremetal_base, provision_net
+        if args.add_undercloud:
+            undercloud_name = e['parameters']['undercloud_name']
+    return bmc_base, baremetal_base, provision_net, undercloud_name
 
 
 def _get_clients():
@@ -112,7 +121,8 @@ def _get_ports(neutron, bmc_base, baremetal_base):
     return bmc_ports, bm_ports
 
 
-def _build_nodes(nova, bmc_ports, bm_ports, provision_net, baremetal_base):
+def _build_nodes(nova, bmc_ports, bm_ports, provision_net, baremetal_base,
+                 undercloud_name):
     node_template = {
         'pm_type': 'pxe_ipmitool',
         'mac': '',
@@ -160,12 +170,35 @@ def _build_nodes(nova, bmc_ports, bm_ports, provision_net, baremetal_base):
             node['capabilities'] += ',profile:%s' % profile
 
         nodes.append(node)
-    return nodes, bmc_bm_pairs
+
+    extra_nodes = []
+
+    if undercloud_name:
+        undercloud_node_template = {
+            'name': undercloud_name,
+            'id': '',
+            'ips': [],
+        }
+        try:
+            undercloud_instance = nova.servers.list(
+                search_opts={'name': undercloud_name})[0]
+        except IndexError:
+            raise RuntimeError(
+                'undercloud %s specified in the environment file is not '
+                'available in nova' % undercloud_name)
+        undercloud_node_template['id'] = undercloud_instance.id
+        undercloud_node_template['ips'] = nova.servers.ips(undercloud_instance)
+
+        extra_nodes.append(undercloud_node_template)
+    return nodes, bmc_bm_pairs, extra_nodes
 
 
-def _write_nodes(nodes, args):
+def _write_nodes(nodes, extra_nodes, args):
     with open(args.nodes_json, 'w') as node_file:
-        contents = json.dumps({'nodes': nodes}, indent=2)
+        resulting_json = {'nodes': nodes}
+        if extra_nodes:
+            resulting_json['extra_nodes'] = extra_nodes
+        contents = json.dumps(resulting_json, indent=2)
         node_file.write(contents)
         print(contents)
         print('Wrote node definitions to %s' % args.nodes_json)
@@ -186,12 +219,14 @@ def _write_pairs(bmc_bm_pairs):
 
 def main():
     args = _parse_args()
-    bmc_base, baremetal_base, provision_net = _get_names(args)
+    bmc_base, baremetal_base, provision_net, undercloud_name = _get_names(args)
     nova, neutron = _get_clients()
     bmc_ports, bm_ports = _get_ports(neutron, bmc_base, baremetal_base)
-    nodes, bmc_bm_pairs = _build_nodes(nova, bmc_ports, bm_ports,
-                                       provision_net, baremetal_base)
-    _write_nodes(nodes, args)
+    nodes, bmc_bm_pairs, extra_nodes = _build_nodes(nova, bmc_ports, bm_ports,
+                                                    provision_net,
+                                                    baremetal_base,
+                                                    undercloud_name)
+    _write_nodes(nodes, extra_nodes, args)
     _write_pairs(bmc_bm_pairs)
 
 
