@@ -1,8 +1,48 @@
 OpenStack Virtual Baremetal
 ===========================
 
-A collection of tools to enable the use of OpenStack instances as baremetal
-for testing deployment systems.
+Introduction
+------------
+
+OpenStack Virtual Baremetal is a way to use OpenStack instances to do
+simulated baremetal deployments.  This project is a collection of tools
+and documentation that make it much easier to do so.  It primarily consists
+of the following pieces:
+
+- Patches and documentation for setting up a host cloud.
+- A deployment CLI that leverages the OpenStack Heat project to deploy the
+  VMs, networks, and other resources needed.
+- An OpenStack BMC that can be used to control OpenStack instances via IPMI
+  commands.
+- A tool to collect details from the deployed instances that are required to
+  add them as nodes to be deployed by the OpenStack Ironic project.
+
+OVB started as part of the OpenStack TripleO project.  It was intended to
+provide more flexible and scalable development and CI environments.  Previous
+methods for doing this focused on setting up all the vms for a given
+environment on a single box.  This had a number of drawbacks:
+
+- Each developer needed to have their own system.  Sharing was possible, but
+  more complex and generally not done.  Multi-tenancy is a basic design
+  tenet of OpenStack so this is not a problem when using it to provision the
+  VMs.  A large number of developers can make use of a much smaller number of
+  physical systems.
+- If a deployment called for more VMs than could fit on a single system, it
+  was a complex manual process to scale out to multiple systems.  An OVB
+  environment is only limited by the number of instances the host cloud can
+  support.
+- Pre-OVB test environments were generally static because there was not an API
+  for dynamic provisioning.  By using the OpenStack API to create all of the
+  resources, test environments can be easily tailored to their intended use
+  case.
+
+One drawback to OVB at this time is that it is generally not compatible with
+current public clouds.  While it is possible to do an OVB deployment on a
+completely stock OpenStack cloud, most public clouds have restrictions (older
+OpenStack releases, inability to upload new images, no Heat, etc.) that make
+it problematic.  At this time, OVB is primarily used with semi-private clouds
+configured for ideal compatibility.  As more public clouds move to newer
+OpenStack releases this situation should improve, however.
 
 How-To
 ------
