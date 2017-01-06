@@ -67,11 +67,27 @@ class TestBuildNodesJson(testtools.TestCase):
         args.bmc_prefix = 'bmc-foo'
         args.baremetal_prefix = 'baremetal-foo'
         args.provision_net = 'provision-foo'
-        bmc_base, baremetal_base, provision_net = build_nodes_json._get_names(
-            args)
+        args.add_undercloud = False
+        bmc_base, baremetal_base, provision_net, undercloud_name = (
+            build_nodes_json._get_names(args))
         self.assertEqual('bmc-foo', bmc_base)
         self.assertEqual('baremetal-foo', baremetal_base)
         self.assertEqual('provision-foo', provision_net)
+        self.assertIsNone(undercloud_name)
+
+    def test_get_names_no_env_w_undercloud(self):
+        args = mock.Mock()
+        args.env = None
+        args.bmc_prefix = 'bmc-foo'
+        args.baremetal_prefix = 'baremetal-foo'
+        args.provision_net = 'provision-foo'
+        args.add_undercloud = True
+        bmc_base, baremetal_base, provision_net, undercloud_name = (
+            build_nodes_json._get_names(args))
+        self.assertEqual('bmc-foo', bmc_base)
+        self.assertEqual('baremetal-foo', baremetal_base)
+        self.assertEqual('provision-foo', provision_net)
+        self.assertEqual('undercloud', undercloud_name)
 
     @mock.patch('openstack_virtual_baremetal.build_nodes_json.open',
                 create=True)
@@ -79,6 +95,7 @@ class TestBuildNodesJson(testtools.TestCase):
     def test_get_names_env(self, mock_load, mock_open):
         args = mock.Mock()
         args.env = 'foo.yaml'
+        args.add_undercloud = False
         mock_env = {'parameters':
                         {'bmc_prefix': 'bmc-foo',
                          'baremetal_prefix': 'baremetal-foo',
@@ -87,11 +104,12 @@ class TestBuildNodesJson(testtools.TestCase):
                     'parameter_defaults': {}
                     }
         mock_load.return_value = mock_env
-        bmc_base, baremetal_base, provision_net = build_nodes_json._get_names(
-            args)
+        bmc_base, baremetal_base, provision_net, undercloud_name = (
+            build_nodes_json._get_names(args))
         self.assertEqual('bmc-foo', bmc_base)
         self.assertEqual('baremetal-foo', baremetal_base)
         self.assertEqual('provision-foo', provision_net)
+        self.assertIsNone(undercloud_name)
 
     @mock.patch('os_client_config.make_client')
     def test_get_clients_os_cloud(self, mock_make_client):
@@ -173,7 +191,7 @@ class TestBuildNodesJson(testtools.TestCase):
                      ]
         bm_ports = [{'device_id': '1'}, {'device_id': '2'}]
         nova = mock.Mock()
-        servers = [mock.Mock(), mock.Mock()]
+        servers = [mock.Mock(), mock.Mock(), mock.Mock()]
         nova.servers.get.side_effect = servers
         servers[0].name = 'bm_0'
         servers[0].flavor = {'id': '1'}
@@ -190,14 +208,24 @@ class TestBuildNodesJson(testtools.TestCase):
         mock_flavor.ram = 145055
         mock_flavor.disk = 1024
         nova.flavors.get.return_value = mock_flavor
-        nodes, bmc_bm_pairs = build_nodes_json._build_nodes(nova, bmc_ports,
-                                                            bm_ports,
-                                                            'provision',
-                                                            'bm')
+
+        servers[2].name = 'undercloud'
+        servers[2].flavor = {'id': '1'}
+        servers[2].addresses = {'provision': [{'OS-EXT-IPS-MAC:mac_addr':
+                                                   'aa:aa:aa:aa:aa:ac'}]}
+        servers[2].image = {'id': 'f00'}
+
+        nova.servers.list.return_value = [servers[2]]
+        ips_return_val = 'ips call value'
+        nova.servers.ips.return_value = ips_return_val
+        nodes, bmc_bm_pairs, extra_nodes = build_nodes_json._build_nodes(
+            nova, bmc_ports, bm_ports, 'provision', 'bm', 'undercloud')
         expected_nodes = TEST_NODES
         self.assertEqual(expected_nodes, nodes)
         self.assertEqual([('1.1.1.1', 'bm_0'), ('1.1.1.2', 'bm_1')],
                          bmc_bm_pairs)
+        self.assertEqual(1, len(extra_nodes))
+        self.assertEqual('undercloud', extra_nodes[0]['name'])
 
     @mock.patch('openstack_virtual_baremetal.build_nodes_json.open',
                 create=True)
@@ -205,7 +233,8 @@ class TestBuildNodesJson(testtools.TestCase):
         args = mock.Mock()
         mock_open.return_value = mock.MagicMock()
         args.nodes_json = 'test.json'
-        build_nodes_json._write_nodes(TEST_NODES, args)
+        extra_nodes = []
+        build_nodes_json._write_nodes(TEST_NODES, extra_nodes, args)
         data = json.dumps({'nodes': TEST_NODES}, indent=2)
         f = mock_open.return_value.__enter__.return_value
         f.write.assert_called_once_with(data)
@@ -239,7 +268,9 @@ class TestBuildNodesJson(testtools.TestCase):
         bmc_base = mock.Mock()
         baremetal_base = mock.Mock()
         provision_net = mock.Mock()
-        mock_get_names.return_value = (bmc_base, baremetal_base, provision_net)
+        undercloud_name = 'undercloud'
+        mock_get_names.return_value = (bmc_base, baremetal_base, provision_net,
+                                       undercloud_name)
         nova = mock.Mock()
         neutron = mock.Mock()
         mock_get_clients.return_value = (nova, neutron)
@@ -248,7 +279,8 @@ class TestBuildNodesJson(testtools.TestCase):
         mock_get_ports.return_value = (bmc_ports, bm_ports)
         nodes = mock.Mock()
         pairs = mock.Mock()
-        mock_build_nodes.return_value = (nodes, pairs)
+        extra_nodes = mock.Mock()
+        mock_build_nodes.return_value = (nodes, pairs, extra_nodes)
 
         build_nodes_json.main()
 
@@ -258,7 +290,8 @@ class TestBuildNodesJson(testtools.TestCase):
         mock_get_ports.assert_called_once_with(neutron, bmc_base,
                                                baremetal_base)
         mock_build_nodes.assert_called_once_with(nova, bmc_ports, bm_ports,
-                                                 provision_net, baremetal_base)
-        mock_write_nodes.assert_called_once_with(nodes, args)
+                                                 provision_net, baremetal_base,
+                                                 undercloud_name)
+        mock_write_nodes.assert_called_once_with(nodes, extra_nodes, args)
         mock_write_pairs.assert_called_once_with(pairs)
 
