@@ -14,8 +14,16 @@ of the following pieces:
   VMs, networks, and other resources needed.
 - An OpenStack BMC that can be used to control OpenStack instances via IPMI
   commands.
-- A tool to collect details from the deployed instances that are required to
-  add them as nodes to be deployed by the OpenStack Ironic project.
+- A tool to collect details from the "baremetal" VMs so they can be added as
+  nodes in the OpenStack Ironic baremetal deployment project.
+
+A basic OVB environment is just a BMC VM configured to control a number
+of "baremetal" VMs.  This allows them to be treated largely the same
+way a real baremetal system with a BMC would.  A number of additional
+features can also be enabled to add more to the environment.
+
+Benefits and Drawbacks
+----------------------
 
 OVB started as part of the OpenStack TripleO project.  It was intended to
 provide more flexible and scalable development and CI environments.  Previous
@@ -41,8 +49,8 @@ current public clouds.  While it is possible to do an OVB deployment on a
 completely stock OpenStack cloud, most public clouds have restrictions (older
 OpenStack releases, inability to upload new images, no Heat, etc.) that make
 it problematic.  At this time, OVB is primarily used with semi-private clouds
-configured for ideal compatibility.  As more public clouds move to newer
-OpenStack releases this situation should improve, however.
+configured for ideal compatibility.  This situation should improve as more
+public clouds move to newer OpenStack releases, however.
 
 How-To
 ------
