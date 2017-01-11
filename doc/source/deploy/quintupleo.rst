@@ -3,10 +3,16 @@ Deploying with QuintupleO
 
 TBD: Explain the meaning of QuintupleO
 
-#. Copy the example env file and edit it to reflect the host environment::
+#. Copy the example env file and edit it to reflect the host environment:
 
-    cp templates/env.yaml.example env.yaml
-    vi env.yaml
+   .. note:: QuintupleO environments require a few more configuration
+             parameters to be set.  It also allows enabling a few more
+             features in env.yaml.
+
+   ::
+
+      cp templates/env.yaml.example env.yaml
+      vi env.yaml
 
 #. Deploy a QuintupleO stack::
 
