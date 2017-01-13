@@ -7,3 +7,4 @@ There are two options for deploying the Heat stack.
 
    quintupleo
    baremetal
+   heterogeneous

@@ -1,0 +1,16 @@
+parameters:
+  baremetal_flavor: baremetal
+  key_name: default
+  node_count: 2
+
+parameter_defaults:
+  # Set a default role for the nodes in this environment.  This parameter is
+  # ignored by Heat, but used by build-nodes-json.
+  role: compute
+
+#resource_registry:
+## Uncomment to create all networks required for network-isolation.
+## parameter_defaults should be used to override default parameter values
+## in baremetal-networks-all.yaml
+#  OS::OVB::BaremetalNetworks: templates/baremetal-networks-all.yaml
+#  OS::OVB::BaremetalPorts: templates/baremetal-ports-all.yaml
