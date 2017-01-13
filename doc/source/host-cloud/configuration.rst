@@ -1,5 +1,5 @@
 Configuring the Host Cloud
-==========================
+--------------------------
 
 Some of the configuration recommended below is optional, but applying
 all of it will provide the optimal experience.

@@ -1,5 +1,5 @@
 Deploying a Standalone Baremetal Stack
-======================================
+--------------------------------------
 
 #. Create provisioning network.
 
