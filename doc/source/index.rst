@@ -13,6 +13,7 @@ Table of Contents
    introduction
    host-cloud/setup
    deploy/deploy
+   usage/usage
 
 Indices and tables
 ------------------
