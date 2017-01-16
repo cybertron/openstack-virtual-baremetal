@@ -15,7 +15,7 @@ Table of Contents
    deploy/deploy
    usage/usage
 
-Indices and tables
-------------------
+Search
+------
 
 * :ref:`search`
