@@ -14,6 +14,7 @@ Table of Contents
    host-cloud/setup
    deploy/deploy
    usage/usage
+   troubleshooting
    api
 
 Search

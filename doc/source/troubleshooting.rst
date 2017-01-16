@@ -1,8 +1,7 @@
 Troubleshooting
 ===============
 
-This document is intended to be a repository of things that can go wrong in an
-OVB deployment, why they go wrong, and how to fix them.
+A list of common problems and their solutions.
 
 ----
 
