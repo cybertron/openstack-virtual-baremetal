@@ -3,9 +3,8 @@ Troubleshooting
 
 A list of common problems and their solutions.
 
-----
-
-**Problem**: Nodes hang while downloading the deploy ramdisk or kernel.
+Nodes hang while downloading the deploy ramdisk or kernel
+---------------------------------------------------------
 
 **Cause**: Improper MTU settings on deployment interfaces.
 
@@ -17,10 +16,10 @@ and that the DHCP server responding to PXE requests advertises the
 same MTU.  Note that this MTU should be 50 bytes smaller than the
 physical MTU of the host cloud.
 
-----
+Nodes are deployed, but cannot talk to each other
+-------------------------------------------------
 
-**Problem**: Nodes are deployed, but cannot talk to each other.  In OpenStack
-deployments, this often presents as rabbitmq connectivity issues
+In OpenStack deployments, this often presents as rabbitmq connectivity issues
 from compute nodes.
 
 **Cause**: Improper MTU settings on deployed instances.
@@ -30,10 +29,8 @@ being used on the deployed instances is 50 bytes smaller than the
 physical MTU of the host cloud.  Again, for TripleO-based
 deployments the readme has details on how to do this.
 
-----
-
-**Problem**: After deploying to an OVB environment once, the nodes refuse to PXE
-boot on subsequent deployments.
+Nodes fail to PXE boot
+----------------------
 
 **Cause**: The nodes are not configured to PXE boot properly.
 
@@ -44,9 +41,10 @@ nova-compute service has been restarted.  If the ipxe-boot image
 is being used without the Nova patch, the baremetal instances must
 be rebuilt to the ipxe-boot image before subsequent deployments.
 
-----
+Nodes fail to PXE boot 2
+------------------------
 
-**Problem**: Nodes fail to PXE boot.  DHCP requests are seen on the undercloud
+DHCP requests are seen on the undercloud
 VM, but responses never get to the baremetal instances.
 
 **Cause**: Neutron port security blocking DHCP from the undercloud.
@@ -56,9 +54,8 @@ driver, or the port-security extension must be used to disable
 port-security on the appropriate ports.  As of this writing that
 requires use of the port-security branch of OVB.
 
-----
-
-**Problem**: The BMC does not respond to IPMI requests.
+The BMC does not respond to IPMI requests
+-----------------------------------------
 
 **Cause**: Several.  Neutron may not be configured to allow the BMC to listen
 on arbitrary addresses.  The BMC deployment may have failed for some
