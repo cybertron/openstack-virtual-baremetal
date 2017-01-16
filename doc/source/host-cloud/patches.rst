@@ -1,5 +1,5 @@
 Patching the Host Cloud
------------------------
+=======================
 
 The changes described in this section apply to compute nodes in the
 host cloud.

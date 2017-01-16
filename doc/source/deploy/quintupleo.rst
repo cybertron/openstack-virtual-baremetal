@@ -1,5 +1,5 @@
 Deploying with QuintupleO
--------------------------
+=========================
 
 QuintupleO is short for OpenStack on OpenStack on OpenStack.  It was the
 original name for OVB, and has been repurposed to indicate that this

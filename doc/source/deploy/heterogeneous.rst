@@ -1,5 +1,5 @@
 Deploying Heterogeneous Environments
-------------------------------------
+====================================
 
 It is possible to deploy an OVB environment with multiple "baremetal"
 node types.  The :doc:`QuintupleO <quintupleo>` deployment method must be used, so it

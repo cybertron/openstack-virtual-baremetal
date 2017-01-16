@@ -1,5 +1,5 @@
 Preparing the Host Cloud Environment
-------------------------------------
+====================================
 
 #. Source an rc file that will provide admin credentials for the host cloud.
 
