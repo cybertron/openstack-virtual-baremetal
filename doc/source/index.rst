@@ -14,8 +14,14 @@ Table of Contents
    host-cloud/setup
    deploy/deploy
    usage/usage
+   api
 
 Search
 ------
 
 * :ref:`search`
+
+Index
+-----
+* :ref:`genindex`
+* :ref:`modindex`

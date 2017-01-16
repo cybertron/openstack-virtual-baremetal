@@ -74,12 +74,18 @@ class OpenStackBmc(bmc.Bmc):
                 sys.exit(1)
 
     def get_boot_device(self):
+        """Return the currently configured boot device"""
         server = self.novaclient.servers.get(self.instance)
         retval = 'network' if server.metadata.get('libvirt:pxe-first') else 'hd'
         self.log('Reporting boot device', retval)
         return retval
 
     def set_boot_device(self, bootdevice):
+        """Set the boot device for the managed instance
+
+        :param bootdevice: One of ['network', 'hd] to set the boot device to
+                           network or hard disk respectively.
+        """
         server = self.novaclient.servers.get(self.instance)
         if bootdevice == 'network':
             self.novaclient.servers.set_meta_item(server, 'libvirt:pxe-first', '1')
@@ -98,10 +104,12 @@ class OpenStackBmc(bmc.Bmc):
         return self.cached_status == 'ACTIVE'
 
     def get_power_state(self):
+        """Returns the current power state of the managed instance"""
         self.log('Getting power state for %s' % self.instance)
         return self._instance_active()
 
     def power_off(self):
+        """Stop the managed instance"""
         # this should be power down without waiting for clean shutdown
         self.target_status = 'SHUTOFF'
         if self._instance_active():
@@ -117,6 +125,7 @@ class OpenStackBmc(bmc.Bmc):
             self.log('%s is already off.' % self.instance)
 
     def power_on(self):
+        """Start the managed instance"""
         self.target_status = 'ACTIVE'
         if not self._instance_active():
             try:
@@ -131,15 +140,18 @@ class OpenStackBmc(bmc.Bmc):
             self.log('%s is already on.' % self.instance)
 
     def power_reset(self):
+        """Not implemented"""
         pass
 
     def power_shutdown(self):
+        """Stop the managed instance"""
         # should attempt a clean shutdown
         self.target_status = 'ACTIVE'
         self.novaclient.servers.stop(self.instance)
         self.log('Politely shut down %s' % self.instance)
 
     def log(self, *msg):
+        """Helper function that prints msg and flushes stdout"""
         print(' '.join(msg))
         sys.stdout.flush()
 
