@@ -12,6 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import copy
 import json
 import sys
 
@@ -111,6 +112,50 @@ class TestBuildNodesJson(testtools.TestCase):
         self.assertEqual('provision-foo', provision_net)
         self.assertIsNone(undercloud_name)
 
+    @mock.patch('openstack_virtual_baremetal.build_nodes_json.open',
+                create=True)
+    @mock.patch('yaml.safe_load')
+    def test_get_names_env_no_role(self, mock_load, mock_open):
+        args = mock.Mock()
+        args.env = 'foo.yaml'
+        args.add_undercloud = False
+        mock_env = {'parameters':
+                        {'bmc_prefix': 'bmc',
+                         'baremetal_prefix': 'baremetal',
+                         'provision_net': 'provision'
+                         },
+                    'parameter_defaults': {'role': 'foo'}
+                    }
+        mock_load.return_value = mock_env
+        bmc_base, baremetal_base, provision_net, undercloud_name = (
+            build_nodes_json._get_names(args))
+        self.assertEqual('bmc', bmc_base)
+        self.assertEqual('baremetal', baremetal_base)
+        self.assertEqual('provision', provision_net)
+        self.assertIsNone(undercloud_name)
+
+    @mock.patch('openstack_virtual_baremetal.build_nodes_json.open',
+                create=True)
+    @mock.patch('yaml.safe_load')
+    def test_get_names_env_strip_role(self, mock_load, mock_open):
+        args = mock.Mock()
+        args.env = 'foo.yaml'
+        args.add_undercloud = False
+        mock_env = {'parameters':
+                        {'bmc_prefix': 'bmc-foo',
+                         'baremetal_prefix': 'baremetal-foo-bar',
+                         'provision_net': 'provision-foo'
+                         },
+                    'parameter_defaults': {'role': 'bar'}
+                    }
+        mock_load.return_value = mock_env
+        bmc_base, baremetal_base, provision_net, undercloud_name = (
+            build_nodes_json._get_names(args))
+        self.assertEqual('bmc-foo', bmc_base)
+        self.assertEqual('baremetal-foo', baremetal_base)
+        self.assertEqual('provision-foo', provision_net)
+        self.assertIsNone(undercloud_name)
+
     @mock.patch('os_client_config.make_client')
     def test_get_clients_os_cloud(self, mock_make_client):
         self.useFixture(fixtures.EnvironmentVariable('OS_CLOUD', 'foo'))
@@ -185,13 +230,7 @@ class TestBuildNodesJson(testtools.TestCase):
                 'fixed_ips': [{'ip_address': ip}],
                 }
 
-    def test_build_nodes(self):
-        bmc_ports = [{'fixed_ips': [{'ip_address': '1.1.1.1'}]},
-                     {'fixed_ips': [{'ip_address': '1.1.1.2'}]}
-                     ]
-        bm_ports = [{'device_id': '1'}, {'device_id': '2'}]
-        nova = mock.Mock()
-        servers = [mock.Mock(), mock.Mock(), mock.Mock()]
+    def _create_build_nodes_mocks(self, nova, servers):
         nova.servers.get.side_effect = servers
         servers[0].name = 'bm_0'
         servers[0].flavor = {'id': '1'}
@@ -209,15 +248,23 @@ class TestBuildNodesJson(testtools.TestCase):
         mock_flavor.disk = 1024
         nova.flavors.get.return_value = mock_flavor
 
+    def test_build_nodes(self):
+        bmc_ports = [{'fixed_ips': [{'ip_address': '1.1.1.1'}]},
+                     {'fixed_ips': [{'ip_address': '1.1.1.2'}]}
+                     ]
+        bm_ports = [{'device_id': '1'}, {'device_id': '2'}]
+        nova = mock.Mock()
+        servers = [mock.Mock(), mock.Mock(), mock.Mock()]
+        self._create_build_nodes_mocks(nova, servers)
         servers[2].name = 'undercloud'
         servers[2].flavor = {'id': '1'}
         servers[2].addresses = {'provision': [{'OS-EXT-IPS-MAC:mac_addr':
                                                    'aa:aa:aa:aa:aa:ac'}]}
         servers[2].image = {'id': 'f00'}
-
         nova.servers.list.return_value = [servers[2]]
         ips_return_val = 'ips call value'
         nova.servers.ips.return_value = ips_return_val
+
         nodes, bmc_bm_pairs, extra_nodes = build_nodes_json._build_nodes(
             nova, bmc_ports, bm_ports, 'provision', 'bm', 'undercloud')
         expected_nodes = TEST_NODES
@@ -226,6 +273,38 @@ class TestBuildNodesJson(testtools.TestCase):
                          bmc_bm_pairs)
         self.assertEqual(1, len(extra_nodes))
         self.assertEqual('undercloud', extra_nodes[0]['name'])
+
+    def test_build_nodes_role_uefi(self):
+        bmc_ports = [{'fixed_ips': [{'ip_address': '1.1.1.1'}]},
+                     {'fixed_ips': [{'ip_address': '1.1.1.2'}]}
+                     ]
+        bm_ports = [{'device_id': '1'}, {'device_id': '2'}]
+        nova = mock.Mock()
+        servers = [mock.Mock(), mock.Mock(), mock.Mock()]
+        self._create_build_nodes_mocks(nova, servers)
+        servers[0].name = 'bm-foo-control_0'
+        servers[1].name = 'bm-foo-control_1'
+        ips_return_val = 'ips call value'
+        nova.servers.ips.return_value = ips_return_val
+        mock_image_get = mock.Mock()
+        nova.images.get.return_value = mock_image_get
+        mock_image_get.metadata.get.return_value = 'uefi'
+
+        nodes, bmc_bm_pairs, extra_nodes = build_nodes_json._build_nodes(
+            nova, bmc_ports, bm_ports, 'provision', 'bm-foo', None)
+        expected_nodes = copy.deepcopy(TEST_NODES)
+        expected_nodes[0]['name'] = 'bm-foo-control-0'
+        expected_nodes[0]['capabilities'] = ('boot_option:local,'
+                                             'boot_mode:uefi,'
+                                             'profile:control')
+        expected_nodes[1]['name'] = 'bm-foo-control-1'
+        expected_nodes[1]['capabilities'] = ('boot_option:local,'
+                                             'boot_mode:uefi,'
+                                             'profile:control')
+        self.assertEqual(expected_nodes, nodes)
+        self.assertEqual([('1.1.1.1', 'bm-foo-control_0'),
+                          ('1.1.1.2', 'bm-foo-control_1')],
+                         bmc_bm_pairs)
 
     @mock.patch('openstack_virtual_baremetal.build_nodes_json.open',
                 create=True)
