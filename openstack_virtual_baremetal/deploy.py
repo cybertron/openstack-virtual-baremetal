@@ -110,6 +110,23 @@ def _generate_id_env(args):
         yaml.safe_dump(env_data, f, default_flow_style=False)
     return env_path
 
+def _validate_env(args, env_path):
+    """Check for invalid environment configurations
+
+    :param args: Argparse args.
+    :param env_path: Path of the environment file to validate.
+    """
+    if not args.id:
+        with open(env_path) as f:
+            env_data = yaml.safe_load(f)
+        role = env_data.get('parameter_defaults', {}).get('role')
+        if (role and
+                env_data['parameters']['baremetal_prefix'].endswith('-' +
+                                                                    role)):
+            raise RuntimeError('baremetal_prefix ends with role name.  This '
+                               'will break build-nodes-json.  Please choose a '
+                               'different baremetal_prefix or role name.')
+
 def _get_heat_client():
     cloud = os.environ.get('OS_CLOUD')
     if cloud:
@@ -249,6 +266,7 @@ if __name__ == '__main__':
     stack_name, stack_template = _process_args(args)
     if args.id:
         env_path = _generate_id_env(args)
+    _validate_env(args, env_path)
     poll = False
     if args.role:
         poll = True

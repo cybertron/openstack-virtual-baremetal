@@ -15,6 +15,7 @@
 
 import io
 import unittest
+import yaml
 
 import mock
 
@@ -326,6 +327,37 @@ class TestDeploy(unittest.TestCase):
         args.role = []
         deploy._deploy_roles('foo', args, 'foo.yaml')
         mock_process.assert_not_called()
+
+    def _test_validate_env_ends_with_profile(self, mock_id):
+        test_env = dict(role_original_data)
+        test_env['parameters']['baremetal_prefix'] = 'baremetal-control'
+        test_env = yaml.safe_dump(test_env)
+        args = mock.Mock()
+        args.id = mock_id
+        with mock.patch('deploy.open',
+                        mock.mock_open(read_data=test_env),
+                        create=True) as mock_open:
+            if not mock_id:
+                self.assertRaises(RuntimeError, deploy._validate_env,
+                                  args, 'foo.yaml')
+            else:
+                deploy._validate_env(args, 'foo.yaml')
+
+    def test_validate_env_fails(self):
+        self._test_validate_env_ends_with_profile(None)
+
+    def test_validate_env_with_id(self):
+        self._test_validate_env_ends_with_profile('foo')
+
+    def test_validate_env(self):
+        test_env = yaml.safe_dump(role_original_data)
+        args = mock.Mock()
+        args.id = None
+        with mock.patch('deploy.open',
+                        mock.mock_open(read_data=test_env),
+                        create=True) as mock_open:
+            deploy._validate_env(args, 'foo.yaml')
+
 
 if __name__ == '__main__':
     unittest.main()
