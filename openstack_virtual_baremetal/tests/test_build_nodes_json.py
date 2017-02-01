@@ -320,6 +320,19 @@ class TestBuildNodesJson(testtools.TestCase):
 
     @mock.patch('openstack_virtual_baremetal.build_nodes_json.open',
                 create=True)
+    def test_write_nodes_extra_node(self, mock_open):
+        args = mock.Mock()
+        mock_open.return_value = mock.MagicMock()
+        args.nodes_json = 'test.json'
+        extra_nodes = [{'foo': 'bar'}]
+        build_nodes_json._write_nodes(TEST_NODES, extra_nodes, args)
+        data = json.dumps({'nodes': TEST_NODES,
+                           'extra_nodes': extra_nodes}, indent=2)
+        f = mock_open.return_value.__enter__.return_value
+        f.write.assert_called_once_with(data)
+
+    @mock.patch('openstack_virtual_baremetal.build_nodes_json.open',
+                create=True)
     def test_write_pairs(self, mock_open):
         pairs = [('1.1.1.1', 'bm_0'), ('1.1.1.2', 'bm_1')]
         mock_open.return_value = mock.MagicMock()
