@@ -75,7 +75,7 @@ def _get_names(args):
         baremetal_base = e['parameters']['baremetal_prefix']
         provision_net = e['parameters']['provision_net']
         role = e['parameter_defaults'].get('role')
-        if role:
+        if role and baremetal_base.endswith('-' + role):
             baremetal_base = baremetal_base[:-len(role) - 1]
         if args.add_undercloud:
             undercloud_name = e['parameters']['undercloud_name']
