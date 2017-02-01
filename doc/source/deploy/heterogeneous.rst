@@ -27,6 +27,10 @@ Steps for deploying the environment:
 #. One Heat stack will be created for each role being deployed.  Wait for them
    all to complete before proceeding.
 
+   .. note:: Be aware that the extra role stacks will be connected to networks
+             in the primary role stack, so the extra stacks must be deleted
+             before the primary one or the neutron subnets will not delete cleanly.
+
 #. Build a nodes.json file that can be imported into Ironic::
 
     bin/build-nodes-json --env env-control.yaml
@@ -37,7 +41,3 @@ Steps for deploying the environment:
 
    .. note:: If ``--id`` was used when deploying, remember to pass the generated
              environment file to this command instead of the original.
-
-Be aware that the extra role stacks will be connected to networks in the primary
-role stack, so the extra stacks must be deleted before the primary one or the
-neutron subnets will not delete cleanly.
