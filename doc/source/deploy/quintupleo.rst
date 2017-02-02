@@ -26,9 +26,9 @@ however.
              It appends the value passed in to the name of all resources
              in the stack.  For example, if ``undercloud_name`` is set to
              'undercloud' and ``--id foo`` is passed to deploy.py, the
-             resulting undercloud VM will be named 'undercloud-foo'.  This
-             can be helpful for differentiating multiple environments in
-             the same host cloud.
+             resulting undercloud VM will be named 'undercloud-foo'.  It is
+             recommended that this be used any time multiple environments are
+             being deployed in the same cloud/tenant to avoid name collisions.
 
              Be aware that when --id is used, a new environment file will
              be generated that reflects the new names.  The name of the new
