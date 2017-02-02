@@ -52,6 +52,12 @@ def _parse_args():
                              'primary one described in the main environment.',
                         action='append',
                         default=[])
+    parser.add_argument('--poll',
+                        help='Poll until the Heat stack(s) are complete. '
+                             'Automatically enabled when multiple roles are '
+                             'deployed.',
+                        action='store_true',
+                        default=False)
     return parser.parse_args()
 
 def _process_args(args):
@@ -267,7 +273,7 @@ if __name__ == '__main__':
     if args.id:
         env_path = _generate_id_env(args)
     _validate_env(args, env_path)
-    poll = False
+    poll = args.poll
     if args.role:
         poll = True
     _deploy(stack_name, stack_template, env_path, poll=poll)
