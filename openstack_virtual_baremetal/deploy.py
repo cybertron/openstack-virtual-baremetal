@@ -164,6 +164,27 @@ def _get_heat_client():
 
         return heat_client.Client('1', endpoint=heat_endpoint, token=token_id)
 
+def _create_auth_parameters():
+    cloud = os.environ.get('OS_CLOUD')
+    if cloud:
+        import os_client_config
+        config = os_client_config.OpenStackConfig().get_one_cloud(cloud)
+        auth = config.config['auth']
+        username = auth['username']
+        password = auth['password']
+        # os_client_config seems to always call this project_name
+        tenant = auth['project_name']
+    else:
+        username = os.environ.get('OS_USERNAME')
+        password = os.environ.get('OS_PASSWORD')
+        tenant = os.environ.get('OS_TENANT_NAME')
+        auth_url = os.environ.get('OS_AUTH_URL')
+    return {'os_user': username,
+            'os_password': password,
+            'os_tenant': tenant,
+            'os_auth_url': auth_url,
+            }
+
 def _deploy(stack_name, stack_template, env_path, poll):
     hclient = _get_heat_client()
 
@@ -174,11 +195,13 @@ def _deploy(stack_name, stack_template, env_path, poll):
     all_files = {}
     all_files.update(template_files)
     all_files.update(env_files)
+    parameters = _create_auth_parameters()
 
     hclient.stacks.create(stack_name=stack_name,
                           template=template,
                           environment=env,
-                          files=all_files)
+                          files=all_files,
+                          parameters=parameters)
 
     print 'Deployment of stack "%s" started.' % stack_name
     if poll:
