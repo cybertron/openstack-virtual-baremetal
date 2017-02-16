@@ -8,3 +8,4 @@ cover
 .testrepository
 .tox
 *.egg-info
+doc/build
