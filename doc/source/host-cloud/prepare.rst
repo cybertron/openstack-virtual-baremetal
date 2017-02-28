@@ -38,7 +38,7 @@ Preparing the Host Cloud Environment
 
 #. Create recommended flavors::
 
-    nova flavor-create baremetal auto 6144 50 2
+    nova flavor-create baremetal auto 8192 50 2
     nova flavor-create bmc auto 512 20 1
 
    These flavors can be customized if desired.  For large environments
