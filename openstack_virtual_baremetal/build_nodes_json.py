@@ -20,6 +20,7 @@ import sys
 import yaml
 
 from neutronclient.v2_0 import client as neutronclient
+import novaclient as nc
 from novaclient import client as novaclient
 
 
@@ -98,7 +99,13 @@ def _get_clients():
             print('Source an appropriate rc file first')
             sys.exit(1)
 
-        nova = novaclient.Client(2, username, password, tenant, auth_url)
+        # novaclient 7+ is backwards-incompatible :-(
+        if int(nc.__version__[0]) <= 6:
+            nova = novaclient.Client(2, username, password, tenant, auth_url)
+        else:
+            nova = novaclient.Client(2, username, password,
+                                     auth_url=auth_url,
+                                     project_name=tenant)
         neutron = neutronclient.Client(
             username=username,
             password=password,

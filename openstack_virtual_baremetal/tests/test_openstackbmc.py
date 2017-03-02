@@ -27,8 +27,8 @@ from openstack_virtual_baremetal import openstackbmc
 @mock.patch('openstack_virtual_baremetal.openstackbmc.OpenStackBmc.'
             '_find_instance')
 class TestOpenStackBmcInit(unittest.TestCase):
-    def test_init(self, mock_find_instance, mock_nova, mock_bmc_init,
-                  mock_log):
+    def _test_init(self, mock_find_instance, mock_nova, mock_bmc_init,
+                   mock_log, old_nova=True):
         mock_client = mock.Mock()
         mock_server = mock.Mock()
         mock_server.name = 'foo-instance'
@@ -44,14 +44,34 @@ class TestOpenStackBmcInit(unittest.TestCase):
                                         tenant='admin',
                                         auth_url='http://keystone:5000'
                                         )
-        mock_nova.assert_called_once_with(2, 'admin', 'password', 'admin',
-                                          'http://keystone:5000')
+        if old_nova:
+            mock_nova.assert_called_once_with(2, 'admin', 'password', 'admin',
+                                              'http://keystone:5000')
+        else:
+            mock_nova.assert_called_once_with(2, 'admin', 'password',
+                                              auth_url='http://keystone:5000',
+                                              project_name='admin')
         mock_find_instance.assert_called_once_with('foo')
         self.assertEqual('abc-123', bmc.instance)
         mock_client.servers.get.assert_called_once_with('abc-123')
         mock_log.assert_called_once_with('Managing instance: %s UUID: %s' %
                                          ('foo-instance', 'abc-123'))
 
+    @mock.patch('openstack_virtual_baremetal.openstackbmc.nc.__version__',
+                ('6', '0', '0'))
+    def test_init_6(self, mock_find_instance, mock_nova, mock_bmc_init,
+                   mock_log):
+        self._test_init(mock_find_instance, mock_nova, mock_bmc_init, mock_log)
+
+    @mock.patch('openstack_virtual_baremetal.openstackbmc.nc.__version__',
+                ('7', '0', '0'))
+    def test_init_7(self, mock_find_instance, mock_nova, mock_bmc_init,
+                   mock_log):
+        self._test_init(mock_find_instance, mock_nova, mock_bmc_init, mock_log,
+                        old_nova=False)
+
+    @mock.patch('openstack_virtual_baremetal.openstackbmc.nc.__version__',
+                ('6', '0', '0'))
     @mock.patch('time.sleep')
     def test_init_retry(self, _, mock_find_instance, mock_nova, mock_bmc_init,
                   mock_log):

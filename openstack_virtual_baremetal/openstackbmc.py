@@ -27,6 +27,7 @@ import argparse
 import sys
 import time
 
+import novaclient as nc
 from novaclient import client as novaclient
 from novaclient import exceptions
 import pyghmi.ipmi.bmc as bmc
@@ -36,8 +37,14 @@ class OpenStackBmc(bmc.Bmc):
     def __init__(self, authdata, port, address, instance, user, password, tenant,
                  auth_url):
         super(OpenStackBmc, self).__init__(authdata, port=port, address=address)
-        self.novaclient = novaclient.Client(2, user, password,
-                                            tenant, auth_url)
+        # novaclient 7+ is backwards-incompatible :-(
+        if int(nc.__version__[0]) <= 6:
+            self.novaclient = novaclient.Client(2, user, password,
+                                                tenant, auth_url)
+        else:
+            self.novaclient = novaclient.Client(2, user, password,
+                                                auth_url=auth_url,
+                                                project_name=tenant)
         self.instance = None
         self.cached_status = None
         self.target_status = None
