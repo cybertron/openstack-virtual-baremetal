@@ -211,7 +211,7 @@ role_original_data = {
 # end _process_role test data
 
 class TestDeploy(unittest.TestCase):
-    def _test_deploy(self, mock_ghc, mock_tu, mock_poll, poll=False):
+    def _test_deploy(self, mock_ghc, mock_tu, mock_poll, mock_cap, poll=False):
         mock_client = mock.Mock()
         mock_ghc.return_value = mock_client
         template_files = {'template.yaml': {'foo': 'bar'}}
@@ -228,6 +228,12 @@ class TestDeploy(unittest.TestCase):
         all_files = {}
         all_files.update(template_files)
         all_files.update(env_files)
+        params = {'os_user': 'admin',
+                  'os_password': 'password',
+                  'os_tenant': 'admin',
+                  'os_auth_url': 'http://1.1.1.1:5000/v2.0',
+                 }
+        mock_cap.return_value = params
         deploy._deploy('test', 'template.yaml', 'env.yaml', poll)
         mock_tu.get_template_contents.assert_called_once_with('template.yaml')
         process = mock_tu.process_multiple_environments_and_files
@@ -236,23 +242,26 @@ class TestDeploy(unittest.TestCase):
         mock_client.stacks.create.assert_called_once_with(stack_name='test',
                                                           template=template,
                                                           environment=env,
-                                                          files=all_files)
+                                                          files=all_files,
+                                                          parameters=params)
         if not poll:
             mock_poll.assert_not_called()
         else:
             mock_poll.assert_called_once_with('test', mock_client)
 
+    @mock.patch('deploy._create_auth_parameters')
     @mock.patch('deploy._poll_stack')
     @mock.patch('deploy.template_utils')
     @mock.patch('deploy._get_heat_client')
-    def test_deploy(self, mock_ghc, mock_tu, mock_poll):
-        self._test_deploy(mock_ghc, mock_tu, mock_poll)
+    def test_deploy(self, mock_ghc, mock_tu, mock_poll, mock_cap):
+        self._test_deploy(mock_ghc, mock_tu, mock_poll, mock_cap)
 
+    @mock.patch('deploy._create_auth_parameters')
     @mock.patch('deploy._poll_stack')
     @mock.patch('deploy.template_utils')
     @mock.patch('deploy._get_heat_client')
-    def test_deploy_poll(self, mock_ghc, mock_tu, mock_poll):
-        self._test_deploy(mock_ghc, mock_tu, mock_poll, True)
+    def test_deploy_poll(self, mock_ghc, mock_tu, mock_poll, mock_cap):
+        self._test_deploy(mock_ghc, mock_tu, mock_poll, mock_cap, True)
 
     @mock.patch('time.sleep')
     def test_poll(self, mock_sleep):
