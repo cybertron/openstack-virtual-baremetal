@@ -42,7 +42,10 @@ class TestOpenStackBmcInit(unittest.TestCase):
                                         user='admin',
                                         password='password',
                                         tenant='admin',
-                                        auth_url='http://keystone:5000'
+                                        auth_url='http://keystone:5000',
+                                        project='',
+                                        user_domain='',
+                                        project_domain=''
                                         )
         if old_nova:
             mock_nova.assert_called_once_with(2, 'admin', 'password', 'admin',
@@ -60,15 +63,46 @@ class TestOpenStackBmcInit(unittest.TestCase):
     @mock.patch('openstack_virtual_baremetal.openstackbmc.nc.__version__',
                 ('6', '0', '0'))
     def test_init_6(self, mock_find_instance, mock_nova, mock_bmc_init,
-                   mock_log):
+                    mock_log):
         self._test_init(mock_find_instance, mock_nova, mock_bmc_init, mock_log)
 
     @mock.patch('openstack_virtual_baremetal.openstackbmc.nc.__version__',
                 ('7', '0', '0'))
     def test_init_7(self, mock_find_instance, mock_nova, mock_bmc_init,
-                   mock_log):
+                    mock_log):
         self._test_init(mock_find_instance, mock_nova, mock_bmc_init, mock_log,
                         old_nova=False)
+
+    def test_init_v3(self, mock_find_instance, mock_nova, mock_bmc_init,
+                     mock_log, old_nova=True):
+        mock_client = mock.Mock()
+        mock_server = mock.Mock()
+        mock_server.name = 'foo-instance'
+        mock_client.servers.get.return_value = mock_server
+        mock_nova.return_value = mock_client
+        mock_find_instance.return_value = 'abc-123'
+        bmc = openstackbmc.OpenStackBmc(authdata={'admin': 'password'},
+                                        port=623,
+                                        address='::ffff:127.0.0.1',
+                                        instance='foo',
+                                        user='admin',
+                                        password='password',
+                                        tenant='',
+                                        auth_url='http://keystone:5000/v3',
+                                        project='admin',
+                                        user_domain='default',
+                                        project_domain='default'
+                                        )
+        mock_nova.assert_called_once_with(2, 'admin', 'password',
+                                          auth_url='http://keystone:5000/v3',
+                                          project_name='admin',
+                                          user_domain_name='default',
+                                          project_domain_name='default')
+        mock_find_instance.assert_called_once_with('foo')
+        self.assertEqual('abc-123', bmc.instance)
+        mock_client.servers.get.assert_called_once_with('abc-123')
+        mock_log.assert_called_once_with('Managing instance: %s UUID: %s' %
+                                         ('foo-instance', 'abc-123'))
 
     @mock.patch('openstack_virtual_baremetal.openstackbmc.nc.__version__',
                 ('6', '0', '0'))
@@ -88,7 +122,10 @@ class TestOpenStackBmcInit(unittest.TestCase):
                                         user='admin',
                                         password='password',
                                         tenant='admin',
-                                        auth_url='http://keystone:5000'
+                                        auth_url='http://keystone:5000',
+                                        project='',
+                                        user_domain='',
+                                        project_domain=''
                                         )
         mock_nova.assert_called_once_with(2, 'admin', 'password', 'admin',
                                           'http://keystone:5000')
@@ -119,7 +156,10 @@ class TestOpenStackBmc(unittest.TestCase):
                                              user='admin',
                                              password='password',
                                              tenant='admin',
-                                             auth_url='http://keystone:5000'
+                                             auth_url='http://keystone:5000',
+                                             project='',
+                                             user_domain='',
+                                             project_domain=''
                                              )
         self.bmc.novaclient = self.mock_client
         self.bmc.instance = 'abc-123'
@@ -321,7 +361,10 @@ class TestMain(unittest.TestCase):
                                          user='admin',
                                          password='password',
                                          tenant='admin',
-                                         auth_url='http://host:5000/v2.0'
+                                         auth_url='http://host:5000/v2.0',
+                                         project='',
+                                         user_domain='',
+                                         project_domain=''
                                          )
         mock_instance.listen.assert_called_once_with()
 
@@ -342,6 +385,9 @@ class TestMain(unittest.TestCase):
                                          user='admin',
                                          password='password',
                                          tenant='admin',
-                                         auth_url='http://host:5000/v2.0'
+                                         auth_url='http://host:5000/v2.0',
+                                         project='',
+                                         user_domain='',
+                                         project_domain=''
                                          )
         mock_instance.listen.assert_called_once_with()

@@ -23,6 +23,7 @@ import yaml
 from heatclient import client as heat_client
 from heatclient.common import template_utils
 from keystoneclient.v2_0 import client as keystone_client
+from keystoneclient.v3 import client as keystone_v3_client
 
 def _parse_args():
     parser = argparse.ArgumentParser(description='Deploy an OVB environment')
@@ -143,24 +144,59 @@ def _get_heat_client():
         password = os.environ.get('OS_PASSWORD')
         tenant = os.environ.get('OS_TENANT_NAME')
         auth_url = os.environ.get('OS_AUTH_URL')
-        if not username or not password or not tenant or not auth_url:
-            print('Source an appropriate rc file first')
-            sys.exit(1)
+        project = os.environ.get('OS_PROJECT_NAME')
+        user_domain = os.environ.get('OS_USER_DOMAIN_ID')
+        project_domain = os.environ.get('OS_PROJECT_DOMAIN_ID')
 
         # Get token for Heat to use
-        kclient = keystone_client.Client(username=username, password=password,
-                                        tenant_name=tenant, auth_url=auth_url)
-        token_data = kclient.get_raw_token_from_identity_service(
-            username=username,
-            password=password,
-            tenant_name=tenant,
-            auth_url=auth_url)
-        token_id = token_data['token']['id']
+        if '/v3' not in auth_url:
+            if not username or not password or not tenant or not auth_url:
+                print('Source an appropriate rc file first')
+                sys.exit(1)
+            kclient = keystone_client.Client(username=username, password=password,
+                                             tenant_name=tenant, auth_url=auth_url)
+            token_data = kclient.get_raw_token_from_identity_service(
+                username=username,
+                password=password,
+                tenant_name=tenant,
+                auth_url=auth_url)
+            token_id = token_data['token']['id']
+            catalog_key = 'serviceCatalog'
+        else:
+            if (not username or not password or not auth_url or not project or
+                    not user_domain or not project_domain):
+                print('Source an appropriate rc file first')
+                sys.exit(1)
+            from keystoneauth1.identity import v3
+            from keystoneauth1 import session
+            auth = v3.Password(auth_url=auth_url,
+                               username=username,
+                               password=password,
+                               project_name=project,
+                               user_domain_name=user_domain,
+                               project_domain_name=project_domain)
+            sess = session.Session(auth=auth)
+            kclient = keystone_v3_client.Client(session=sess)
+            token_data = kclient.get_raw_token_from_identity_service(
+                username=username,
+                password=password,
+                project_name=project,
+                auth_url=auth_url,
+                user_domain_name=user_domain,
+                project_domain_name=project_domain)
+            token_id = token_data['auth_token']
+            catalog_key = 'catalog'
+
         # Get Heat endpoint
-        for endpoint in token_data['serviceCatalog']:
+        for endpoint in token_data[catalog_key]:
             if endpoint['name'] == 'heat':
-                # TODO: What if there's more than one endpoint?
-                heat_endpoint = endpoint['endpoints'][0]['publicURL']
+                try:
+                    # TODO: What if there's more than one endpoint?
+                    heat_endpoint = endpoint['endpoints'][0]['publicURL']
+                except KeyError:
+                    # Keystone v3 endpoint data looks different
+                    heat_endpoint = [e for e in endpoint['endpoints']
+                                     if e['interface'] == 'public'][0]['url']
 
         return heat_client.Client('1', endpoint=heat_endpoint, token=token_id)
 
@@ -179,10 +215,16 @@ def _create_auth_parameters():
         password = os.environ.get('OS_PASSWORD')
         tenant = os.environ.get('OS_TENANT_NAME')
         auth_url = os.environ.get('OS_AUTH_URL')
+        project = os.environ.get('OS_PROJECT_NAME')
+        user_domain = os.environ.get('OS_USER_DOMAIN_ID')
+        project_domain = os.environ.get('OS_PROJECT_DOMAIN_ID')
     return {'os_user': username,
             'os_password': password,
             'os_tenant': tenant,
             'os_auth_url': auth_url,
+            'os_project': project,
+            'os_user_domain': user_domain,
+            'os_project_domain': project_domain,
             }
 
 def _deploy(stack_name, stack_template, env_path, poll):

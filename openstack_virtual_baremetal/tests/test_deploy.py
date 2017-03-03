@@ -17,7 +17,9 @@ import io
 import unittest
 import yaml
 
+import fixtures
 import mock
+import testtools
 
 import deploy
 
@@ -58,7 +60,7 @@ class TestProcessArgs(unittest.TestCase):
         self.assertEqual('foo', name)
         self.assertEqual('templates/quintupleo.yaml', template)
 
-    def test_id_quintuple(self):
+    def test_id_quintupleo(self):
         mock_args = mock.Mock()
         mock_args.id = 'foo'
         mock_args.quintupleo = False
@@ -366,6 +368,94 @@ class TestDeploy(unittest.TestCase):
                         mock.mock_open(read_data=test_env),
                         create=True) as mock_open:
             deploy._validate_env(args, 'foo.yaml')
+
+
+V2_TOKEN_DATA = {'token': {'id': 'fake_token'},
+                 'serviceCatalog': [{'name': 'nova'},
+                                    {'name': 'heat',
+                                     'endpoints': [
+                                         {'publicURL': 'heat_endpoint'}
+                                         ]
+                                     }
+                                    ]}
+V3_TOKEN_DATA = {'auth_token': 'fake_v3_token',
+                 'catalog': [{'name': 'nova'},
+                             {'name': 'heat',
+                              'endpoints': [
+                                  {'interface': 'private'},
+                                  {'interface': 'public',
+                                   'url': 'heat_endpoint'}
+                                  ]
+                              }
+                             ]}
+class TestGetHeatClient(testtools.TestCase):
+    @mock.patch('os_client_config.make_client')
+    def test_os_cloud(self, mock_make_client):
+        self.useFixture(fixtures.EnvironmentVariable('OS_CLOUD', 'foo'))
+        deploy._get_heat_client()
+        mock_make_client.assert_called_once_with('orchestration', cloud='foo')
+
+    @mock.patch('heatclient.client.Client')
+    @mock.patch('keystoneclient.v2_0.client.Client')
+    def test_keystone_v2(self, mock_ksc, mock_hc):
+        self.useFixture(fixtures.EnvironmentVariable('OS_USERNAME', 'admin'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_PASSWORD', 'pw'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_TENANT_NAME',
+                                                     'admin'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_AUTH_URL', 'auth'))
+        mock_ks_client = mock.Mock()
+        mock_ksc.return_value = mock_ks_client
+        mock_ks_client.get_raw_token_from_identity_service.return_value = (
+            V2_TOKEN_DATA)
+        mock_token_value = 'fake_token'
+        deploy._get_heat_client()
+        mock_ksc.assert_called_once_with(username='admin', password='pw',
+                                         tenant_name='admin', auth_url='auth')
+        get_token = mock_ks_client.get_raw_token_from_identity_service
+        get_token.assert_called_once_with(username='admin', password='pw',
+                                          tenant_name='admin', auth_url='auth')
+        mock_hc.assert_called_once_with('1', endpoint='heat_endpoint',
+                                        token=mock_token_value)
+
+    @mock.patch('keystoneauth1.session.Session')
+    @mock.patch('keystoneauth1.identity.v3.Password')
+    @mock.patch('heatclient.client.Client')
+    @mock.patch('keystoneclient.v3.client.Client')
+    def test_keystone_v3(self, mock_ksc, mock_hc, mock_password, mock_session):
+        self.useFixture(fixtures.EnvironmentVariable('OS_USERNAME', 'admin'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_PASSWORD', 'pw'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_AUTH_URL', 'auth/v3'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_NAME', 'admin'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_USER_DOMAIN_ID',
+                                                     'default'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_DOMAIN_ID',
+                                                     'default'))
+        mock_auth = mock.Mock()
+        mock_password.return_value = mock_auth
+        mock_session_inst = mock.Mock()
+        mock_session.return_value = mock_session_inst
+        mock_ks_client = mock.Mock()
+        mock_ksc.return_value = mock_ks_client
+        mock_ks_client.get_raw_token_from_identity_service.return_value = (
+            V3_TOKEN_DATA)
+        mock_token_value = 'fake_v3_token'
+        deploy._get_heat_client()
+        mock_password.assert_called_once_with(auth_url='auth/v3',
+                                              username='admin',
+                                              password='pw',
+                                              project_name='admin',
+                                              user_domain_name='default',
+                                              project_domain_name='default'
+                                              )
+        mock_session.assert_called_once_with(auth=mock_auth)
+        get_token = mock_ks_client.get_raw_token_from_identity_service
+        get_token.assert_called_once_with(username='admin', password='pw',
+                                          project_name='admin',
+                                          auth_url='auth/v3',
+                                          user_domain_name='default',
+                                          project_domain_name='default')
+        mock_hc.assert_called_once_with('1', endpoint='heat_endpoint',
+                                        token=mock_token_value)
 
 
 if __name__ == '__main__':

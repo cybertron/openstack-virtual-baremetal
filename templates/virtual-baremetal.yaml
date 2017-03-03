@@ -87,6 +87,27 @@ parameters:
     default: http://127.0.0.1:5000/v2.0
     description: The Keystone auth_url of the host cloud
 
+  os_project:
+    type: string
+    default: ''
+    description: |
+      The project for os_user.  Required for Keystone v3, should be left
+      blank for Keystone v2.
+
+  os_user_domain:
+    type: string
+    default: ''
+    description: |
+      The user domain for os_user.  Required for Keystone v3, should be left
+      blank for Keystone v2.
+
+  os_project_domain:
+    type: string
+    default: ''
+    description: |
+      The project domain for os_user.  Required for Keystone v3, should be left
+      blank for Keystone v2.
+
   default_sg:
     type: string
     default: all_sg
@@ -154,6 +175,9 @@ resources:
             $os_password: {get_param: os_password}
             $os_tenant: {get_param: os_tenant}
             $os_auth_url: {get_param: os_auth_url}
+            $os_project: {get_param: os_project}
+            $os_user_domain: {get_param: os_user_domain}
+            $os_project_domain: {get_param: os_project_domain}
             $bm_node_count: {get_param: node_count}
             $bmc_prefix: {get_param: bmc_prefix}
             $bmc_utility: {get_attr: [bmc_port, fixed_ips, 0, ip_address]}

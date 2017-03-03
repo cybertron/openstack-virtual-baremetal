@@ -94,24 +94,48 @@ def _get_clients():
         username = os.environ.get('OS_USERNAME')
         password = os.environ.get('OS_PASSWORD')
         tenant = os.environ.get('OS_TENANT_NAME')
-        auth_url = os.environ.get('OS_AUTH_URL')
-        if not username or not password or not tenant or not auth_url:
-            print('Source an appropriate rc file first')
-            sys.exit(1)
+        auth_url = os.environ.get('OS_AUTH_URL', '')
+        project = os.environ.get('OS_PROJECT_NAME')
+        user_domain = os.environ.get('OS_USER_DOMAIN_ID')
+        project_domain = os.environ.get('OS_PROJECT_DOMAIN_ID')
 
-        # novaclient 7+ is backwards-incompatible :-(
-        if int(nc.__version__[0]) <= 6:
-            nova = novaclient.Client(2, username, password, tenant, auth_url)
+        if '/v3' not in auth_url:
+            if not username or not password or not tenant or not auth_url:
+                print('Source an appropriate rc file first')
+                sys.exit(1)
+            # novaclient 7+ is backwards-incompatible :-(
+            if int(nc.__version__[0]) <= 6:
+                nova = novaclient.Client(2, username, password, tenant, auth_url)
+            else:
+                nova = novaclient.Client(2, username, password,
+                                         auth_url=auth_url,
+                                         project_name=tenant)
+            neutron = neutronclient.Client(
+                username=username,
+                password=password,
+                tenant_name=tenant,
+                auth_url=auth_url
+            )
         else:
+            if (not username or not password or not auth_url or not project or
+                    not user_domain or not project_domain):
+                print('Source an appropriate rc file first')
+                sys.exit(1)
             nova = novaclient.Client(2, username, password,
                                      auth_url=auth_url,
-                                     project_name=tenant)
-        neutron = neutronclient.Client(
-            username=username,
-            password=password,
-            tenant_name=tenant,
-            auth_url=auth_url
-        )
+                                     project_name=project,
+                                     user_domain_name=user_domain,
+                                     project_domain_name=project_domain)
+            from keystoneauth1.identity import v3
+            from keystoneauth1 import session
+            auth = v3.Password(auth_url=auth_url,
+                               username=username,
+                               password=password,
+                               project_name=project,
+                               user_domain_name=user_domain,
+                               project_domain_name=project_domain)
+            sess = session.Session(auth=auth)
+            neutron = neutronclient.Client(session=sess)
     return nova, neutron
 
 

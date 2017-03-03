@@ -36,7 +36,13 @@ export OS_USERNAME=$os_user
 export OS_TENANT_NAME=$os_tenant
 export OS_PASSWORD=$os_password
 export OS_AUTH_URL=$os_auth_url
-private_subnet=$(neutron net-show -f value -c subnets $private_net)
+export OS_PROJECT_NAME=$os_project
+export OS_USER_DOMAIN_ID=$os_user_domain
+export OS_PROJECT_DOMAIN_ID=$os_project_domain
+# At some point neutronclient started returning a python list repr from this
+# command instead of just the value.  This sed will strip off the bits we
+# don't care about without messing up the output from older clients.
+private_subnet=$(neutron net-show -f value -c subnets $private_net | sed "s/\[u'\(.*\)'\]/\1/")
 default_gw=$(neutron subnet-show $private_subnet -f value -c gateway_ip)
 prefix_len=$(neutron subnet-show -f value -c cidr $private_subnet | awk -F / '{print $2}')
 
@@ -76,6 +82,11 @@ do
     bm_instance=$(neutron port-show $bm_port -c device_id -f value)
     bmc_port="$bmc_prefix_$(($i-1))"
     bmc_ip=$(neutron port-show $bmc_port -c fixed_ips -f value | jq -r .ip_address)
+    # Newer neutronclient requires explicit json output and a slightly
+    # different jq query
+    if [ -z "$bmc_ip" ]; then
+        bmc_ip=$(neutron port-show $bmc_port -c fixed_ips -f json | jq -r .fixed_ips[0].ip_address)
+    fi
     unit="openstack-bmc-$bm_port.service"
 
     cat <<EOF >/usr/lib/systemd/system/$unit
@@ -85,7 +96,7 @@ Requires=config-bmc-ips.service
 After=config-bmc-ips.service
 
 [Service]
-ExecStart=/usr/local/bin/openstackbmc  --os-user $os_user --os-password $os_password --os-tenant $os_tenant --os-auth-url $os_auth_url --instance $bm_instance --address $bmc_ip
+ExecStart=/usr/local/bin/openstackbmc  --os-user $os_user --os-password $os_password --os-tenant "$os_tenant" --os-auth-url $os_auth_url --os-project "$os_project" --os-user-domain "$os_user_domain" --os-project-domain "$os_project_domain" --instance $bm_instance --address $bmc_ip
 Restart=always
 
 User=root

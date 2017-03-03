@@ -35,16 +35,23 @@ import pyghmi.ipmi.bmc as bmc
 
 class OpenStackBmc(bmc.Bmc):
     def __init__(self, authdata, port, address, instance, user, password, tenant,
-                 auth_url):
+                 auth_url, project, user_domain, project_domain):
         super(OpenStackBmc, self).__init__(authdata, port=port, address=address)
-        # novaclient 7+ is backwards-incompatible :-(
-        if int(nc.__version__[0]) <= 6:
-            self.novaclient = novaclient.Client(2, user, password,
-                                                tenant, auth_url)
+        if not '/v3' in auth_url:
+            # novaclient 7+ is backwards-incompatible :-(
+            if int(nc.__version__[0]) <= 6:
+                self.novaclient = novaclient.Client(2, user, password,
+                                                    tenant, auth_url)
+            else:
+                self.novaclient = novaclient.Client(2, user, password,
+                                                    auth_url=auth_url,
+                                                    project_name=tenant)
         else:
             self.novaclient = novaclient.Client(2, user, password,
                                                 auth_url=auth_url,
-                                                project_name=tenant)
+                                                project_name=project,
+                                                user_domain_name=user_domain,
+                                                project_domain_name=project_domain)
         self.instance = None
         self.cached_status = None
         self.target_status = None
@@ -191,12 +198,28 @@ def main():
                         help='The password for connecting to OpenStack')
     parser.add_argument('--os-tenant',
                         dest='tenant',
-                        required=True,
+                        required=False,
+                        default='',
                         help='The tenant for connecting to OpenStack')
     parser.add_argument('--os-auth-url',
                         dest='auth_url',
                         required=True,
                         help='The OpenStack Keystone auth url')
+    parser.add_argument('--os-project',
+                        dest='project',
+                        required=False,
+                        default='',
+                        help='The project for connecting to OpenStack')
+    parser.add_argument('--os-user-domain',
+                        dest='user_domain',
+                        required=False,
+                        default='',
+                        help='The user domain for connecting to OpenStack')
+    parser.add_argument('--os-project-domain',
+                        dest='project_domain',
+                        required=False,
+                        default='',
+                        help='The project domain for connecting to OpenStack')
     args = parser.parse_args()
     # Default to ipv6 format, but if we get an ipv4 address passed in use the
     # appropriate format for pyghmi to listen on it.
@@ -209,7 +232,10 @@ def main():
                          user=args.user,
                          password=args.password,
                          tenant=args.tenant,
-                         auth_url=args.auth_url)
+                         auth_url=args.auth_url,
+                         project=args.project,
+                         user_domain=args.user_domain,
+                         project_domain=args.project_domain)
     mybmc.listen()
 
 

@@ -164,9 +164,7 @@ class TestBuildNodesJson(testtools.TestCase):
                  mock.call('network', cloud='foo')]
         self.assertEqual(calls, mock_make_client.mock_calls)
 
-    @mock.patch('neutronclient.v2_0.client.Client')
-    @mock.patch('novaclient.client.Client')
-    def test_get_clients_env(self, mock_nova, mock_neutron):
+    def _test_get_clients_env(self, mock_nova, mock_neutron):
         self.useFixture(fixtures.EnvironmentVariable('OS_USERNAME', 'admin'))
         self.useFixture(fixtures.EnvironmentVariable('OS_PASSWORD', 'pw'))
         self.useFixture(fixtures.EnvironmentVariable('OS_TENANT_NAME',
@@ -180,8 +178,65 @@ class TestBuildNodesJson(testtools.TestCase):
         self.assertEqual(mock_nova_client, nova)
         self.assertEqual(mock_neutron_client, neutron)
 
+    @mock.patch('openstack_virtual_baremetal.build_nodes_json.nc.__version__',
+                ('6', '0', '0'))
+    @mock.patch('neutronclient.v2_0.client.Client')
+    @mock.patch('novaclient.client.Client')
+    def test_get_clients_env_6(self, mock_nova, mock_neutron):
+        self._test_get_clients_env(mock_nova, mock_neutron)
+
+    @mock.patch('openstack_virtual_baremetal.build_nodes_json.nc.__version__',
+                ('7', '0', '0'))
+    @mock.patch('neutronclient.v2_0.client.Client')
+    @mock.patch('novaclient.client.Client')
+    def test_get_clients_env_7(self, mock_nova, mock_neutron):
+        self._test_get_clients_env(mock_nova, mock_neutron)
+
+    @mock.patch('keystoneauth1.session.Session')
+    @mock.patch('keystoneauth1.identity.v3.Password')
+    @mock.patch('neutronclient.v2_0.client.Client')
+    @mock.patch('novaclient.client.Client')
+    def test_get_clients_env_v3(self, mock_nova, mock_neutron, mock_password,
+                                mock_session):
+        self.useFixture(fixtures.EnvironmentVariable('OS_USERNAME', 'admin'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_PASSWORD', 'pw'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_NAME',
+                                                     'admin'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_AUTH_URL', 'auth/v3'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_USER_DOMAIN_ID',
+                                                     'default'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_DOMAIN_ID',
+                                                     'default'))
+        mock_nova_client = mock.Mock()
+        mock_nova.return_value = mock_nova_client
+        mock_neutron_client = mock.Mock()
+        mock_neutron.return_value = mock_neutron_client
+        mock_auth = mock.Mock()
+        mock_password.return_value = mock_auth
+        mock_session_inst = mock.Mock()
+        mock_session.return_value = mock_session_inst
+        nova, neutron = build_nodes_json._get_clients()
+        mock_password.assert_called_once_with(auth_url='auth/v3',
+                                              username='admin',
+                                              password='pw',
+                                              project_name='admin',
+                                              user_domain_name='default',
+                                              project_domain_name='default'
+                                              )
+        mock_session.assert_called_once_with(auth=mock_auth)
+        mock_neutron.assert_called_once_with(session=mock_session_inst)
+        self.assertEqual(mock_nova_client, nova)
+        self.assertEqual(mock_neutron_client, neutron)
+
     @mock.patch('sys.exit')
     def test_get_clients_missing(self, mock_exit):
+        build_nodes_json._get_clients()
+        mock_exit.assert_called_once_with(1)
+
+    @mock.patch('sys.exit')
+    def test_get_clients_missing_v3(self, mock_exit):
+        self.useFixture(fixtures.EnvironmentVariable('OS_AUTH_URL',
+                                                     'http://host/v3'))
         build_nodes_json._get_clients()
         mock_exit.assert_called_once_with(1)
 
