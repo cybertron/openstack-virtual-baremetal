@@ -8,4 +8,7 @@ cover
 .testrepository
 .tox
 *.egg-info
+.eggs
 doc/build
+AUTHORS
+ChangeLog
