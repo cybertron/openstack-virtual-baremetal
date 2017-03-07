@@ -39,6 +39,10 @@ export OS_AUTH_URL=$os_auth_url
 export OS_PROJECT_NAME=$os_project
 export OS_USER_DOMAIN_ID=$os__user_domain
 export OS_PROJECT_DOMAIN_ID=$os__project_domain
+# v3 env vars mess up v2 auth
+[ -z $OS_PROJECT_NAME ] && unset OS_PROJECT_NAME
+[ -z $OS_USER_DOMAIN_ID ] && unset OS_USER_DOMAIN_ID
+[ -z $OS_PROJECT_DOMAIN_ID ] && unset OS_PROJECT_DOMAIN_ID
 # At some point neutronclient started returning a python list repr from this
 # command instead of just the value.  This sed will strip off the bits we
 # don't care about without messing up the output from older clients.
