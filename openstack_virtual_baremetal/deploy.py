@@ -23,7 +23,7 @@ import yaml
 from heatclient import client as heat_client
 from heatclient.common import template_utils
 
-from openstack_virtual_baremetal import auth
+import auth
 
 def _parse_args():
     parser = argparse.ArgumentParser(description='Deploy an OVB environment')

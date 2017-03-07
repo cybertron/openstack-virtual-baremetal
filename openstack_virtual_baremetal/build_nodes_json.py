@@ -23,7 +23,7 @@ from neutronclient.v2_0 import client as neutronclient
 import novaclient as nc
 from novaclient import client as novaclient
 
-from openstack_virtual_baremetal import auth
+import auth
 
 
 def _parse_args():
