@@ -37,8 +37,8 @@ export OS_TENANT_NAME=$os_tenant
 export OS_PASSWORD=$os_password
 export OS_AUTH_URL=$os_auth_url
 export OS_PROJECT_NAME=$os_project
-export OS_USER_DOMAIN_ID=$os_user_domain
-export OS_PROJECT_DOMAIN_ID=$os_project_domain
+export OS_USER_DOMAIN_ID=$os__user_domain
+export OS_PROJECT_DOMAIN_ID=$os__project_domain
 # At some point neutronclient started returning a python list repr from this
 # command instead of just the value.  This sed will strip off the bits we
 # don't care about without messing up the output from older clients.

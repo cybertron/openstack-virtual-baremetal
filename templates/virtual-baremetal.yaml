@@ -176,8 +176,8 @@ resources:
             $os_tenant: {get_param: os_tenant}
             $os_auth_url: {get_param: os_auth_url}
             $os_project: {get_param: os_project}
-            $os_user_domain: {get_param: os_user_domain}
-            $os_project_domain: {get_param: os_project_domain}
+            $os__user_domain: {get_param: os_user_domain}
+            $os__project_domain: {get_param: os_project_domain}
             $bm_node_count: {get_param: node_count}
             $bmc_prefix: {get_param: bmc_prefix}
             $bmc_utility: {get_attr: [bmc_port, fixed_ips, 0, ip_address]}
