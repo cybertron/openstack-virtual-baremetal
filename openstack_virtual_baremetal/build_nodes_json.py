@@ -103,9 +103,6 @@ def _get_clients():
         project_domain = auth_data['os_project_domain']
 
         if '/v3' not in auth_url:
-            if not username or not password or not tenant or not auth_url:
-                print('Source an appropriate rc file first')
-                sys.exit(1)
             # novaclient 7+ is backwards-incompatible :-(
             if int(nc.__version__[0]) <= 6:
                 nova = novaclient.Client(2, username, password, tenant, auth_url)
@@ -120,10 +117,6 @@ def _get_clients():
                 auth_url=auth_url
             )
         else:
-            if (not username or not password or not auth_url or not project or
-                    not user_domain or not project_domain):
-                print('Source an appropriate rc file first')
-                sys.exit(1)
             nova = novaclient.Client(2, username, password,
                                      auth_url=auth_url,
                                      project_name=project,

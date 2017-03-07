@@ -150,17 +150,10 @@ def _get_heat_client():
         project_domain = auth_data['os_project_domain']
         # Get token for Heat to use
         if '/v3' not in auth_url:
-            if not username or not password or not tenant or not auth_url:
-                print('Source an appropriate rc file first')
-                sys.exit(1)
             token_data = auth._get_keystone_token()
             token_id = token_data['token']['id']
             catalog_key = 'serviceCatalog'
         else:
-            if (not username or not password or not auth_url or not project or
-                    not user_domain or not project_domain):
-                print('Source an appropriate rc file first')
-                sys.exit(1)
             token_data = auth._get_keystone_token()
             token_id = token_data['auth_token']
             catalog_key = 'catalog'

@@ -216,18 +216,6 @@ class TestBuildNodesJson(testtools.TestCase):
         self.assertEqual(mock_nova_client, nova)
         self.assertEqual(mock_neutron_client, neutron)
 
-    @mock.patch('sys.exit')
-    def test_get_clients_missing(self, mock_exit):
-        build_nodes_json._get_clients()
-        mock_exit.assert_called_once_with(1)
-
-    @mock.patch('sys.exit')
-    def test_get_clients_missing_v3(self, mock_exit):
-        self.useFixture(fixtures.EnvironmentVariable('OS_AUTH_URL',
-                                                     'http://host/v3'))
-        build_nodes_json._get_clients()
-        mock_exit.assert_called_once_with(1)
-
     def test_get_ports(self):
         neutron = mock.Mock()
         fake_ports = {'ports':
