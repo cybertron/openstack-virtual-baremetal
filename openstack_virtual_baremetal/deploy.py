@@ -140,14 +140,14 @@ def _get_heat_client():
         import os_client_config
         return os_client_config.make_client('orchestration', cloud=cloud)
     else:
-        username = os.environ.get('OS_USERNAME')
-        password = os.environ.get('OS_PASSWORD')
-        tenant = os.environ.get('OS_TENANT_NAME')
-        auth_url = os.environ.get('OS_AUTH_URL')
-        project = os.environ.get('OS_PROJECT_NAME')
-        user_domain = os.environ.get('OS_USER_DOMAIN_ID')
-        project_domain = os.environ.get('OS_PROJECT_DOMAIN_ID')
-
+        auth_data = _create_auth_parameters()
+        username = auth_data['os_user']
+        password = auth_data['os_password']
+        tenant = auth_data['os_tenant']
+        auth_url = auth_data['os_auth_url']
+        project = auth_data['os_project']
+        user_domain = auth_data['os_user_domain']
+        project_domain = auth_data['os_project_domain']
         # Get token for Heat to use
         if '/v3' not in auth_url:
             if not username or not password or not tenant or not auth_url:
