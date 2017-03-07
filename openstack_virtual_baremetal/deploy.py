@@ -22,8 +22,8 @@ import yaml
 
 from heatclient import client as heat_client
 from heatclient.common import template_utils
-from keystoneclient.v2_0 import client as keystone_client
-from keystoneclient.v3 import client as keystone_v3_client
+
+from openstack_virtual_baremetal import auth
 
 def _parse_args():
     parser = argparse.ArgumentParser(description='Deploy an OVB environment')
@@ -140,7 +140,7 @@ def _get_heat_client():
         import os_client_config
         return os_client_config.make_client('orchestration', cloud=cloud)
     else:
-        auth_data = _create_auth_parameters()
+        auth_data = auth._create_auth_parameters()
         username = auth_data['os_user']
         password = auth_data['os_password']
         tenant = auth_data['os_tenant']
@@ -153,13 +153,7 @@ def _get_heat_client():
             if not username or not password or not tenant or not auth_url:
                 print('Source an appropriate rc file first')
                 sys.exit(1)
-            kclient = keystone_client.Client(username=username, password=password,
-                                             tenant_name=tenant, auth_url=auth_url)
-            token_data = kclient.get_raw_token_from_identity_service(
-                username=username,
-                password=password,
-                tenant_name=tenant,
-                auth_url=auth_url)
+            token_data = auth._get_keystone_token()
             token_id = token_data['token']['id']
             catalog_key = 'serviceCatalog'
         else:
@@ -167,23 +161,7 @@ def _get_heat_client():
                     not user_domain or not project_domain):
                 print('Source an appropriate rc file first')
                 sys.exit(1)
-            from keystoneauth1.identity import v3
-            from keystoneauth1 import session
-            auth = v3.Password(auth_url=auth_url,
-                               username=username,
-                               password=password,
-                               project_name=project,
-                               user_domain_name=user_domain,
-                               project_domain_name=project_domain)
-            sess = session.Session(auth=auth)
-            kclient = keystone_v3_client.Client(session=sess)
-            token_data = kclient.get_raw_token_from_identity_service(
-                username=username,
-                password=password,
-                project_name=project,
-                auth_url=auth_url,
-                user_domain_name=user_domain,
-                project_domain_name=project_domain)
+            token_data = auth._get_keystone_token()
             token_id = token_data['auth_token']
             catalog_key = 'catalog'
 
@@ -200,42 +178,6 @@ def _get_heat_client():
 
         return heat_client.Client('1', endpoint=heat_endpoint, token=token_id)
 
-def _create_auth_parameters():
-    cloud = os.environ.get('OS_CLOUD')
-    if cloud:
-        import os_client_config
-        config = os_client_config.OpenStackConfig().get_one_cloud(cloud)
-        auth = config.config['auth']
-        username = auth['username']
-        password = auth['password']
-        # os_client_config seems to always call this project_name
-        tenant = auth['project_name']
-        auth_url = auth['auth_url']
-        project = auth['project_name']
-        user_domain = (auth.get('user_domain_name') or
-                       auth.get('user_domain_id', ''))
-        project_domain = (auth.get('project_domain_name') or
-                          auth.get('project_domain_id', ''))
-
-    else:
-        username = os.environ.get('OS_USERNAME')
-        password = os.environ.get('OS_PASSWORD')
-        tenant = os.environ.get('OS_TENANT_NAME', '')
-        auth_url = os.environ.get('OS_AUTH_URL')
-        project = os.environ.get('OS_PROJECT_NAME', '')
-        user_domain = (os.environ.get('OS_USER_DOMAIN_ID') or
-                       os.environ.get('OS_USER_DOMAIN_NAME', ''))
-        project_domain = (os.environ.get('OS_PROJECT_DOMAIN_ID') or
-                          os.environ.get('OS_PROJECT_DOMAIN_NAME', ''))
-    return {'os_user': username,
-            'os_password': password,
-            'os_tenant': tenant,
-            'os_auth_url': auth_url,
-            'os_project': project,
-            'os_user_domain': user_domain,
-            'os_project_domain': project_domain,
-            }
-
 def _deploy(stack_name, stack_template, env_path, poll):
     hclient = _get_heat_client()
 
@@ -246,7 +188,7 @@ def _deploy(stack_name, stack_template, env_path, poll):
     all_files = {}
     all_files.update(template_files)
     all_files.update(env_files)
-    parameters = _create_auth_parameters()
+    parameters = auth._create_auth_parameters()
 
     hclient.stacks.create(stack_name=stack_name,
                           template=template,

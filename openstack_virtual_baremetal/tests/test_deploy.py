@@ -21,7 +21,8 @@ import fixtures
 import mock
 import testtools
 
-import deploy
+from openstack_virtual_baremetal import auth
+from openstack_virtual_baremetal import deploy
 
 class TestProcessArgs(unittest.TestCase):
     def test_basic(self):
@@ -105,7 +106,7 @@ class TestIdEnv(unittest.TestCase):
     def test_generate(self, mock_safe_dump):
         mock_args = mock.Mock()
         mock_args.id = 'foo'
-        with mock.patch('deploy.open',
+        with mock.patch('openstack_virtual_baremetal.deploy.open',
                         mock.mock_open(read_data=test_env),
                         create=True) as mock_open:
             path = deploy._generate_id_env(mock_args)
@@ -120,7 +121,7 @@ class TestIdEnv(unittest.TestCase):
         env = test_env + '  undercloud_name: undercloud\n'
         env_output = dict(test_env_output)
         env_output['parameters']['undercloud_name'] = 'undercloud-foo'
-        with mock.patch('deploy.open',
+        with mock.patch('openstack_virtual_baremetal.deploy.open',
                         mock.mock_open(read_data=env),
                         create=True) as mock_open:
             path = deploy._generate_id_env(mock_args)
@@ -251,17 +252,17 @@ class TestDeploy(testtools.TestCase):
         else:
             mock_poll.assert_called_once_with('test', mock_client)
 
-    @mock.patch('deploy._create_auth_parameters')
-    @mock.patch('deploy._poll_stack')
-    @mock.patch('deploy.template_utils')
-    @mock.patch('deploy._get_heat_client')
+    @mock.patch('openstack_virtual_baremetal.auth._create_auth_parameters')
+    @mock.patch('openstack_virtual_baremetal.deploy._poll_stack')
+    @mock.patch('openstack_virtual_baremetal.deploy.template_utils')
+    @mock.patch('openstack_virtual_baremetal.deploy._get_heat_client')
     def test_deploy(self, mock_ghc, mock_tu, mock_poll, mock_cap):
         self._test_deploy(mock_ghc, mock_tu, mock_poll, mock_cap)
 
-    @mock.patch('deploy._create_auth_parameters')
-    @mock.patch('deploy._poll_stack')
-    @mock.patch('deploy.template_utils')
-    @mock.patch('deploy._get_heat_client')
+    @mock.patch('openstack_virtual_baremetal.auth._create_auth_parameters')
+    @mock.patch('openstack_virtual_baremetal.deploy._poll_stack')
+    @mock.patch('openstack_virtual_baremetal.deploy.template_utils')
+    @mock.patch('openstack_virtual_baremetal.deploy._get_heat_client')
     def test_deploy_poll(self, mock_ghc, mock_tu, mock_poll, mock_cap):
         self._test_deploy(mock_ghc, mock_tu, mock_poll, mock_cap, True)
 
@@ -289,8 +290,8 @@ class TestDeploy(testtools.TestCase):
                           mock.call('foo', resolve_outputs=False)],
                           hclient.stacks.get.mock_calls)
 
-    @mock.patch('deploy._write_role_file')
-    @mock.patch('deploy._load_role_data')
+    @mock.patch('openstack_virtual_baremetal.deploy._write_role_file')
+    @mock.patch('openstack_virtual_baremetal.deploy._load_role_data')
     def test_process_role(self, mock_load, mock_write):
         mock_load.return_value = (role_base_data, role_specific_data,
                                   role_original_data)
@@ -318,8 +319,8 @@ class TestDeploy(testtools.TestCase):
         self.assertEqual('templates/baremetal-ports-all.yaml',
                          output['resource_registry']['OS::OVB::BaremetalPorts'])
 
-    @mock.patch('deploy._deploy')
-    @mock.patch('deploy._process_role')
+    @mock.patch('openstack_virtual_baremetal.deploy._deploy')
+    @mock.patch('openstack_virtual_baremetal.deploy._process_role')
     def test_deploy_roles(self, mock_process, mock_deploy):
         args = mock.Mock()
         args.role = ['foo-compute.yaml']
@@ -332,7 +333,7 @@ class TestDeploy(testtools.TestCase):
                                             'env-foo-compute.yaml',
                                             poll=True)
 
-    @mock.patch('deploy._process_role')
+    @mock.patch('openstack_virtual_baremetal.deploy._process_role')
     def test_deploy_roles_empty(self, mock_process):
         args = mock.Mock()
         args.role = []
@@ -345,7 +346,7 @@ class TestDeploy(testtools.TestCase):
         test_env = yaml.safe_dump(test_env)
         args = mock.Mock()
         args.id = mock_id
-        with mock.patch('deploy.open',
+        with mock.patch('openstack_virtual_baremetal.deploy.open',
                         mock.mock_open(read_data=test_env),
                         create=True) as mock_open:
             if not mock_id:
@@ -364,156 +365,10 @@ class TestDeploy(testtools.TestCase):
         test_env = yaml.safe_dump(role_original_data)
         args = mock.Mock()
         args.id = None
-        with mock.patch('deploy.open',
+        with mock.patch('openstack_virtual_baremetal.deploy.open',
                         mock.mock_open(read_data=test_env),
                         create=True) as mock_open:
             deploy._validate_env(args, 'foo.yaml')
-
-    @mock.patch('os_client_config.OpenStackConfig')
-    def test_create_auth_parameters_os_cloud(self, mock_osc):
-        self.useFixture(fixtures.EnvironmentVariable('OS_CLOUD', 'foo'))
-        mock_data = mock.Mock()
-        mock_data.config = {'auth': {'username': 'admin',
-                                     'password': 'password',
-                                     'project_name': 'admin',
-                                     'auth_url': 'http://host:5000',
-                                     }}
-        mock_instance = mock.Mock()
-        mock_instance.get_one_cloud.return_value = mock_data
-        mock_osc.return_value = mock_instance
-        result = deploy._create_auth_parameters()
-        expected = {'os_user': 'admin',
-                    'os_password': 'password',
-                    'os_tenant': 'admin',
-                    'os_auth_url': 'http://host:5000',
-                    'os_project': 'admin',
-                    'os_user_domain': '',
-                    'os_project_domain': '',
-                    }
-        self.assertEqual(expected, result)
-
-    @mock.patch('os_client_config.OpenStackConfig')
-    def test_create_auth_parameters_os_cloud_v3_id(self, mock_osc):
-        self.useFixture(fixtures.EnvironmentVariable('OS_CLOUD', 'foo'))
-        mock_data = mock.Mock()
-        mock_data.config = {'auth': {'username': 'admin',
-                                     'password': 'password',
-                                     'project_name': 'admin',
-                                     'auth_url': 'http://host:5000',
-                                     'user_domain_id': 'default',
-                                     'project_domain_id': 'default',
-                                     }}
-        mock_instance = mock.Mock()
-        mock_instance.get_one_cloud.return_value = mock_data
-        mock_osc.return_value = mock_instance
-        result = deploy._create_auth_parameters()
-        expected = {'os_user': 'admin',
-                    'os_password': 'password',
-                    'os_tenant': 'admin',
-                    'os_auth_url': 'http://host:5000',
-                    'os_project': 'admin',
-                    'os_user_domain': 'default',
-                    'os_project_domain': 'default',
-                    }
-        self.assertEqual(expected, result)
-
-    @mock.patch('os_client_config.OpenStackConfig')
-    def test_create_auth_parameters_os_cloud_v3_name(self, mock_osc):
-        self.useFixture(fixtures.EnvironmentVariable('OS_CLOUD', 'foo'))
-        mock_data = mock.Mock()
-        mock_data.config = {'auth': {'username': 'admin',
-                                     'password': 'password',
-                                     'project_name': 'admin',
-                                     'auth_url': 'http://host:5000',
-                                     'user_domain_name': 'default',
-                                     'project_domain_name': 'default',
-                                     }}
-        mock_instance = mock.Mock()
-        mock_instance.get_one_cloud.return_value = mock_data
-        mock_osc.return_value = mock_instance
-        result = deploy._create_auth_parameters()
-        expected = {'os_user': 'admin',
-                    'os_password': 'password',
-                    'os_tenant': 'admin',
-                    'os_auth_url': 'http://host:5000',
-                    'os_project': 'admin',
-                    'os_user_domain': 'default',
-                    'os_project_domain': 'default',
-                    }
-        self.assertEqual(expected, result)
-
-    def test_create_auth_parameters_env_v3(self):
-        self.useFixture(fixtures.EnvironmentVariable('OS_USERNAME', 'admin'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_PASSWORD', 'pw'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_TENANT_NAME',
-                                                     'admin'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_AUTH_URL', 'auth/v3'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_NAME',
-                                                     'admin'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_USER_DOMAIN_ID',
-                                                     'default'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_DOMAIN_ID',
-                                                     'default'))
-        result = deploy._create_auth_parameters()
-        expected = {'os_user': 'admin',
-                    'os_password': 'pw',
-                    'os_tenant': 'admin',
-                    'os_auth_url': 'auth/v3',
-                    'os_project': 'admin',
-                    'os_user_domain': 'default',
-                    'os_project_domain': 'default',
-                    }
-        self.assertEqual(expected, result)
-
-    def test_create_auth_parameters_env_name(self):
-        self.useFixture(fixtures.EnvironmentVariable('OS_USERNAME', 'admin'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_PASSWORD', 'pw'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_TENANT_NAME',
-                                                     None))
-        self.useFixture(fixtures.EnvironmentVariable('OS_AUTH_URL', 'auth/v3'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_NAME',
-                                                     'admin'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_USER_DOMAIN_NAME',
-                                                     'default'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_DOMAIN_NAME',
-                                                     'default'))
-        result = deploy._create_auth_parameters()
-        expected = {'os_user': 'admin',
-                    'os_password': 'pw',
-                    'os_tenant': '',
-                    'os_auth_url': 'auth/v3',
-                    'os_project': 'admin',
-                    'os_user_domain': 'default',
-                    'os_project_domain': 'default',
-                    }
-        self.assertEqual(expected, result)
-
-    def test_create_auth_parameters_env_v2(self):
-        self.useFixture(fixtures.EnvironmentVariable('OS_USERNAME', 'admin'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_PASSWORD', 'pw'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_TENANT_NAME',
-                                                     'admin'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_AUTH_URL', 'auth'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_NAME',
-                                                     'admin'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_USER_DOMAIN_ID',
-                                                     None))
-        self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_DOMAIN_ID',
-                                                     None))
-        self.useFixture(fixtures.EnvironmentVariable('OS_USER_DOMAIN_NAME',
-                                                     None))
-        self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_DOMAIN_NAME',
-                                                     None))
-        result = deploy._create_auth_parameters()
-        expected = {'os_user': 'admin',
-                    'os_password': 'pw',
-                    'os_tenant': 'admin',
-                    'os_auth_url': 'auth',
-                    'os_project': 'admin',
-                    'os_user_domain': '',
-                    'os_project_domain': '',
-                    }
-        self.assertEqual(expected, result)
 
 
 V2_TOKEN_DATA = {'token': {'id': 'fake_token'},
@@ -534,6 +389,8 @@ V3_TOKEN_DATA = {'auth_token': 'fake_v3_token',
                                   ]
                               }
                              ]}
+
+
 class TestGetHeatClient(testtools.TestCase):
     @mock.patch('os_client_config.make_client')
     def test_os_cloud(self, mock_make_client):
@@ -542,67 +399,40 @@ class TestGetHeatClient(testtools.TestCase):
         mock_make_client.assert_called_once_with('orchestration', cloud='foo')
 
     @mock.patch('heatclient.client.Client')
-    @mock.patch('keystoneclient.v2_0.client.Client')
-    def test_keystone_v2(self, mock_ksc, mock_hc):
-        self.useFixture(fixtures.EnvironmentVariable('OS_USERNAME', 'admin'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_PASSWORD', 'pw'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_TENANT_NAME',
-                                                     'admin'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_AUTH_URL', 'auth'))
-        mock_ks_client = mock.Mock()
-        mock_ksc.return_value = mock_ks_client
-        mock_ks_client.get_raw_token_from_identity_service.return_value = (
-            V2_TOKEN_DATA)
-        mock_token_value = 'fake_token'
+    @mock.patch('openstack_virtual_baremetal.auth._get_keystone_token')
+    @mock.patch('openstack_virtual_baremetal.auth._create_auth_parameters')
+    def test_keystone_v2(self, mock_cap, mock_gkt, mock_hc):
+        fake_auth_data = {'os_user': 'admin',
+                          'os_password': 'password',
+                          'os_tenant': 'admin',
+                          'os_auth_url': 'auth',
+                          'os_project': '',
+                          'os_user_domain': '',
+                          'os_project_domain': '',
+                          }
+        mock_cap.return_value = fake_auth_data
+        mock_gkt.return_value = V2_TOKEN_DATA
         deploy._get_heat_client()
-        mock_ksc.assert_called_once_with(username='admin', password='pw',
-                                         tenant_name='admin', auth_url='auth')
-        get_token = mock_ks_client.get_raw_token_from_identity_service
-        get_token.assert_called_once_with(username='admin', password='pw',
-                                          tenant_name='admin', auth_url='auth')
         mock_hc.assert_called_once_with('1', endpoint='heat_endpoint',
-                                        token=mock_token_value)
+                                        token='fake_token')
 
-    @mock.patch('keystoneauth1.session.Session')
-    @mock.patch('keystoneauth1.identity.v3.Password')
     @mock.patch('heatclient.client.Client')
-    @mock.patch('keystoneclient.v3.client.Client')
-    def test_keystone_v3(self, mock_ksc, mock_hc, mock_password, mock_session):
-        self.useFixture(fixtures.EnvironmentVariable('OS_USERNAME', 'admin'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_PASSWORD', 'pw'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_AUTH_URL', 'auth/v3'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_NAME',
-                                                     'admin'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_USER_DOMAIN_ID',
-                                                     'default'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_DOMAIN_ID',
-                                                     'default'))
-        mock_auth = mock.Mock()
-        mock_password.return_value = mock_auth
-        mock_session_inst = mock.Mock()
-        mock_session.return_value = mock_session_inst
-        mock_ks_client = mock.Mock()
-        mock_ksc.return_value = mock_ks_client
-        mock_ks_client.get_raw_token_from_identity_service.return_value = (
-            V3_TOKEN_DATA)
-        mock_token_value = 'fake_v3_token'
+    @mock.patch('openstack_virtual_baremetal.auth._get_keystone_token')
+    @mock.patch('openstack_virtual_baremetal.auth._create_auth_parameters')
+    def test_keystone_v3(self, mock_cap, mock_gkt, mock_hc):
+        fake_auth_data = {'os_user': 'admin',
+                          'os_password': 'password',
+                          'os_tenant': 'admin',
+                          'os_auth_url': 'auth/v3',
+                          'os_project': 'admin',
+                          'os_user_domain': 'default',
+                          'os_project_domain': 'default',
+                          }
+        mock_cap.return_value = fake_auth_data
+        mock_gkt.return_value = V3_TOKEN_DATA
         deploy._get_heat_client()
-        mock_password.assert_called_once_with(auth_url='auth/v3',
-                                              username='admin',
-                                              password='pw',
-                                              project_name='admin',
-                                              user_domain_name='default',
-                                              project_domain_name='default'
-                                              )
-        mock_session.assert_called_once_with(auth=mock_auth)
-        get_token = mock_ks_client.get_raw_token_from_identity_service
-        get_token.assert_called_once_with(username='admin', password='pw',
-                                          project_name='admin',
-                                          auth_url='auth/v3',
-                                          user_domain_name='default',
-                                          project_domain_name='default')
         mock_hc.assert_called_once_with('1', endpoint='heat_endpoint',
-                                        token=mock_token_value)
+                                        token='fake_v3_token')
 
 
 if __name__ == '__main__':

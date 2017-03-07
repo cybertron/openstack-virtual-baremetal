@@ -23,6 +23,8 @@ from neutronclient.v2_0 import client as neutronclient
 import novaclient as nc
 from novaclient import client as novaclient
 
+from openstack_virtual_baremetal import auth
+
 
 def _parse_args():
     parser = argparse.ArgumentParser(
@@ -91,13 +93,14 @@ def _get_clients():
         neutron = os_client_config.make_client('network', cloud=cloud)
 
     else:
-        username = os.environ.get('OS_USERNAME')
-        password = os.environ.get('OS_PASSWORD')
-        tenant = os.environ.get('OS_TENANT_NAME')
-        auth_url = os.environ.get('OS_AUTH_URL', '')
-        project = os.environ.get('OS_PROJECT_NAME')
-        user_domain = os.environ.get('OS_USER_DOMAIN_ID')
-        project_domain = os.environ.get('OS_PROJECT_DOMAIN_ID')
+        auth_data = auth._create_auth_parameters()
+        username = auth_data['os_user']
+        password = auth_data['os_password']
+        tenant = auth_data['os_tenant']
+        auth_url = auth_data['os_auth_url']
+        project = auth_data['os_project']
+        user_domain = auth_data['os_user_domain']
+        project_domain = auth_data['os_project_domain']
 
         if '/v3' not in auth_url:
             if not username or not password or not tenant or not auth_url:
@@ -126,15 +129,7 @@ def _get_clients():
                                      project_name=project,
                                      user_domain_name=user_domain,
                                      project_domain_name=project_domain)
-            from keystoneauth1.identity import v3
-            from keystoneauth1 import session
-            auth = v3.Password(auth_url=auth_url,
-                               username=username,
-                               password=password,
-                               project_name=project,
-                               user_domain_name=user_domain,
-                               project_domain_name=project_domain)
-            sess = session.Session(auth=auth)
+            sess = auth._get_keystone_session(auth_data)
             neutron = neutronclient.Client(session=sess)
     return nova, neutron
 
