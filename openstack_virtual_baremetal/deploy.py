@@ -210,14 +210,23 @@ def _create_auth_parameters():
         password = auth['password']
         # os_client_config seems to always call this project_name
         tenant = auth['project_name']
+        auth_url = auth['auth_url']
+        project = auth['project_name']
+        user_domain = (auth.get('user_domain_name') or
+                       auth.get('user_domain_id', ''))
+        project_domain = (auth.get('project_domain_name') or
+                          auth.get('project_domain_id', ''))
+
     else:
         username = os.environ.get('OS_USERNAME')
         password = os.environ.get('OS_PASSWORD')
-        tenant = os.environ.get('OS_TENANT_NAME')
+        tenant = os.environ.get('OS_TENANT_NAME', '')
         auth_url = os.environ.get('OS_AUTH_URL')
-        project = os.environ.get('OS_PROJECT_NAME')
-        user_domain = os.environ.get('OS_USER_DOMAIN_ID')
-        project_domain = os.environ.get('OS_PROJECT_DOMAIN_ID')
+        project = os.environ.get('OS_PROJECT_NAME', '')
+        user_domain = (os.environ.get('OS_USER_DOMAIN_ID') or
+                       os.environ.get('OS_USER_DOMAIN_NAME', ''))
+        project_domain = (os.environ.get('OS_PROJECT_DOMAIN_ID') or
+                          os.environ.get('OS_PROJECT_DOMAIN_NAME', ''))
     return {'os_user': username,
             'os_password': password,
             'os_tenant': tenant,

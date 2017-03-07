@@ -212,7 +212,7 @@ role_original_data = {
     }
 # end _process_role test data
 
-class TestDeploy(unittest.TestCase):
+class TestDeploy(testtools.TestCase):
     def _test_deploy(self, mock_ghc, mock_tu, mock_poll, mock_cap, poll=False):
         mock_client = mock.Mock()
         mock_ghc.return_value = mock_client
@@ -369,6 +369,152 @@ class TestDeploy(unittest.TestCase):
                         create=True) as mock_open:
             deploy._validate_env(args, 'foo.yaml')
 
+    @mock.patch('os_client_config.OpenStackConfig')
+    def test_create_auth_parameters_os_cloud(self, mock_osc):
+        self.useFixture(fixtures.EnvironmentVariable('OS_CLOUD', 'foo'))
+        mock_data = mock.Mock()
+        mock_data.config = {'auth': {'username': 'admin',
+                                     'password': 'password',
+                                     'project_name': 'admin',
+                                     'auth_url': 'http://host:5000',
+                                     }}
+        mock_instance = mock.Mock()
+        mock_instance.get_one_cloud.return_value = mock_data
+        mock_osc.return_value = mock_instance
+        result = deploy._create_auth_parameters()
+        expected = {'os_user': 'admin',
+                    'os_password': 'password',
+                    'os_tenant': 'admin',
+                    'os_auth_url': 'http://host:5000',
+                    'os_project': 'admin',
+                    'os_user_domain': '',
+                    'os_project_domain': '',
+                    }
+        self.assertEqual(expected, result)
+
+    @mock.patch('os_client_config.OpenStackConfig')
+    def test_create_auth_parameters_os_cloud_v3_id(self, mock_osc):
+        self.useFixture(fixtures.EnvironmentVariable('OS_CLOUD', 'foo'))
+        mock_data = mock.Mock()
+        mock_data.config = {'auth': {'username': 'admin',
+                                     'password': 'password',
+                                     'project_name': 'admin',
+                                     'auth_url': 'http://host:5000',
+                                     'user_domain_id': 'default',
+                                     'project_domain_id': 'default',
+                                     }}
+        mock_instance = mock.Mock()
+        mock_instance.get_one_cloud.return_value = mock_data
+        mock_osc.return_value = mock_instance
+        result = deploy._create_auth_parameters()
+        expected = {'os_user': 'admin',
+                    'os_password': 'password',
+                    'os_tenant': 'admin',
+                    'os_auth_url': 'http://host:5000',
+                    'os_project': 'admin',
+                    'os_user_domain': 'default',
+                    'os_project_domain': 'default',
+                    }
+        self.assertEqual(expected, result)
+
+    @mock.patch('os_client_config.OpenStackConfig')
+    def test_create_auth_parameters_os_cloud_v3_name(self, mock_osc):
+        self.useFixture(fixtures.EnvironmentVariable('OS_CLOUD', 'foo'))
+        mock_data = mock.Mock()
+        mock_data.config = {'auth': {'username': 'admin',
+                                     'password': 'password',
+                                     'project_name': 'admin',
+                                     'auth_url': 'http://host:5000',
+                                     'user_domain_name': 'default',
+                                     'project_domain_name': 'default',
+                                     }}
+        mock_instance = mock.Mock()
+        mock_instance.get_one_cloud.return_value = mock_data
+        mock_osc.return_value = mock_instance
+        result = deploy._create_auth_parameters()
+        expected = {'os_user': 'admin',
+                    'os_password': 'password',
+                    'os_tenant': 'admin',
+                    'os_auth_url': 'http://host:5000',
+                    'os_project': 'admin',
+                    'os_user_domain': 'default',
+                    'os_project_domain': 'default',
+                    }
+        self.assertEqual(expected, result)
+
+    def test_create_auth_parameters_env_v3(self):
+        self.useFixture(fixtures.EnvironmentVariable('OS_USERNAME', 'admin'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_PASSWORD', 'pw'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_TENANT_NAME',
+                                                     'admin'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_AUTH_URL', 'auth/v3'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_NAME',
+                                                     'admin'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_USER_DOMAIN_ID',
+                                                     'default'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_DOMAIN_ID',
+                                                     'default'))
+        result = deploy._create_auth_parameters()
+        expected = {'os_user': 'admin',
+                    'os_password': 'pw',
+                    'os_tenant': 'admin',
+                    'os_auth_url': 'auth/v3',
+                    'os_project': 'admin',
+                    'os_user_domain': 'default',
+                    'os_project_domain': 'default',
+                    }
+        self.assertEqual(expected, result)
+
+    def test_create_auth_parameters_env_name(self):
+        self.useFixture(fixtures.EnvironmentVariable('OS_USERNAME', 'admin'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_PASSWORD', 'pw'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_TENANT_NAME',
+                                                     None))
+        self.useFixture(fixtures.EnvironmentVariable('OS_AUTH_URL', 'auth/v3'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_NAME',
+                                                     'admin'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_USER_DOMAIN_NAME',
+                                                     'default'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_DOMAIN_NAME',
+                                                     'default'))
+        result = deploy._create_auth_parameters()
+        expected = {'os_user': 'admin',
+                    'os_password': 'pw',
+                    'os_tenant': '',
+                    'os_auth_url': 'auth/v3',
+                    'os_project': 'admin',
+                    'os_user_domain': 'default',
+                    'os_project_domain': 'default',
+                    }
+        self.assertEqual(expected, result)
+
+    def test_create_auth_parameters_env_v2(self):
+        self.useFixture(fixtures.EnvironmentVariable('OS_USERNAME', 'admin'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_PASSWORD', 'pw'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_TENANT_NAME',
+                                                     'admin'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_AUTH_URL', 'auth'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_NAME',
+                                                     'admin'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_USER_DOMAIN_ID',
+                                                     None))
+        self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_DOMAIN_ID',
+                                                     None))
+        self.useFixture(fixtures.EnvironmentVariable('OS_USER_DOMAIN_NAME',
+                                                     None))
+        self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_DOMAIN_NAME',
+                                                     None))
+        result = deploy._create_auth_parameters()
+        expected = {'os_user': 'admin',
+                    'os_password': 'pw',
+                    'os_tenant': 'admin',
+                    'os_auth_url': 'auth',
+                    'os_project': 'admin',
+                    'os_user_domain': '',
+                    'os_project_domain': '',
+                    }
+        self.assertEqual(expected, result)
+
 
 V2_TOKEN_DATA = {'token': {'id': 'fake_token'},
                  'serviceCatalog': [{'name': 'nova'},
@@ -425,7 +571,8 @@ class TestGetHeatClient(testtools.TestCase):
         self.useFixture(fixtures.EnvironmentVariable('OS_USERNAME', 'admin'))
         self.useFixture(fixtures.EnvironmentVariable('OS_PASSWORD', 'pw'))
         self.useFixture(fixtures.EnvironmentVariable('OS_AUTH_URL', 'auth/v3'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_NAME', 'admin'))
+        self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_NAME',
+                                                     'admin'))
         self.useFixture(fixtures.EnvironmentVariable('OS_USER_DOMAIN_ID',
                                                      'default'))
         self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_DOMAIN_ID',
