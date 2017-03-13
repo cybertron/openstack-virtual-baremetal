@@ -3,7 +3,9 @@ set -x
 
 # Also python-crypto, but that requires special handling because we used to
 # install python2-crypto from EPEL
-required_packages="python-pip os-net-config python-novaclient python-neutronclient git jq"
+# python-[nova|neutron]client are in a similar situation.  They were renamed
+# in RDO to python2-*
+required_packages="python-pip os-net-config git jq"
 
 function have_packages() {
     for i in $required_packages; do
@@ -12,6 +14,12 @@ function have_packages() {
         fi
     done
     if ! (rpm -qa | egrep -q "python-crypto|python2-crypto"); then
+        return 1
+    fi
+    if ! (rpm -qa | egrep -q "python-novaclient|python2-novaclient"); then
+        return 1
+    fi
+    if ! (rpm -qa | egrep -q "python-neutronclient|python2-neutronclient"); then
         return 1
     fi
     if ! pip freeze | grep -q pyghmi; then
@@ -23,7 +31,7 @@ function have_packages() {
 if ! have_packages; then
     yum -y update centos-release # required for rdo-release install to work
     yum install -y https://rdo.fedorapeople.org/rdo-release.rpm
-    yum install -y $required_packages python-crypto
+    yum install -y $required_packages python-crypto python2-novaclient python2-neutronclient
     pip install pyghmi
 fi
 
