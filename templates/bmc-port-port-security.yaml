@@ -1,0 +1,29 @@
+heat_template_version: 2015-10-15
+
+parameters:
+
+  bmc_prefix:
+    type: string
+
+  private_net:
+    type: string
+
+resources:
+
+  private_bmc_port:
+    type: OS::Neutron::Port
+    properties:
+      name:
+        list_join:
+        - '_'
+        - - 'utility'
+          - {get_param: bmc_prefix}
+      network: {get_param: private_net}
+      port_security_enabled: False
+
+outputs:
+  port:
+    value:
+    - {port: {get_resource: private_bmc_port}}
+  ip_address:
+    value: {get_attr: [private_bmc_port, fixed_ips, 0, ip_address]}

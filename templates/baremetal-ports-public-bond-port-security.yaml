@@ -1,0 +1,133 @@
+heat_template_version: 2015-10-15
+
+parameters:
+
+  baremetal_prefix:
+    type: string
+
+  provision_net:
+    type: string
+
+  public_net:
+    type: string
+    description: Name of external network
+    default: public
+
+  suffix:
+    type: string
+
+  overcloud_internal_net:
+    type: string
+    description: Name of internal API network
+    default: overcloud_internal
+
+  overcloud_storage_net:
+    type: string
+    description: Name of storage network
+    default: overcloud_storage
+
+  overcloud_storage_mgmt_net:
+    type: string
+    description: Name of storage management network
+    default: overcloud_storage_mgmt
+
+  overcloud_tenant_net:
+    type: string
+    description: Name of tenant network
+    default: overcloud_tenant
+
+resources:
+
+  provision_port:
+    type: OS::Neutron::Port
+    properties:
+      name:
+        list_join:
+        - ''
+        - - {get_param: baremetal_prefix}
+          - {get_param: suffix}
+      network: {get_param: provision_net}
+      port_security_enabled: False
+
+  internal_port:
+    type: OS::Neutron::Port
+    properties:
+      name:
+        list_join:
+        - ''
+        - - internal_
+          - {get_param: baremetal_prefix}
+          - {get_param: suffix}
+      network: {get_param: overcloud_internal_net}
+      port_security_enabled: False
+
+  storage_port:
+    type: OS::Neutron::Port
+    properties:
+      name:
+        list_join:
+        - ''
+        - - storage_
+          - {get_param: baremetal_prefix}
+          - {get_param: suffix}
+      network: {get_param: overcloud_storage_net}
+      port_security_enabled: False
+
+  storage_mgmt_port:
+    type: OS::Neutron::Port
+    properties:
+      name:
+        list_join:
+        - ''
+        - - storage_mgmt_
+          - {get_param: baremetal_prefix}
+          - {get_param: suffix}
+      network: {get_param: overcloud_storage_mgmt_net}
+      port_security_enabled: False
+
+  tenant_port:
+    type: OS::Neutron::Port
+    properties:
+      name:
+        list_join:
+        - ''
+        - - tenant_
+          - {get_param: baremetal_prefix}
+          - {get_param: suffix}
+      network: {get_param: overcloud_tenant_net}
+      port_security_enabled: False
+
+  public_port:
+    type: OS::Neutron::Port
+    properties:
+      name:
+        list_join:
+        - ''
+        - - public_
+          - {get_param: baremetal_prefix}
+          - {get_param: suffix}
+      network: {get_param: public_net}
+      port_security_enabled: False
+
+  public_bond_port:
+    type: OS::Neutron::Port
+    properties:
+      name:
+        list_join:
+        - ''
+        - - public_
+          - {get_param: baremetal_prefix}
+          - {get_param: suffix}
+      network: {get_param: public_net}
+      port_security_enabled: False
+
+outputs:
+  ports:
+    value:
+    - {port: {get_resource: provision_port}}
+    - {port: {get_resource: public_port}}
+    - {port: {get_resource: public_bond_port}}
+    - {port: {get_resource: internal_port}}
+    - {port: {get_resource: storage_port}}
+    - {port: {get_resource: storage_mgmt_port}}
+    - {port: {get_resource: tenant_port}}
