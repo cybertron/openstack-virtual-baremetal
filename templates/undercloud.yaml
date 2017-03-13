@@ -23,16 +23,13 @@ parameters:
     type: string
 
 resources:
-  undercloud_sg:
-    type: OS::Neutron::SecurityGroup
+  undercloud_ports:
+    type: OS::OVB::UndercloudPorts
     properties:
-      name: undercloud_sg
-      description: Ping and SSH
-      rules:
-      - protocol: icmp
-      - protocol: tcp
-        port_range_min: 22
-        port_range_max: 22
+      undercloud_name: {get_param: undercloud_name}
+      private_net: {get_param: private_net}
+      provision_net: {get_param: provision_net}
+      public_net: {get_param: public_net}
 
   undercloud_server:
     type: OS::Nova::Server
@@ -40,12 +37,7 @@ resources:
       flavor: {get_param: undercloud_flavor}
       image: {get_param: undercloud_image}
       key_name: {get_param: key_name}
-      security_groups:
-      - {get_resource: undercloud_sg}
-      networks:
-      - network: {get_param: private_net}
-      - network: {get_param: provision_net}
-      - network: {get_param: public_net}
+      networks: {get_attr: [undercloud_ports, ports]}
       name: {get_param: undercloud_name}
       user_data_format: {get_param: undercloud_user_data_format}
       user_data: {get_param: undercloud_user_data}

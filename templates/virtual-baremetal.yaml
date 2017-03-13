@@ -134,14 +134,10 @@ parameters:
 
 resources:
   bmc_port:
-    type: OS::Neutron::Port
+    type: OS::OVB::BMCPort
     properties:
-      name:
-        list_join:
-        - '_'
-        - - 'utility'
-          - {get_param: bmc_prefix}
-      network: {get_param: private_net}
+      bmc_prefix: {get_param: bmc_prefix}
+      private_net: {get_param: private_net}
 
   bmc_other_ports:
     type: OS::Heat::ResourceGroup
@@ -159,13 +155,12 @@ resources:
 
   bmc_server:
     type: OS::Nova::Server
-    depends_on: openstack_baremetal_servers
+    depends_on: [openstack_baremetal_servers, bmc_other_ports, bmc_port]
     properties:
       flavor: {get_param: bmc_flavor}
       image: {get_param: bmc_image}
       key_name: {get_param: key_name}
-      networks:
-        - port: {get_resource: bmc_port}
+      networks: {get_attr: [bmc_port, port]}
       name: {get_param: bmc_prefix}
       user_data_format: RAW
       user_data:
@@ -180,7 +175,7 @@ resources:
             $os__project_domain: {get_param: os_project_domain}
             $bm_node_count: {get_param: node_count}
             $bmc_prefix: {get_param: bmc_prefix}
-            $bmc_utility: {get_attr: [bmc_port, fixed_ips, 0, ip_address]}
+            $bmc_utility: {get_attr: [bmc_port, ip_address]}
             $bm_prefix: {get_param: baremetal_prefix}
             $private_net: {get_param: private_net}
             $openstackbmc_script: {get_file: ../bin/openstackbmc}
