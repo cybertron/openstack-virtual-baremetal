@@ -1,10 +1,6 @@
 #!/bin/bash
 
 # Edit these to match your environment
-AUTH_URL=http://11.1.1.78:5000/v2.0
-USER=admin
-PASSWORD=password
-TENANT=admin
 BMC_IMAGE=bmc-base
 KEY_NAME=default
 UNDERCLOUD_IMAGE=centos7-base
@@ -33,10 +29,6 @@ cd $TEMPDIR
 
 cp -r $BIN_DIR/../templates .
 cp templates/env.yaml.example ./env.yaml
-sed -i "s|os_auth_url: .*|os_auth_url: $AUTH_URL|" env.yaml
-sed -i "s|os_user: .*|os_user: $USER|" env.yaml
-sed -i "s|os_password: .*|os_password: $PASSWORD|" env.yaml
-sed -i "s|os_tenant: .*|os_tenant: $TENANT|" env.yaml
 sed -i "s/bmc_image: .*/bmc_image: $BMC_IMAGE/" env.yaml
 sed -i "s/key_name: .*/key_name: $KEY_NAME/" env.yaml
 sed -i "s/baremetal_flavor: .*/baremetal_flavor: $BAREMETAL_FLAVOR/" env.yaml
@@ -48,11 +40,10 @@ echo '  OS::OVB::UndercloudFloating: templates/undercloud-floating.yaml' >> env.
 cp -r $BIN_DIR ./bin
 cp -r $BIN_DIR/../openstack_virtual_baremetal .
 STACK_NAME=$MY_ID
-$BIN_DIR/deploy.py --quintupleo --id $MY_ID --name $STACK_NAME
-sleep 60
+$BIN_DIR/deploy.py --quintupleo --id $MY_ID --name $STACK_NAME --poll
 UNDERCLOUD_IP=$(heat output-show $STACK_NAME undercloud_host_floating_ip | sed -e 's/"//g')
-#bin/build-nodes-json --env env.yaml #--bmc_prefix $BMC_PREFIX --baremetal_prefix $BAREMETAL_PREFIX --provision_net $PROVISION_NET_NAME
-bin/build-nodes-json --bmc_prefix $BMC_PREFIX --baremetal_prefix $BAREMETAL_PREFIX --provision_net $PROVISION_NET
+bin/build-nodes-json --env env-$MY_ID.yaml
+#bin/build-nodes-json --bmc_prefix $BMC_PREFIX --baremetal_prefix $BAREMETAL_PREFIX --provision_net $PROVISION_NET
 SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 scp $SSH_OPTS bin/ovb-instack centos@$UNDERCLOUD_IP:/tmp
 scp $SSH_OPTS nodes.json centos@$UNDERCLOUD_IP:~/instackenv.json
