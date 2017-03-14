@@ -4,7 +4,7 @@
 BMC_IMAGE=bmc-base
 KEY_NAME=default
 UNDERCLOUD_IMAGE=centos7-base
-UNDERCLOUD_FLAVOR=undercloud-12
+UNDERCLOUD_FLAVOR=undercloud-16
 BAREMETAL_FLAVOR=baremetal
 
 set -ex
