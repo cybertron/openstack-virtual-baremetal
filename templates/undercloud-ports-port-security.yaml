@@ -18,7 +18,11 @@ resources:
   undercloud_sg:
     type: OS::Neutron::SecurityGroup
     properties:
-      name: undercloud_sg
+      name:
+        list_join:
+        - '_'
+        - - {get_param: undercloud_name}
+          - 'sg'
       description: Ping and SSH
       rules:
       - protocol: icmp
