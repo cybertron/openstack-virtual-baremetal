@@ -108,10 +108,6 @@ parameters:
       The project domain for os_user.  Required for Keystone v3, should be left
       blank for Keystone v2.
 
-  default_sg:
-    type: string
-    default: all_sg
-
   # Ignored parameters for compatibility with QuintupleO env files
   undercloud_image:
     type: string
