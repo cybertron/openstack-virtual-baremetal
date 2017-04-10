@@ -14,9 +14,6 @@ parameters:
   public_net:
     type: string
 
-  undercloud_sg:
-    type: string
-
 resources:
   undercloud_sg:
     type: OS::Neutron::SecurityGroup
