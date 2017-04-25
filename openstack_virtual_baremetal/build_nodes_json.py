@@ -177,11 +177,12 @@ def _build_nodes(nova, bmc_ports, bm_ports, provision_net, baremetal_base,
 
         # If a node has uefi firmware ironic needs to be aware of this, in nova
         # this is set using a image property called "hw_firmware_type"
-        if not cache.get(baremetal.image['id']):
-            cache[baremetal.image['id']] = nova.images.get(baremetal.image['id'])
-        image = cache.get(baremetal.image['id'])
-        if image.metadata.get('hw_firmware_type') == 'uefi':
-            node['capabilities'] += ",boot_mode:uefi"
+        # TODO(bnemec): Re-enable uefi support
+        #if not cache.get(baremetal.image['id']):
+            #cache[baremetal.image['id']] = nova.images.get(baremetal.image['id'])
+        #image = cache.get(baremetal.image['id'])
+        #if image.metadata.get('hw_firmware_type') == 'uefi':
+            #node['capabilities'] += ",boot_mode:uefi"
 
         bm_name_end = baremetal.name[len(baremetal_base):]
         if '-' in bm_name_end:
