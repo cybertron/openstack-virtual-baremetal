@@ -19,6 +19,7 @@ import os
 import sys
 import yaml
 
+import glanceclient
 from neutronclient.v2_0 import client as neutronclient
 import novaclient as nc
 from novaclient import client as novaclient
@@ -91,6 +92,7 @@ def _get_clients():
         import os_client_config
         nova = os_client_config.make_client('compute', cloud=cloud)
         neutron = os_client_config.make_client('network', cloud=cloud)
+        glance = os_client_config.make_client('image', cloud=cloud)
 
     else:
         auth_data = auth._create_auth_parameters()
@@ -124,7 +126,10 @@ def _get_clients():
                                      project_domain_name=project_domain)
             sess = auth._get_keystone_session(auth_data)
             neutron = neutronclient.Client(session=sess)
-    return nova, neutron
+        token, glance_endpoint = auth._get_token_and_endpoint('glance')
+        glance = glanceclient.Client('2', token=token,
+                                     endpoint=glance_endpoint)
+    return nova, neutron, glance
 
 
 def _get_ports(neutron, bmc_base, baremetal_base):
@@ -140,8 +145,8 @@ def _get_ports(neutron, bmc_base, baremetal_base):
     return bmc_ports, bm_ports
 
 
-def _build_nodes(nova, bmc_ports, bm_ports, provision_net, baremetal_base,
-                 undercloud_name):
+def _build_nodes(nova, glance, bmc_ports, bm_ports, provision_net,
+                 baremetal_base, undercloud_name):
     node_template = {
         'pm_type': 'pxe_ipmitool',
         'mac': '',
@@ -177,12 +182,11 @@ def _build_nodes(nova, bmc_ports, bm_ports, provision_net, baremetal_base,
 
         # If a node has uefi firmware ironic needs to be aware of this, in nova
         # this is set using a image property called "hw_firmware_type"
-        # TODO(bnemec): Re-enable uefi support
-        #if not cache.get(baremetal.image['id']):
-            #cache[baremetal.image['id']] = nova.images.get(baremetal.image['id'])
-        #image = cache.get(baremetal.image['id'])
-        #if image.metadata.get('hw_firmware_type') == 'uefi':
-            #node['capabilities'] += ",boot_mode:uefi"
+        if not cache.get(baremetal.image['id']):
+            cache[baremetal.image['id']] = glance.images.get(baremetal.image['id'])
+        image = cache.get(baremetal.image['id'])
+        if image.get('hw_firmware_type') == 'uefi':
+            node['capabilities'] += ",boot_mode:uefi"
 
         bm_name_end = baremetal.name[len(baremetal_base):]
         if '-' in bm_name_end:
@@ -240,9 +244,10 @@ def _write_pairs(bmc_bm_pairs):
 def main():
     args = _parse_args()
     bmc_base, baremetal_base, provision_net, undercloud_name = _get_names(args)
-    nova, neutron = _get_clients()
+    nova, neutron, glance = _get_clients()
     bmc_ports, bm_ports = _get_ports(neutron, bmc_base, baremetal_base)
-    nodes, bmc_bm_pairs, extra_nodes = _build_nodes(nova, bmc_ports, bm_ports,
+    nodes, bmc_bm_pairs, extra_nodes = _build_nodes(nova, glance, bmc_ports,
+                                                    bm_ports,
                                                     provision_net,
                                                     baremetal_base,
                                                     undercloud_name)

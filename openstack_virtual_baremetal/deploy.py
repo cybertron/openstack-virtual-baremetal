@@ -140,35 +140,7 @@ def _get_heat_client():
         import os_client_config
         return os_client_config.make_client('orchestration', cloud=cloud)
     else:
-        auth_data = auth._create_auth_parameters()
-        username = auth_data['os_user']
-        password = auth_data['os_password']
-        tenant = auth_data['os_tenant']
-        auth_url = auth_data['os_auth_url']
-        project = auth_data['os_project']
-        user_domain = auth_data['os_user_domain']
-        project_domain = auth_data['os_project_domain']
-        # Get token for Heat to use
-        if '/v3' not in auth_url:
-            token_data = auth._get_keystone_token()
-            token_id = token_data['token']['id']
-            catalog_key = 'serviceCatalog'
-        else:
-            token_data = auth._get_keystone_token()
-            token_id = token_data['auth_token']
-            catalog_key = 'catalog'
-
-        # Get Heat endpoint
-        for endpoint in token_data[catalog_key]:
-            if endpoint['name'] == 'heat':
-                try:
-                    # TODO: What if there's more than one endpoint?
-                    heat_endpoint = endpoint['endpoints'][0]['publicURL']
-                except KeyError:
-                    # Keystone v3 endpoint data looks different
-                    heat_endpoint = [e for e in endpoint['endpoints']
-                                     if e['interface'] == 'public'][0]['url']
-
+        token_id, heat_endpoint = auth._get_token_and_endpoint('heat')
         return heat_client.Client('1', endpoint=heat_endpoint, token=token_id)
 
 def _deploy(stack_name, stack_template, env_path, poll):

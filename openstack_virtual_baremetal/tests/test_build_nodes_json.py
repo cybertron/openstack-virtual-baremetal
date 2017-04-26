@@ -161,10 +161,12 @@ class TestBuildNodesJson(testtools.TestCase):
         self.useFixture(fixtures.EnvironmentVariable('OS_CLOUD', 'foo'))
         build_nodes_json._get_clients()
         calls = [mock.call('compute', cloud='foo'),
-                 mock.call('network', cloud='foo')]
+                 mock.call('network', cloud='foo'),
+                 mock.call('image', cloud='foo')]
         self.assertEqual(calls, mock_make_client.mock_calls)
 
-    def _test_get_clients_env(self, mock_nova, mock_neutron):
+    def _test_get_clients_env(self, mock_nova, mock_neutron, mock_glance,
+                              mock_gtae):
         self.useFixture(fixtures.EnvironmentVariable('OS_USERNAME', 'admin'))
         self.useFixture(fixtures.EnvironmentVariable('OS_PASSWORD', 'pw'))
         self.useFixture(fixtures.EnvironmentVariable('OS_TENANT_NAME',
@@ -174,28 +176,45 @@ class TestBuildNodesJson(testtools.TestCase):
         mock_nova.return_value = mock_nova_client
         mock_neutron_client = mock.Mock()
         mock_neutron.return_value = mock_neutron_client
-        nova, neutron = build_nodes_json._get_clients()
+        mock_glance_client = mock.Mock()
+        mock_glance.return_value = mock_glance_client
+        mock_token = 'abc-123'
+        mock_endpoint = 'glance://endpoint'
+        mock_gtae.return_value = (mock_token, mock_endpoint)
+        nova, neutron, glance = build_nodes_json._get_clients()
         self.assertEqual(mock_nova_client, nova)
         self.assertEqual(mock_neutron_client, neutron)
+        self.assertEqual(mock_glance_client, glance)
 
+    @mock.patch('openstack_virtual_baremetal.auth._get_token_and_endpoint')
     @mock.patch('openstack_virtual_baremetal.build_nodes_json.nc.__version__',
                 ('6', '0', '0'))
+    @mock.patch('glanceclient.Client')
     @mock.patch('neutronclient.v2_0.client.Client')
     @mock.patch('novaclient.client.Client')
-    def test_get_clients_env_6(self, mock_nova, mock_neutron):
-        self._test_get_clients_env(mock_nova, mock_neutron)
+    def test_get_clients_env_6(self, mock_nova, mock_neutron, mock_glance,
+                               mock_gtae):
+        self._test_get_clients_env(mock_nova, mock_neutron, mock_glance,
+                                   mock_gtae)
 
+    @mock.patch('openstack_virtual_baremetal.auth._get_token_and_endpoint')
     @mock.patch('openstack_virtual_baremetal.build_nodes_json.nc.__version__',
                 ('7', '0', '0'))
+    @mock.patch('glanceclient.Client')
     @mock.patch('neutronclient.v2_0.client.Client')
     @mock.patch('novaclient.client.Client')
-    def test_get_clients_env_7(self, mock_nova, mock_neutron):
-        self._test_get_clients_env(mock_nova, mock_neutron)
+    def test_get_clients_env_7(self, mock_nova, mock_neutron, mock_glance,
+                               mock_gtae):
+        self._test_get_clients_env(mock_nova, mock_neutron, mock_glance,
+                                   mock_gtae)
 
+    @mock.patch('openstack_virtual_baremetal.auth._get_token_and_endpoint')
     @mock.patch('openstack_virtual_baremetal.auth._get_keystone_session')
+    @mock.patch('glanceclient.Client')
     @mock.patch('neutronclient.v2_0.client.Client')
     @mock.patch('novaclient.client.Client')
-    def test_get_clients_env_v3(self, mock_nova, mock_neutron, mock_gks):
+    def test_get_clients_env_v3(self, mock_nova, mock_neutron, mock_glance,
+                                mock_gks, mock_gtae):
         self.useFixture(fixtures.EnvironmentVariable('OS_USERNAME', 'admin'))
         self.useFixture(fixtures.EnvironmentVariable('OS_PASSWORD', 'pw'))
         self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_NAME',
@@ -209,12 +228,20 @@ class TestBuildNodesJson(testtools.TestCase):
         mock_nova.return_value = mock_nova_client
         mock_neutron_client = mock.Mock()
         mock_neutron.return_value = mock_neutron_client
+        mock_glance_client = mock.Mock()
+        mock_glance.return_value = mock_glance_client
         mock_session_inst = mock.Mock()
         mock_gks.return_value = mock_session_inst
-        nova, neutron = build_nodes_json._get_clients()
+        mock_token = 'abc-123'
+        mock_endpoint = 'glance://endpoint'
+        mock_gtae.return_value = (mock_token, mock_endpoint)
+        nova, neutron, glance = build_nodes_json._get_clients()
         mock_neutron.assert_called_once_with(session=mock_session_inst)
+        mock_glance.assert_called_once_with('2', token=mock_token,
+                                            endpoint=mock_endpoint)
         self.assertEqual(mock_nova_client, nova)
         self.assertEqual(mock_neutron_client, neutron)
+        self.assertEqual(mock_glance_client, glance)
 
     def test_get_ports(self):
         neutron = mock.Mock()
@@ -296,8 +323,10 @@ class TestBuildNodesJson(testtools.TestCase):
         ips_return_val = 'ips call value'
         nova.servers.ips.return_value = ips_return_val
 
+        glance = mock.Mock()
+
         nodes, bmc_bm_pairs, extra_nodes = build_nodes_json._build_nodes(
-            nova, bmc_ports, bm_ports, 'provision', 'bm', 'undercloud')
+            nova, glance, bmc_ports, bm_ports, 'provision', 'bm', 'undercloud')
         expected_nodes = TEST_NODES
         self.assertEqual(expected_nodes, nodes)
         self.assertEqual([('1.1.1.1', 'bm_0'), ('1.1.1.2', 'bm_1')],
@@ -317,12 +346,14 @@ class TestBuildNodesJson(testtools.TestCase):
         servers[1].name = 'bm-foo-control_1'
         ips_return_val = 'ips call value'
         nova.servers.ips.return_value = ips_return_val
+
+        glance = mock.Mock()
         mock_image_get = mock.Mock()
-        nova.images.get.return_value = mock_image_get
-        mock_image_get.metadata.get.return_value = 'uefi'
+        mock_image_get.get.return_value = 'uefi'
+        glance.images.get.return_value = mock_image_get
 
         nodes, bmc_bm_pairs, extra_nodes = build_nodes_json._build_nodes(
-            nova, bmc_ports, bm_ports, 'provision', 'bm-foo', None)
+            nova, glance, bmc_ports, bm_ports, 'provision', 'bm-foo', None)
         expected_nodes = copy.deepcopy(TEST_NODES)
         expected_nodes[0]['name'] = 'bm-foo-control-0'
         expected_nodes[0]['capabilities'] = ('boot_option:local,'
@@ -396,7 +427,8 @@ class TestBuildNodesJson(testtools.TestCase):
                                        undercloud_name)
         nova = mock.Mock()
         neutron = mock.Mock()
-        mock_get_clients.return_value = (nova, neutron)
+        glance = mock.Mock()
+        mock_get_clients.return_value = (nova, neutron, glance)
         bmc_ports = mock.Mock()
         bm_ports = mock.Mock()
         mock_get_ports.return_value = (bmc_ports, bm_ports)
@@ -412,8 +444,9 @@ class TestBuildNodesJson(testtools.TestCase):
         mock_get_clients.assert_called_once_with()
         mock_get_ports.assert_called_once_with(neutron, bmc_base,
                                                baremetal_base)
-        mock_build_nodes.assert_called_once_with(nova, bmc_ports, bm_ports,
-                                                 provision_net, baremetal_base,
+        mock_build_nodes.assert_called_once_with(nova, glance, bmc_ports,
+                                                 bm_ports, provision_net,
+                                                 baremetal_base,
                                                  undercloud_name)
         mock_write_nodes.assert_called_once_with(nodes, extra_nodes, args)
         mock_write_pairs.assert_called_once_with(pairs)

@@ -127,3 +127,32 @@ def _get_keystone_token():
             project_domain_name=project_domain)
 
 
+def _get_token_and_endpoint(name):
+    """Return a token id and endpoint url for the specified service
+
+    :param name: The name of the service.  heat, glance, etc.
+    :returns: A tuple of (token_id, service_endpoint)
+    """
+    auth_data = _create_auth_parameters()
+    auth_url = auth_data['os_auth_url']
+    # Get token for service to use
+    if '/v3' not in auth_url:
+        token_data = _get_keystone_token()
+        token_id = token_data['token']['id']
+        catalog_key = 'serviceCatalog'
+    else:
+        token_data = _get_keystone_token()
+        token_id = token_data['auth_token']
+        catalog_key = 'catalog'
+
+    # Get service endpoint
+    for endpoint in token_data[catalog_key]:
+        if endpoint['name'] == name:
+            try:
+                # TODO: What if there's more than one endpoint?
+                service_endpoint = endpoint['endpoints'][0]['publicURL']
+            except KeyError:
+                # Keystone v3 endpoint data looks different
+                service_endpoint = [e for e in endpoint['endpoints']
+                                    if e['interface'] == 'public'][0]['url']
+    return token_id, service_endpoint

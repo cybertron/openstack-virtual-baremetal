@@ -190,6 +190,26 @@ class TestCreateAuthParameters(testtools.TestCase):
         self.assertEqual(expected, result)
 
 
+V2_TOKEN_DATA = {'token': {'id': 'fake_token'},
+                 'serviceCatalog': [{'name': 'nova'},
+                                    {'name': 'heat',
+                                     'endpoints': [
+                                         {'publicURL': 'heat_endpoint'}
+                                         ]
+                                     }
+                                    ]}
+V3_TOKEN_DATA = {'auth_token': 'fake_v3_token',
+                 'catalog': [{'name': 'nova'},
+                             {'name': 'heat',
+                              'endpoints': [
+                                  {'interface': 'private'},
+                                  {'interface': 'public',
+                                   'url': 'heat_endpoint'}
+                                  ]
+                              }
+                             ]}
+
+
 class TestKeystoneAuth(testtools.TestCase):
     @mock.patch('keystoneauth1.session.Session')
     @mock.patch('keystoneauth1.identity.v3.Password')
@@ -289,3 +309,37 @@ class TestKeystoneAuth(testtools.TestCase):
                                                user_domain_name='default',
                                                project_domain_name='default'
                                                )
+
+    @mock.patch('openstack_virtual_baremetal.auth._get_keystone_token')
+    @mock.patch('openstack_virtual_baremetal.auth._create_auth_parameters')
+    def test_get_token_and_endpoint_v2(self, mock_cap, mock_gkt):
+        fake_auth_data = {'os_user': 'admin',
+                          'os_password': 'password',
+                          'os_tenant': 'admin',
+                          'os_auth_url': 'auth',
+                          'os_project': '',
+                          'os_user_domain': '',
+                          'os_project_domain': '',
+                          }
+        mock_cap.return_value = fake_auth_data
+        mock_gkt.return_value = V2_TOKEN_DATA
+        token, endpoint = auth._get_token_and_endpoint('heat')
+        self.assertEqual('fake_token', token)
+        self.assertEqual('heat_endpoint', endpoint)
+
+    @mock.patch('openstack_virtual_baremetal.auth._get_keystone_token')
+    @mock.patch('openstack_virtual_baremetal.auth._create_auth_parameters')
+    def test_get_token_and_endpoint_v3(self, mock_cap, mock_gkt):
+        fake_auth_data = {'os_user': 'admin',
+                          'os_password': 'password',
+                          'os_tenant': '',
+                          'os_auth_url': 'auth/v3',
+                          'os_project': 'admin',
+                          'os_user_domain': 'default',
+                          'os_project_domain': 'default',
+                          }
+        mock_cap.return_value = fake_auth_data
+        mock_gkt.return_value = V3_TOKEN_DATA
+        token, endpoint = auth._get_token_and_endpoint('heat')
+        self.assertEqual('fake_v3_token', token)
+        self.assertEqual('heat_endpoint', endpoint)

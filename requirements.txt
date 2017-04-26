@@ -1,6 +1,7 @@
 os-client-config
 pyghmi
 PyYAML
+python-glanceclient
 python-heatclient
 python-keystoneclient
 python-neutronclient
