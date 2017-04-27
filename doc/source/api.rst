@@ -19,3 +19,10 @@ openstackbmc
 ------------
 .. autoclass:: openstackbmc.OpenStackBmc
    :members:
+
+auth
+------
+
+.. automodule:: auth
+   :members:
+   :private-members:

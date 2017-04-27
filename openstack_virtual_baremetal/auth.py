@@ -21,6 +21,13 @@ from keystoneclient.v3 import client as keystone_v3_client
 
 def _validate_auth_parameters(username, password, tenant, auth_url,
                               project, user_domain, project_domain):
+    """Validate that the necessary auth parameters are set
+
+    Depending on the version of keystone in use, certain parameters are
+    required for successful keystone authentication.  If the combination
+    passed to this function is not valid, it will print an error message and
+    exit with a return code of 1 immediately.
+    """
     if '/v3' not in auth_url:
         if not username or not password or not tenant or not auth_url:
             print('Source an appropriate rc file first')
@@ -32,6 +39,17 @@ def _validate_auth_parameters(username, password, tenant, auth_url,
             sys.exit(1)
 
 def _create_auth_parameters():
+    """Read keystone auth parameters from appropriate source
+
+    If the environment variable OS_CLOUD is set, read the auth information
+    from os_client_config.  Otherwise, read it from environment variables.
+    When reading from the environment, also validate that all of the required
+    values are set.
+
+    :returns: A dict containing the following keys: os_user, os_password,
+              os_tenant, os_auth_url, os_project, os_user_domain,
+              os_project_domain.
+    """
     cloud = os.environ.get('OS_CLOUD')
     if cloud:
         import os_client_config
@@ -71,6 +89,13 @@ def _create_auth_parameters():
 
 
 def _get_keystone_session(auth_data):
+    """Get a new keystone session object
+
+    :param auth_data: Dict of authentication parameters as returned from
+    _create_auth_parameters.
+
+    :returns: keystoneclient Session
+    """
     username = auth_data['os_user']
     password = auth_data['os_password']
     tenant = auth_data['os_tenant']
@@ -90,6 +115,16 @@ def _get_keystone_session(auth_data):
 
 
 def _get_keystone_client(auth_data):
+    """Get an instance of keystoneclient.Client
+
+    Abstracts away the version-specific logic of getting a new instance of
+    the keystone client.
+
+    :param auth_data: Dict of authentication parameters as returned from
+    _create_auth_parameters.
+
+    :returns: A new keystoneclient Client instance
+    """
     username = auth_data['os_user']
     password = auth_data['os_password']
     tenant = auth_data['os_tenant']
@@ -103,6 +138,13 @@ def _get_keystone_client(auth_data):
 
 
 def _get_keystone_token():
+    """Get a raw keystone token
+
+    This is a wrapper around the keystoneclient
+    get_raw_token_from_identity_service that handles both keystone v2 and v3.
+
+    :returns: Keystone token data structure
+    """
     auth_data = _create_auth_parameters()
     username = auth_data['os_user']
     password = auth_data['os_password']
