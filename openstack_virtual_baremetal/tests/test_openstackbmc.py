@@ -45,7 +45,8 @@ class TestOpenStackBmcInit(unittest.TestCase):
                                         auth_url='http://keystone:5000',
                                         project='',
                                         user_domain='',
-                                        project_domain=''
+                                        project_domain='',
+                                        cache_status=False
                                         )
         if old_nova:
             mock_nova.assert_called_once_with(2, 'admin', 'password', 'admin',
@@ -91,7 +92,8 @@ class TestOpenStackBmcInit(unittest.TestCase):
                                         auth_url='http://keystone:5000/v3',
                                         project='admin',
                                         user_domain='default',
-                                        project_domain='default'
+                                        project_domain='default',
+                                        cache_status=False
                                         )
         mock_nova.assert_called_once_with(2, 'admin', 'password',
                                           auth_url='http://keystone:5000/v3',
@@ -125,7 +127,8 @@ class TestOpenStackBmcInit(unittest.TestCase):
                                         auth_url='http://keystone:5000',
                                         project='',
                                         user_domain='',
-                                        project_domain=''
+                                        project_domain='',
+                                        cache_status=False
                                         )
         mock_nova.assert_called_once_with(2, 'admin', 'password', 'admin',
                                           'http://keystone:5000')
@@ -159,12 +162,14 @@ class TestOpenStackBmc(unittest.TestCase):
                                              auth_url='http://keystone:5000',
                                              project='',
                                              user_domain='',
-                                             project_domain=''
+                                             project_domain='',
+                                             cache_status=False
                                              )
         self.bmc.novaclient = self.mock_client
         self.bmc.instance = 'abc-123'
         self.bmc.cached_status = None
         self.bmc.target_status = None
+        self.bmc.cache_status = False
 
     def test_find_instance(self, mock_nova, mock_log, mock_init):
         self._create_bmc(mock_nova)
@@ -263,14 +268,25 @@ class TestOpenStackBmc(unittest.TestCase):
         self.mock_client.servers.get.return_value = mock_server
         self.bmc.target_status = 'ACTIVE'
         self.bmc.cached_status = 'SHUTOFF'
+        self.bmc.cache_status = True
         self.assertTrue(self.bmc._instance_active())
 
     def test_instance_active_cached(self, mock_nova, mock_log, mock_init):
         self._create_bmc(mock_nova)
         self.bmc.target_status = 'ACTIVE'
         self.bmc.cached_status = 'ACTIVE'
+        self.bmc.cache_status = True
         self.assertTrue(self.bmc._instance_active())
         self.assertFalse(self.mock_client.servers.get.called)
+
+    def test_cache_disabled(self, mock_nova, mock_log, mock_init):
+        self._create_bmc(mock_nova)
+        self.bmc.target_status = 'ACTIVE'
+        self.bmc.cached_status = 'ACTIVE'
+        mock_server = mock.Mock()
+        mock_server.status = 'SHUTOFF'
+        self.mock_client.servers.get.return_value = mock_server
+        self.assertFalse(self.bmc._instance_active())
 
     @mock.patch('openstack_virtual_baremetal.openstackbmc.OpenStackBmc.'
                 '_instance_active')
@@ -364,7 +380,8 @@ class TestMain(unittest.TestCase):
                                          auth_url='http://host:5000/v2.0',
                                          project='',
                                          user_domain='',
-                                         project_domain=''
+                                         project_domain='',
+                                         cache_status=False
                                          )
         mock_instance.listen.assert_called_once_with()
 
@@ -388,6 +405,7 @@ class TestMain(unittest.TestCase):
                                          auth_url='http://host:5000/v2.0',
                                          project='',
                                          user_domain='',
-                                         project_domain=''
+                                         project_domain='',
+                                         cache_status=False
                                          )
         mock_instance.listen.assert_called_once_with()

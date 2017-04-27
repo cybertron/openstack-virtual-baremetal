@@ -17,6 +17,14 @@ parameters:
       The base image for the bmc instance.  A CentOS 7 image is currently the
       only one supported.
 
+  bmc_use_cache:
+    type: boolean
+    default: false
+    description: |
+      Enable instance status caching on the BMC.  This can reduce load on the
+      host cloud, but if an instance's status is changed outside the BMC it may
+      become out of sync.
+
   baremetal_flavor:
     type: string
     default: baremetal
@@ -172,6 +180,7 @@ resources:
             $bm_node_count: {get_param: node_count}
             $bmc_prefix: {get_param: bmc_prefix}
             $bmc_utility: {get_attr: [bmc_port, ip_address]}
+            $bmc_use_cache: {get_param: bmc_use_cache}
             $bm_prefix: {get_param: baremetal_prefix}
             $private_net: {get_param: private_net}
             $openstackbmc_script: {get_file: ../bin/openstackbmc}

@@ -57,6 +57,10 @@ export OS_PROJECT_DOMAIN_ID=$os__project_domain
 private_subnet=$(neutron net-show -f value -c subnets $private_net | sed "s/\[u'\(.*\)'\]/\1/")
 default_gw=$(neutron subnet-show $private_subnet -f value -c gateway_ip)
 prefix_len=$(neutron subnet-show -f value -c cidr $private_subnet | awk -F / '{print $2}')
+cache_status=
+if [ "$bmc_use_cache" != "False" ]; then
+    cache_status="--cache-status"
+fi
 
 mkdir /etc/os-net-config
 echo "network_config:" > /etc/os-net-config/config.yaml
@@ -108,7 +112,7 @@ Requires=config-bmc-ips.service
 After=config-bmc-ips.service
 
 [Service]
-ExecStart=/usr/local/bin/openstackbmc  --os-user $os_user --os-password $os_password --os-tenant "$os_tenant" --os-auth-url $os_auth_url --os-project "$os_project" --os-user-domain "$os_user_domain" --os-project-domain "$os_project_domain" --instance $bm_instance --address $bmc_ip
+ExecStart=/usr/local/bin/openstackbmc  --os-user $os_user --os-password $os_password --os-tenant "$os_tenant" --os-auth-url $os_auth_url --os-project "$os_project" --os-user-domain "$os_user_domain" --os-project-domain "$os_project_domain" --instance $bm_instance --address $bmc_ip $cache_status
 Restart=always
 
 User=root
