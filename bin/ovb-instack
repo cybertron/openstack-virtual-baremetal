@@ -4,9 +4,9 @@ set -ex
 
 # These params need to be configured for the environment
 export http_proxy=http://roxy:3128
-curl -O http://openstack/CentOS-7-x86_64-GenericCloud-1701.qcow2
+curl -O http://openstack/CentOS-7-x86_64-GenericCloud-1702.qcow2
 
-export DIB_LOCAL_IMAGE=CentOS-7-x86_64-GenericCloud-1701.qcow2
+export DIB_LOCAL_IMAGE=CentOS-7-x86_64-GenericCloud-1702.qcow2
 export DIB_DISTRIBUTION_MIRROR=http://mirror.centos.org/centos
 export no_proxy=9.1.1.1,192.0.2.1,9.1.1.2,192.0.2.2,192.168.0.1,192.168.0.2,192.168.24.1,192.168.24.2
 
@@ -33,9 +33,4 @@ $TRIPLEOSH --register-nodes
 sleep 60
 export OVERCLOUD_DEPLOY_ARGS="--libvirt-type qemu"
 $TRIPLEOSH --overcloud-deploy
-# Temporary hack around bug in tripleo.sh
-pushd ~/git-tripleo-ci
-git fetch https://review.openstack.org/openstack-infra/tripleo-ci refs/changes/47/441247/3 && git cherry-pick FETCH_HEAD
-popd
-# /hack
 $TRIPLEOSH --overcloud-pingtest
