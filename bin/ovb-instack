@@ -16,6 +16,12 @@ git clone https://git.openstack.org/openstack-infra/tripleo-ci git-tripleo-ci
 echo '#!/bin/bash' > tripleo.sh
 echo 'git-tripleo-ci/scripts/tripleo.sh $@' >> tripleo.sh
 chmod +x tripleo.sh
+echo "[DEFAULT]" > undercloud.conf
+echo "enable_telemetry = false" >> undercloud.conf
+echo "enable_legacy_ceilometer_api = false" >> undercloud.conf
+echo "enable_ui = false" >> undercloud.conf
+echo "enable_validations = false" >> undercloud.conf
+echo "enable_tempest = false" >> undercloud.conf
 
 export OVERCLOUD_PINGTEST_OLD_HEATCLIENT=0
 export TRIPLEOSH=/home/centos/tripleo.sh
