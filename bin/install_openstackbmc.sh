@@ -45,6 +45,8 @@ export OS_TENANT_NAME=$os_tenant
 export OS_PASSWORD=$os_password
 export OS_AUTH_URL=$os_auth_url
 export OS_PROJECT_NAME=$os_project
+# NOTE(bnemec): The double _ in these names is intentional.  It prevents
+# collisions with the $os_user and $os_project values above.
 export OS_USER_DOMAIN_ID=$os__user_domain
 export OS_PROJECT_DOMAIN_ID=$os__project_domain
 # v3 env vars mess up v2 auth
@@ -112,7 +114,7 @@ Requires=config-bmc-ips.service
 After=config-bmc-ips.service
 
 [Service]
-ExecStart=/usr/local/bin/openstackbmc  --os-user $os_user --os-password $os_password --os-tenant "$os_tenant" --os-auth-url $os_auth_url --os-project "$os_project" --os-user-domain "$os_user_domain" --os-project-domain "$os_project_domain" --instance $bm_instance --address $bmc_ip $cache_status
+ExecStart=/usr/local/bin/openstackbmc  --os-user $os_user --os-password $os_password --os-tenant "$os_tenant" --os-auth-url $os_auth_url --os-project "$os_project" --os-user-domain "$os__user_domain" --os-project-domain "$os__project_domain" --instance $bm_instance --address $bmc_ip $cache_status
 Restart=always
 
 User=root
