@@ -122,8 +122,10 @@ class OpenStackBmc(bmc.Bmc):
 
     def get_power_state(self):
         """Returns the current power state of the managed instance"""
-        self.log('Getting power state for %s' % self.instance)
-        return self._instance_active()
+        state = self._instance_active()
+        self.log('Reporting power state "%s" for instance %s' %
+                 (state, self.instance))
+        return state
 
     def power_off(self):
         """Stop the managed instance"""
