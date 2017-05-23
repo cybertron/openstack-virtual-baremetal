@@ -35,7 +35,7 @@ EOF
 
 $TRIPLEOSH --undercloud
 $TRIPLEOSH --overcloud-images
-$TRIPLEOSH --register-nodes
+$TRIPLEOSH --register-nodes --introspect-nodes
 sleep 60
 export OVERCLOUD_DEPLOY_ARGS="--libvirt-type qemu"
 $TRIPLEOSH --overcloud-deploy
