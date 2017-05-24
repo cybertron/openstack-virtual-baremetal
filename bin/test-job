@@ -2,10 +2,14 @@
 
 # Edit these to match your environment
 BMC_IMAGE=bmc-base
+BMC_FLAVOR=bmc
 KEY_NAME=default
 UNDERCLOUD_IMAGE=centos7-base
 UNDERCLOUD_FLAVOR=undercloud-16
 BAREMETAL_FLAVOR=baremetal
+EXTERNAL_NET=external
+# Set to 0 if you're not running in bnemec's private cloud
+LOCAL=1
 
 set -ex
 
@@ -20,6 +24,7 @@ BAREMETAL_PREFIX=baremetal-$MY_ID
 UNDERCLOUD_NAME=undercloud-$MY_ID
 PUBLIC_NET=public-$MY_ID
 PROVISION_NET=provision-$MY_ID
+PRIVATE_NET=private-$MY_ID
 
 # NOTE(bnemec): I'm intentionally not adding a trap to clean this up because
 # if something fails it may be helpful to look at the contents of the tempdir.
@@ -30,15 +35,19 @@ cd $TEMPDIR
 cp -r $BIN_DIR/../templates .
 cp templates/env.yaml.example ./env.yaml
 sed -i "s/bmc_image: .*/bmc_image: $BMC_IMAGE/" env.yaml
+sed -i "s/bmc_flavor: .*/bmc_flavor: $BMC_FLAVOR/" env.yaml
 sed -i "s/key_name: .*/key_name: $KEY_NAME/" env.yaml
 sed -i "s/baremetal_flavor: .*/baremetal_flavor: $BAREMETAL_FLAVOR/" env.yaml
 sed -i "s/undercloud_image: .*/undercloud_image: $UNDERCLOUD_IMAGE/" env.yaml
 sed -i "s/undercloud_flavor: .*/undercloud_flavor: $UNDERCLOUD_FLAVOR/" env.yaml
+sed -i "s/external_net: .*/external_net: $EXTERNAL_NET/" env.yaml
+sed -i "s/private_net: .*/private_net: $PRIVATE_NET/" env.yaml
 echo 'resource_registry:' >> env.yaml
 echo '  OS::OVB::UndercloudFloating: templates/undercloud-floating.yaml' >> env.yaml
 echo '  OS::OVB::BaremetalPorts: templates/baremetal-ports-default-port-security.yaml' >> env.yaml
 echo '  OS::OVB::BMCPort: templates/bmc-port-port-security.yaml' >> env.yaml
 echo '  OS::OVB::UndercloudPorts: templates/undercloud-ports-port-security.yaml' >> env.yaml
+echo '  OS::OVB::PrivateNetwork: templates/private-net-create.yaml' >> env.yaml
 
 cp -r $BIN_DIR ./bin
 cp -r $BIN_DIR/../openstack_virtual_baremetal .
@@ -50,7 +59,7 @@ bin/build-nodes-json --env env-$MY_ID.yaml
 SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 scp $SSH_OPTS bin/ovb-instack centos@$UNDERCLOUD_IP:/tmp
 scp $SSH_OPTS nodes.json centos@$UNDERCLOUD_IP:~/instackenv.json
-ssh -t -t $SSH_OPTS centos@$UNDERCLOUD_IP /tmp/ovb-instack
+ssh -t -t $SSH_OPTS centos@$UNDERCLOUD_IP LOCAL=$LOCAL /tmp/ovb-instack
 heat stack-delete -y $STACK_NAME
 
 date
