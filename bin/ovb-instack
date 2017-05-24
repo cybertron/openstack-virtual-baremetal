@@ -43,4 +43,4 @@ $TRIPLEOSH --register-nodes --introspect-nodes
 sleep 60
 export OVERCLOUD_DEPLOY_ARGS="--libvirt-type qemu"
 $TRIPLEOSH --overcloud-deploy
-$TRIPLEOSH --overcloud-pingtest
+$TRIPLEOSH --overcloud-pingtest --skip-pingtest-cleanup
