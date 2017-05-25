@@ -6,9 +6,9 @@ set -ex
 if [ ${LOCAL:-1} -eq 1 ]
 then
     export http_proxy=http://roxy:3128
-    curl -O http://openstack/CentOS-7-x86_64-GenericCloud-1702.qcow2
+    curl -O http://openstack/CentOS-7-x86_64-GenericCloud-1704.qcow2
 
-    export DIB_LOCAL_IMAGE=CentOS-7-x86_64-GenericCloud-1702.qcow2
+    export DIB_LOCAL_IMAGE=CentOS-7-x86_64-GenericCloud-1704.qcow2
     export DIB_DISTRIBUTION_MIRROR=http://mirror.centos.org/centos
     export no_proxy=9.1.1.1,192.0.2.1,9.1.1.2,192.0.2.2,192.168.0.1,192.168.0.2,192.168.24.1,192.168.24.2
 fi
