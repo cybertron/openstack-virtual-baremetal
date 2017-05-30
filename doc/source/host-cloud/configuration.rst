@@ -32,18 +32,24 @@ host cloud.
    If this cannot be done (perhaps because you don't have access to make
    such a change on the host cloud), it will likely be necessary to
    configure a smaller MTU on the deployed virtual instances.  For a
-   TripleO undercloud, Neutron should be configured to advertise a
-   smaller MTU to instances.  Run the following as root::
+   TripleO undercloud, this can be done by setting the ``local_mtu``
+   option in ``undercloud.conf`` to a smaller value (1450 will
+   usually work).
 
-       # Replace 'eth1' with the actual device to be used for the
-       # provisioning network
-       ip link set eth1 mtu 1350
-       echo -e "\ndhcp-option-force=26,1350" >> /etc/dnsmasq-ironic.conf
-       systemctl restart 'neutron-*'
+   .. note::
+      In older versions of TripleO it may be necessary to do the MTU
+      configuration manually.  That can be done with the following
+      commands (as root)::
 
-   If network isolation is in use, the templates must also configure
-   mtu as discussed above, except the mtu should be set to 1350 instead
-   of 1550.
+          # Replace 'eth1' with the actual device to be used for the
+          # provisioning network
+          ip link set eth1 mtu 1350
+          echo -e "\ndhcp-option-force=26,1350" >> /etc/dnsmasq-ironic.conf
+          systemctl restart 'neutron-*'
+
+   If network isolation is used in the virtual deployment, the templates must
+   also configure mtu as discussed above, except the mtu should be set to 1350
+   instead of 1550.
 
 #. Restart ``nova-compute`` and ``neutron-openvswitch-agent`` to apply the
    changes above.
