@@ -60,6 +60,7 @@ STACK_NAME=$MY_ID
 $BIN_DIR/deploy.py --quintupleo --id $MY_ID --name $STACK_NAME --poll
 UNDERCLOUD_IP=$(heat output-show $STACK_NAME undercloud_host_floating_ip | sed -e 's/"//g')
 bin/build-nodes-json --env env-$MY_ID.yaml
+sleep 20
 #bin/build-nodes-json --bmc_prefix $BMC_PREFIX --baremetal_prefix $BAREMETAL_PREFIX --provision_net $PROVISION_NET
 SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 scp $SSH_OPTS bin/ovb-instack centos@$UNDERCLOUD_IP:/tmp
