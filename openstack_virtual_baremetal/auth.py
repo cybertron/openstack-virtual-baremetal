@@ -19,6 +19,12 @@ from keystoneclient.v2_0 import client as keystone_client
 from keystoneclient.v3 import client as keystone_v3_client
 
 
+# Older versions of os-client-config pop this from the environment when
+# make_client is called.  Cache it on import so we know what the original
+# value was, regardless of any funny business that happens later.
+OS_CLOUD = os.environ.get('OS_CLOUD')
+
+
 def _validate_auth_parameters(username, password, tenant, auth_url,
                               project, user_domain, project_domain):
     """Validate that the necessary auth parameters are set
@@ -50,10 +56,9 @@ def _create_auth_parameters():
               os_tenant, os_auth_url, os_project, os_user_domain,
               os_project_domain.
     """
-    cloud = os.environ.get('OS_CLOUD')
-    if cloud:
+    if OS_CLOUD:
         import os_client_config
-        config = os_client_config.OpenStackConfig().get_one_cloud(cloud)
+        config = os_client_config.OpenStackConfig().get_one_cloud(OS_CLOUD)
         auth = config.config['auth']
         username = auth['username']
         password = auth['password']

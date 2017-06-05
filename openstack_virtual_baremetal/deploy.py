@@ -135,10 +135,10 @@ def _validate_env(args, env_path):
                                'different baremetal_prefix or role name.')
 
 def _get_heat_client():
-    cloud = os.environ.get('OS_CLOUD')
-    if cloud:
+    if auth.OS_CLOUD:
         import os_client_config
-        return os_client_config.make_client('orchestration', cloud=cloud)
+        return os_client_config.make_client('orchestration',
+                                            cloud=auth.OS_CLOUD)
     else:
         token_id, heat_endpoint = auth._get_token_and_endpoint('heat')
         return heat_client.Client('1', endpoint=heat_endpoint, token=token_id)
