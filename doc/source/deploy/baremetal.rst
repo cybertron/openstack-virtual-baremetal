@@ -1,6 +1,25 @@
 Deploying a Standalone Baremetal Stack
 ======================================
 
+#. Create private network.
+
+   If your cloud provider has already created a private network for your use
+   then you can skip this step and reference the existing network in your
+   OVB environment file.
+
+   ::
+
+      neutron net-create private
+      neutron subnet-create --name private private 10.0.1.0/24 --dns-nameserver 8.8.8.8
+
+   You will also need to create a router so traffic from your private network
+   can get to the external network.  The external network should have been
+   created by the cloud provider::
+
+      neutron router-create router
+      neutron router-gateway-set router [external network name or id]
+      neutron router-interface-add router private
+
 #. Create provisioning network.
 
    .. note:: The CIDR used for the subnet does not matter.
