@@ -5,11 +5,20 @@ The changes described in this section apply to compute nodes in the
 host cloud.
 
 Apply the Nova pxe boot patch file in the ``patches`` directory to the host
-cloud Nova.  Examples:
+cloud Nova.  ``nova-pxe-boot.patch`` can be used with all releases prior to
+Pike, ``nova-pxe-boot-pike.patch`` must be used with Pike and later.
+
+Examples:
 
 TripleO/RDO::
 
     sudo patch -p1 -d /usr/lib/python2.7/site-packages < patches/nova/nova-pxe-boot.patch
+
+or
+
+::
+
+    sudo patch -p1 -d /usr/lib/python2.7/site-packages < patches/nova/nova-pxe-boot-pike.patch
 
 Devstack:
 
@@ -27,3 +36,11 @@ Devstack:
     cp patches/nova/nova-pxe-boot.patch /opt/stack/nova
     cd /opt/stack/nova
     patch -p1 < nova-pxe-boot.patch
+
+or
+
+::
+
+    cp patches/nova/nova-pxe-boot-pike.patch /opt/stack/nova
+    cd /opt/stack/nova
+    patch -p1 < nova-pxe-boot-pike.patch
