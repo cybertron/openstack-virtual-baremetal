@@ -1,6 +1,11 @@
 Deploying a Standalone Baremetal Stack
 ======================================
 
+The process described here will create a very minimal OVB environment, and the
+user will be responsible for creating most of the resources manually.  In most
+cases it will be easier to use the :doc:`QuintupleO <quintupleo>` deployment
+method, which creates most of the resources needed automatically.
+
 #. Create private network.
 
    If your cloud provider has already created a private network for your use
