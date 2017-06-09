@@ -49,10 +49,22 @@ export OS_PROJECT_NAME=$os_project
 # collisions with the $os_user and $os_project values above.
 export OS_USER_DOMAIN_ID=$os__user_domain
 export OS_PROJECT_DOMAIN_ID=$os__project_domain
+
+# Following is required so that openstack CLIs work with DOMAIN_NAME credentials
+export OS_USER_DOMAIN_NAME=$os__user_domain
+export OS_PROJECT_DOMAIN_NAME=$os__project_domain
+
 # v3 env vars mess up v2 auth
 [ -z $OS_PROJECT_NAME ] && unset OS_PROJECT_NAME
 [ -z $OS_USER_DOMAIN_ID ] && unset OS_USER_DOMAIN_ID
 [ -z $OS_PROJECT_DOMAIN_ID ] && unset OS_PROJECT_DOMAIN_ID
+[ -z $OS_USER_DOMAIN_NAME ] && unset OS_USER_DOMAIN_NAME
+[ -z $OS_PROJECT_DOMAIN_NAME ] && unset OS_PROJECT_DOMAIN_NAME
+# Check if v3 DOMAIN_ID credential works
+if ! neutron net-list; then
+	# unset DOMAIN_ID variables, this makes use of DOMAIN_NAME variables
+	unset OS_PROJECT_DOMAIN_ID; unset OS_USER_DOMAIN_ID
+fi
 # At some point neutronclient started returning a python list repr from this
 # command instead of just the value.  This sed will strip off the bits we
 # don't care about without messing up the output from older clients.
