@@ -42,7 +42,10 @@ chmod +x /usr/local/bin/openstackbmc
 
 export OS_USERNAME=$os_user
 export OS_TENANT_NAME=$os_tenant
+set +x
+echo "exporting OS_PASSWORD"
 export OS_PASSWORD=$os_password
+set -x
 export OS_AUTH_URL=$os_auth_url
 export OS_PROJECT_NAME=$os_project
 # NOTE(bnemec): The double _ in these names is intentional.  It prevents
