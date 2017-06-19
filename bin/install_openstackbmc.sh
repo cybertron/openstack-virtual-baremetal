@@ -40,18 +40,18 @@ $openstackbmc_script
 EOF
 chmod +x /usr/local/bin/openstackbmc
 
-export OS_USERNAME=$os_user
-export OS_TENANT_NAME=$os_tenant
+export OS_USERNAME="$os_user"
+export OS_TENANT_NAME="$os_tenant"
 set +x
 echo "exporting OS_PASSWORD"
-export OS_PASSWORD=$os_password
+export OS_PASSWORD="$os_password"
 set -x
-export OS_AUTH_URL=$os_auth_url
-export OS_PROJECT_NAME=$os_project
+export OS_AUTH_URL="$os_auth_url"
+export OS_PROJECT_NAME="$os_project"
 # NOTE(bnemec): The double _ in these names is intentional.  It prevents
 # collisions with the $os_user and $os_project values above.
-export OS_USER_DOMAIN_ID=$os__user_domain
-export OS_PROJECT_DOMAIN_ID=$os__project_domain
+export OS_USER_DOMAIN_ID="$os__user_domain"
+export OS_PROJECT_DOMAIN_ID="$os__project_domain"
 # v3 env vars mess up v2 auth
 [ -z $OS_PROJECT_NAME ] && unset OS_PROJECT_NAME
 [ -z $OS_USER_DOMAIN_ID ] && unset OS_USER_DOMAIN_ID
