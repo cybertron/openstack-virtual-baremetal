@@ -40,6 +40,6 @@ $TRIPLEOSH --undercloud
 $TRIPLEOSH --overcloud-images
 $TRIPLEOSH --register-nodes --introspect-nodes
 sleep 60
-export OVERCLOUD_DEPLOY_ARGS="--libvirt-type qemu"
+export OVERCLOUD_DEPLOY_ARGS="--libvirt-type qemu -e /usr/share/openstack-tripleo-heat-templates/environments/disable-telemetry.yaml"
 $TRIPLEOSH --overcloud-deploy
 $TRIPLEOSH --overcloud-pingtest --skip-pingtest-cleanup
