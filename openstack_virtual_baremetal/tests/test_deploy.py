@@ -106,8 +106,9 @@ class TestIdEnv(unittest.TestCase):
     def test_generate(self, mock_safe_dump):
         mock_args = mock.Mock()
         mock_args.id = 'foo'
+        env = test_env + 'parameter_defaults:'
         with mock.patch('openstack_virtual_baremetal.deploy.open',
-                        mock.mock_open(read_data=test_env),
+                        mock.mock_open(read_data=env),
                         create=True) as mock_open:
             path = deploy._generate_id_env(mock_args)
             self.assertEqual('env-foo.yaml', path)
