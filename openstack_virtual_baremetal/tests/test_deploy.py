@@ -373,9 +373,9 @@ class TestDeploy(testtools.TestCase):
 
 
 class TestGetHeatClient(testtools.TestCase):
+    @mock.patch('openstack_virtual_baremetal.auth.OS_CLOUD', 'foo')
     @mock.patch('os_client_config.make_client')
     def test_os_cloud(self, mock_make_client):
-        self.useFixture(fixtures.EnvironmentVariable('OS_CLOUD', 'foo'))
         deploy._get_heat_client()
         mock_make_client.assert_called_once_with('orchestration', cloud='foo')
 

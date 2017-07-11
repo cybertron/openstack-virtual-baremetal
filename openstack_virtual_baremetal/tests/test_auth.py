@@ -43,9 +43,9 @@ class TestValidateAuthParameters(testtools.TestCase):
 
 
 class TestCreateAuthParameters(testtools.TestCase):
+    @mock.patch('openstack_virtual_baremetal.auth.OS_CLOUD', 'foo')
     @mock.patch('os_client_config.OpenStackConfig')
     def test_create_auth_parameters_os_cloud(self, mock_osc):
-        self.useFixture(fixtures.EnvironmentVariable('OS_CLOUD', 'foo'))
         mock_data = mock.Mock()
         mock_data.config = {'auth': {'username': 'admin',
                                      'password': 'password',
@@ -66,9 +66,9 @@ class TestCreateAuthParameters(testtools.TestCase):
                     }
         self.assertEqual(expected, result)
 
+    @mock.patch('openstack_virtual_baremetal.auth.OS_CLOUD', 'foo')
     @mock.patch('os_client_config.OpenStackConfig')
     def test_create_auth_parameters_os_cloud_v3_id(self, mock_osc):
-        self.useFixture(fixtures.EnvironmentVariable('OS_CLOUD', 'foo'))
         mock_data = mock.Mock()
         mock_data.config = {'auth': {'username': 'admin',
                                      'password': 'password',
@@ -91,9 +91,9 @@ class TestCreateAuthParameters(testtools.TestCase):
                     }
         self.assertEqual(expected, result)
 
+    @mock.patch('openstack_virtual_baremetal.auth.OS_CLOUD', 'foo')
     @mock.patch('os_client_config.OpenStackConfig')
     def test_create_auth_parameters_os_cloud_v3_name(self, mock_osc):
-        self.useFixture(fixtures.EnvironmentVariable('OS_CLOUD', 'foo'))
         mock_data = mock.Mock()
         mock_data.config = {'auth': {'username': 'admin',
                                      'password': 'password',
