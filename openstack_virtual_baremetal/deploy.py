@@ -22,6 +22,7 @@ import yaml
 
 from heatclient import client as heat_client
 from heatclient.common import template_utils
+import os_client_config
 
 import auth
 
@@ -139,13 +140,8 @@ def _validate_env(args, env_path):
                                'different baremetal_prefix or role name.')
 
 def _get_heat_client():
-    if auth.OS_CLOUD:
-        import os_client_config
-        return os_client_config.make_client('orchestration',
-                                            cloud=auth.OS_CLOUD)
-    else:
-        token_id, heat_endpoint = auth._get_token_and_endpoint('heat')
-        return heat_client.Client('1', endpoint=heat_endpoint, token=token_id)
+    return os_client_config.make_client('orchestration',
+                                        cloud=auth.OS_CLOUD)
 
 def _deploy(stack_name, stack_template, env_path, poll):
     hclient = _get_heat_client()

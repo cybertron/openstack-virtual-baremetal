@@ -379,14 +379,6 @@ class TestGetHeatClient(testtools.TestCase):
         deploy._get_heat_client()
         mock_make_client.assert_called_once_with('orchestration', cloud='foo')
 
-    @mock.patch('heatclient.client.Client')
-    @mock.patch('openstack_virtual_baremetal.auth._get_token_and_endpoint')
-    def test_heatclient(self, mock_gtae, mock_hc):
-        mock_gtae.return_value = ('fake_token', 'heat_endpoint')
-        deploy._get_heat_client()
-        mock_hc.assert_called_once_with('1', endpoint='heat_endpoint',
-                                        token='fake_token')
-
 
 if __name__ == '__main__':
     unittest.main()

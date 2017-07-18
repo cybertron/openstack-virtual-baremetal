@@ -5,6 +5,8 @@ set -x
 # install python2-crypto from EPEL
 # python-[nova|neutron]client are in a similar situation.  They were renamed
 # in RDO to python2-*
+# os-client-config is not a hard requirement, but it will be installed if
+# we're installing packages anyway.
 required_packages="python-pip os-net-config git jq"
 
 function have_packages() {
@@ -31,7 +33,7 @@ function have_packages() {
 if ! have_packages; then
     yum -y update centos-release # required for rdo-release install to work
     yum install -y https://rdo.fedorapeople.org/rdo-release.rpm
-    yum install -y $required_packages python-crypto python2-novaclient python2-neutronclient
+    yum install -y $required_packages python-crypto python2-novaclient python2-neutronclient os-client-config
     pip install pyghmi
 fi
 
@@ -50,12 +52,12 @@ export OS_AUTH_URL="$os_auth_url"
 export OS_PROJECT_NAME="$os_project"
 # NOTE(bnemec): The double _ in these names is intentional.  It prevents
 # collisions with the $os_user and $os_project values above.
-export OS_USER_DOMAIN_ID="$os__user_domain"
-export OS_PROJECT_DOMAIN_ID="$os__project_domain"
+export OS_USER_DOMAIN="$os__user_domain"
+export OS_PROJECT_DOMAIN="$os__project_domain"
 # v3 env vars mess up v2 auth
 [ -z $OS_PROJECT_NAME ] && unset OS_PROJECT_NAME
-[ -z $OS_USER_DOMAIN_ID ] && unset OS_USER_DOMAIN_ID
-[ -z $OS_PROJECT_DOMAIN_ID ] && unset OS_PROJECT_DOMAIN_ID
+[ -z $OS_USER_DOMAIN ] && unset OS_USER_DOMAIN
+[ -z $OS_PROJECT_DOMAIN ] && unset OS_PROJECT_DOMAIN
 # At some point neutronclient started returning a python list repr from this
 # command instead of just the value.  This sed will strip off the bits we
 # don't care about without messing up the output from older clients.

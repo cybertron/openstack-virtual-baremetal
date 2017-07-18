@@ -17,6 +17,7 @@ import sys
 
 from keystoneclient.v2_0 import client as keystone_client
 from keystoneclient.v3 import client as keystone_v3_client
+import os_client_config
 
 
 # Older versions of os-client-config pop this from the environment when
@@ -56,33 +57,19 @@ def _create_auth_parameters():
               os_tenant, os_auth_url, os_project, os_user_domain,
               os_project_domain.
     """
-    if OS_CLOUD:
-        import os_client_config
-        config = os_client_config.OpenStackConfig().get_one_cloud(OS_CLOUD)
-        auth = config.config['auth']
-        username = auth['username']
-        password = auth['password']
-        # os_client_config seems to always call this project_name
-        tenant = auth['project_name']
-        auth_url = auth['auth_url']
-        project = auth['project_name']
-        user_domain = (auth.get('user_domain_name') or
-                       auth.get('user_domain_id', ''))
-        project_domain = (auth.get('project_domain_name') or
-                          auth.get('project_domain_id', ''))
+    config = os_client_config.OpenStackConfig().get_one_cloud(OS_CLOUD)
+    auth = config.config['auth']
+    username = auth['username']
+    password = auth['password']
+    # os_client_config seems to always call this project_name
+    tenant = auth['project_name']
+    auth_url = auth['auth_url']
+    project = auth['project_name']
+    user_domain = (auth.get('user_domain_name') or
+                   auth.get('user_domain_id', ''))
+    project_domain = (auth.get('project_domain_name') or
+                      auth.get('project_domain_id', ''))
 
-    else:
-        username = os.environ.get('OS_USERNAME')
-        password = os.environ.get('OS_PASSWORD')
-        tenant = os.environ.get('OS_TENANT_NAME', '')
-        auth_url = os.environ.get('OS_AUTH_URL', '')
-        project = os.environ.get('OS_PROJECT_NAME', '')
-        user_domain = (os.environ.get('OS_USER_DOMAIN_ID') or
-                       os.environ.get('OS_USER_DOMAIN_NAME', ''))
-        project_domain = (os.environ.get('OS_PROJECT_DOMAIN_ID') or
-                          os.environ.get('OS_PROJECT_DOMAIN_NAME', ''))
-        _validate_auth_parameters(username, password, tenant, auth_url,
-                                  project, user_domain, project_domain)
     return {'os_user': username,
             'os_password': password,
             'os_tenant': tenant,

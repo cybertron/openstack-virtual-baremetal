@@ -165,83 +165,15 @@ class TestBuildNodesJson(testtools.TestCase):
                  mock.call('image', cloud='foo')]
         self.assertEqual(calls, mock_make_client.mock_calls)
 
-    def _test_get_clients_env(self, mock_nova, mock_neutron, mock_glance,
-                              mock_gtae):
-        self.useFixture(fixtures.EnvironmentVariable('OS_USERNAME', 'admin'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_PASSWORD', 'pw'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_TENANT_NAME',
-                                                     'admin'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_AUTH_URL', 'admin'))
-        mock_nova_client = mock.Mock()
-        mock_nova.return_value = mock_nova_client
-        mock_neutron_client = mock.Mock()
-        mock_neutron.return_value = mock_neutron_client
-        mock_glance_client = mock.Mock()
-        mock_glance.return_value = mock_glance_client
-        mock_token = 'abc-123'
-        mock_endpoint = 'glance://endpoint'
-        mock_gtae.return_value = (mock_token, mock_endpoint)
-        nova, neutron, glance = build_nodes_json._get_clients()
-        self.assertEqual(mock_nova_client, nova)
-        self.assertEqual(mock_neutron_client, neutron)
-        self.assertEqual(mock_glance_client, glance)
+    @mock.patch('os_client_config.make_client')
+    def test_get_clients_os_cloud_unset(self, mock_make_client):
+        self.useFixture(fixtures.EnvironmentVariable('OS_CLOUD', None))
+        build_nodes_json._get_clients()
+        calls = [mock.call('compute', cloud=None),
+                 mock.call('network', cloud=None),
+                 mock.call('image', cloud=None)]
+        self.assertEqual(calls, mock_make_client.mock_calls)
 
-    @mock.patch('openstack_virtual_baremetal.auth._get_token_and_endpoint')
-    @mock.patch('openstack_virtual_baremetal.build_nodes_json.nc.__version__',
-                ('6', '0', '0'))
-    @mock.patch('glanceclient.Client')
-    @mock.patch('neutronclient.v2_0.client.Client')
-    @mock.patch('novaclient.client.Client')
-    def test_get_clients_env_6(self, mock_nova, mock_neutron, mock_glance,
-                               mock_gtae):
-        self._test_get_clients_env(mock_nova, mock_neutron, mock_glance,
-                                   mock_gtae)
-
-    @mock.patch('openstack_virtual_baremetal.auth._get_token_and_endpoint')
-    @mock.patch('openstack_virtual_baremetal.build_nodes_json.nc.__version__',
-                ('7', '0', '0'))
-    @mock.patch('glanceclient.Client')
-    @mock.patch('neutronclient.v2_0.client.Client')
-    @mock.patch('novaclient.client.Client')
-    def test_get_clients_env_7(self, mock_nova, mock_neutron, mock_glance,
-                               mock_gtae):
-        self._test_get_clients_env(mock_nova, mock_neutron, mock_glance,
-                                   mock_gtae)
-
-    @mock.patch('openstack_virtual_baremetal.auth._get_token_and_endpoint')
-    @mock.patch('openstack_virtual_baremetal.auth._get_keystone_session')
-    @mock.patch('glanceclient.Client')
-    @mock.patch('neutronclient.v2_0.client.Client')
-    @mock.patch('novaclient.client.Client')
-    def test_get_clients_env_v3(self, mock_nova, mock_neutron, mock_glance,
-                                mock_gks, mock_gtae):
-        self.useFixture(fixtures.EnvironmentVariable('OS_USERNAME', 'admin'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_PASSWORD', 'pw'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_NAME',
-                                                     'admin'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_AUTH_URL', 'auth/v3'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_USER_DOMAIN_ID',
-                                                     'default'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_DOMAIN_ID',
-                                                     'default'))
-        mock_nova_client = mock.Mock()
-        mock_nova.return_value = mock_nova_client
-        mock_neutron_client = mock.Mock()
-        mock_neutron.return_value = mock_neutron_client
-        mock_glance_client = mock.Mock()
-        mock_glance.return_value = mock_glance_client
-        mock_session_inst = mock.Mock()
-        mock_gks.return_value = mock_session_inst
-        mock_token = 'abc-123'
-        mock_endpoint = 'glance://endpoint'
-        mock_gtae.return_value = (mock_token, mock_endpoint)
-        nova, neutron, glance = build_nodes_json._get_clients()
-        mock_neutron.assert_called_once_with(session=mock_session_inst)
-        mock_glance.assert_called_once_with('2', token=mock_token,
-                                            endpoint=mock_endpoint)
-        self.assertEqual(mock_nova_client, nova)
-        self.assertEqual(mock_neutron_client, neutron)
-        self.assertEqual(mock_glance_client, glance)
 
     def test_get_ports(self):
         neutron = mock.Mock()

@@ -30,28 +30,49 @@ import time
 import novaclient as nc
 from novaclient import client as novaclient
 from novaclient import exceptions
+try:
+    import os_client_config
+except ImportError:
+    os_client_config = None
 import pyghmi.ipmi.bmc as bmc
+
+
+NO_OCC_DEPRECATION = ('WARNING: Creating novaclient without os-client-config '
+                      'is deprecated.  Please install os-client-config on the '
+                      'BMC image.')
 
 
 class OpenStackBmc(bmc.Bmc):
     def __init__(self, authdata, port, address, instance, user, password, tenant,
                  auth_url, project, user_domain, project_domain, cache_status):
         super(OpenStackBmc, self).__init__(authdata, port=port, address=address)
-        if not '/v3' in auth_url:
-            # novaclient 7+ is backwards-incompatible :-(
-            if int(nc.__version__[0]) <= 6:
-                self.novaclient = novaclient.Client(2, user, password,
-                                                    tenant, auth_url)
+        if os_client_config:
+            kwargs = dict(os_username=user,
+                          os_password=password,
+                          os_project_name=tenant,
+                          os_auth_url=auth_url,
+                          os_user_domain=user_domain,
+                          os_project_domain=project_domain)
+            self.novaclient = os_client_config.make_client('compute',
+                                                           **kwargs)
+        else:
+            # NOTE(bnemec): This path was deprecated 2017-7-17
+            self.log(NO_OCC_DEPRECATION)
+            if not '/v3' in auth_url:
+                # novaclient 7+ is backwards-incompatible :-(
+                if int(nc.__version__[0]) <= 6:
+                    self.novaclient = novaclient.Client(2, user, password,
+                                                        tenant, auth_url)
+                else:
+                    self.novaclient = novaclient.Client(2, user, password,
+                                                        auth_url=auth_url,
+                                                        project_name=tenant)
             else:
                 self.novaclient = novaclient.Client(2, user, password,
                                                     auth_url=auth_url,
-                                                    project_name=tenant)
-        else:
-            self.novaclient = novaclient.Client(2, user, password,
-                                                auth_url=auth_url,
-                                                project_name=project,
-                                                user_domain_name=user_domain,
-                                                project_domain_name=project_domain)
+                                                    project_name=project,
+                                                    user_domain_name=user_domain,
+                                                    project_domain_name=project_domain)
         self.instance = None
         self.cache_status = cache_status
         self.cached_status = None

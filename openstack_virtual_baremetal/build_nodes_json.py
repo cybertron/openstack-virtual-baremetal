@@ -19,10 +19,7 @@ import os
 import sys
 import yaml
 
-import glanceclient
-from neutronclient.v2_0 import client as neutronclient
-import novaclient as nc
-from novaclient import client as novaclient
+import os_client_config
 
 import auth
 
@@ -88,47 +85,9 @@ def _get_names(args):
 
 def _get_clients():
     cloud = os.environ.get('OS_CLOUD')
-    if cloud:
-        import os_client_config
-        nova = os_client_config.make_client('compute', cloud=cloud)
-        neutron = os_client_config.make_client('network', cloud=cloud)
-        glance = os_client_config.make_client('image', cloud=cloud)
-
-    else:
-        auth_data = auth._create_auth_parameters()
-        username = auth_data['os_user']
-        password = auth_data['os_password']
-        tenant = auth_data['os_tenant']
-        auth_url = auth_data['os_auth_url']
-        project = auth_data['os_project']
-        user_domain = auth_data['os_user_domain']
-        project_domain = auth_data['os_project_domain']
-
-        if '/v3' not in auth_url:
-            # novaclient 7+ is backwards-incompatible :-(
-            if int(nc.__version__[0]) <= 6:
-                nova = novaclient.Client(2, username, password, tenant, auth_url)
-            else:
-                nova = novaclient.Client(2, username, password,
-                                         auth_url=auth_url,
-                                         project_name=tenant)
-            neutron = neutronclient.Client(
-                username=username,
-                password=password,
-                tenant_name=tenant,
-                auth_url=auth_url
-            )
-        else:
-            nova = novaclient.Client(2, username, password,
-                                     auth_url=auth_url,
-                                     project_name=project,
-                                     user_domain_name=user_domain,
-                                     project_domain_name=project_domain)
-            sess = auth._get_keystone_session(auth_data)
-            neutron = neutronclient.Client(session=sess)
-        token, glance_endpoint = auth._get_token_and_endpoint('glance')
-        glance = glanceclient.Client('2', token=token,
-                                     endpoint=glance_endpoint)
+    nova = os_client_config.make_client('compute', cloud=cloud)
+    neutron = os_client_config.make_client('network', cloud=cloud)
+    glance = os_client_config.make_client('image', cloud=cloud)
     return nova, neutron, glance
 
 

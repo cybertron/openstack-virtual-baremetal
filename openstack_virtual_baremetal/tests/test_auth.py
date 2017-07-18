@@ -154,38 +154,11 @@ class TestCreateAuthParameters(testtools.TestCase):
         result = auth._create_auth_parameters()
         expected = {'os_user': 'admin',
                     'os_password': 'pw',
-                    'os_tenant': '',
+                    'os_tenant': 'admin',
                     'os_auth_url': 'auth/v3',
                     'os_project': 'admin',
                     'os_user_domain': 'default',
                     'os_project_domain': 'default',
-                    }
-        self.assertEqual(expected, result)
-
-    def test_create_auth_parameters_env_v2(self):
-        self.useFixture(fixtures.EnvironmentVariable('OS_USERNAME', 'admin'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_PASSWORD', 'pw'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_TENANT_NAME',
-                                                     'admin'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_AUTH_URL', 'auth'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_NAME',
-                                                     'admin'))
-        self.useFixture(fixtures.EnvironmentVariable('OS_USER_DOMAIN_ID',
-                                                     None))
-        self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_DOMAIN_ID',
-                                                     None))
-        self.useFixture(fixtures.EnvironmentVariable('OS_USER_DOMAIN_NAME',
-                                                     None))
-        self.useFixture(fixtures.EnvironmentVariable('OS_PROJECT_DOMAIN_NAME',
-                                                     None))
-        result = auth._create_auth_parameters()
-        expected = {'os_user': 'admin',
-                    'os_password': 'pw',
-                    'os_tenant': 'admin',
-                    'os_auth_url': 'auth',
-                    'os_project': 'admin',
-                    'os_user_domain': '',
-                    'os_project_domain': '',
                     }
         self.assertEqual(expected, result)
 
