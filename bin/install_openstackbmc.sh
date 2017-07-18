@@ -33,7 +33,7 @@ function have_packages() {
 if ! have_packages; then
     yum -y update centos-release # required for rdo-release install to work
     yum install -y https://rdo.fedorapeople.org/rdo-release.rpm
-    yum install -y $required_packages python-crypto python2-novaclient python2-neutronclient os-client-config
+    yum install -y $required_packages python-crypto python2-novaclient python2-neutronclient python2-os-client-config
     pip install pyghmi
 fi
 
