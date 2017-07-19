@@ -62,6 +62,8 @@ UNDERCLOUD_IP=$(heat output-show $STACK_NAME undercloud_host_floating_ip | sed -
 bin/build-nodes-json --env env-$MY_ID.yaml
 #bin/build-nodes-json --bmc_prefix $BMC_PREFIX --baremetal_prefix $BAREMETAL_PREFIX --provision_net $PROVISION_NET
 SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=Verbose -o PasswordAuthentication=no -o ConnectionAttempts=32 "
+# Canary command to make sure the undercloud is ready
+until ssh -t -t $SSH_OPTS centos@$UNDERCLOUD_IP ls; do sleep 1; done
 scp $SSH_OPTS bin/ovb-instack centos@$UNDERCLOUD_IP:/tmp
 scp $SSH_OPTS nodes.json centos@$UNDERCLOUD_IP:~/instackenv.json
 ssh -t -t $SSH_OPTS centos@$UNDERCLOUD_IP LOCAL=$LOCAL /tmp/ovb-instack
