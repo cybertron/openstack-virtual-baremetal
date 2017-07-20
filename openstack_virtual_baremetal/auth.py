@@ -12,6 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import json
 import os
 import sys
 
@@ -59,3 +60,11 @@ def _create_auth_parameters():
             'os_user_domain': user_domain,
             'os_project_domain': project_domain,
             }
+
+def _cloud_json():
+    """Return the current cloud's data in JSON
+
+    Retrieves the cloud from os-client-config and serializes it to JSON.
+    """
+    config = os_client_config.OpenStackConfig().get_one_cloud(OS_CLOUD)
+    return json.dumps(config.config)

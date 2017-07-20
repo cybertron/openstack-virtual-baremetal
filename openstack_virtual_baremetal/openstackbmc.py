@@ -24,6 +24,7 @@
 # ipmitool -I lanplus -U admin -P password -H 127.0.0.1 mc reset cold
 
 import argparse
+import os
 import sys
 import time
 
@@ -44,17 +45,24 @@ NO_OCC_DEPRECATION = ('WARNING: Creating novaclient without os-client-config '
 
 class OpenStackBmc(bmc.Bmc):
     def __init__(self, authdata, port, address, instance, user, password, tenant,
-                 auth_url, project, user_domain, project_domain, cache_status):
+                 auth_url, project, user_domain, project_domain, cache_status,
+                 os_cloud):
         super(OpenStackBmc, self).__init__(authdata, port=port, address=address)
         if os_client_config:
-            kwargs = dict(os_username=user,
-                          os_password=password,
-                          os_project_name=tenant,
-                          os_auth_url=auth_url,
-                          os_user_domain=user_domain,
-                          os_project_domain=project_domain)
-            self.novaclient = os_client_config.make_client('compute',
-                                                           **kwargs)
+            if user:
+                # NOTE(bnemec): This is deprecated.  clouds.yaml is a much
+                # more robust way to specify auth details.
+                kwargs = dict(os_username=user,
+                              os_password=password,
+                              os_project_name=tenant,
+                              os_auth_url=auth_url,
+                              os_user_domain=user_domain,
+                              os_project_domain=project_domain)
+                self.novaclient = os_client_config.make_client('compute',
+                                                               **kwargs)
+            else:
+                self.novaclient = os_client_config.make_client('compute',
+                                                               cloud=os_cloud)
         else:
             # NOTE(bnemec): This path was deprecated 2017-7-17
             self.log(NO_OCC_DEPRECATION)
@@ -216,36 +224,53 @@ def main():
                         help='The uuid or name of the OpenStack instance to manage')
     parser.add_argument('--os-user',
                         dest='user',
-                        required=True,
-                        help='The user for connecting to OpenStack')
+                        required=False,
+                        default='',
+                        help='DEPRECATED: Use --os-cloud to specify auth '
+                             'details. '
+                             'The user for connecting to OpenStack')
     parser.add_argument('--os-password',
                         dest='password',
-                        required=True,
-                        help='The password for connecting to OpenStack')
+                        required=False,
+                        default='',
+                        help='DEPRECATED: Use --os-cloud to specify auth '
+                             'details. '
+                             'The password for connecting to OpenStack')
     parser.add_argument('--os-tenant',
                         dest='tenant',
                         required=False,
                         default='',
-                        help='The tenant for connecting to OpenStack')
+                        help='DEPRECATED: Use --os-cloud to specify auth '
+                             'details. '
+                             'The tenant for connecting to OpenStack')
     parser.add_argument('--os-auth-url',
                         dest='auth_url',
-                        required=True,
-                        help='The OpenStack Keystone auth url')
+                        required=False,
+                        default='',
+                        help='DEPRECATED: Use --os-cloud to specify auth '
+                             'details. '
+                             'The OpenStack Keystone auth url')
     parser.add_argument('--os-project',
                         dest='project',
                         required=False,
                         default='',
-                        help='The project for connecting to OpenStack')
+                        help='DEPRECATED: Use --os-cloud to specify auth '
+                             'details. '
+                             'The project for connecting to OpenStack')
     parser.add_argument('--os-user-domain',
                         dest='user_domain',
                         required=False,
                         default='',
-                        help='The user domain for connecting to OpenStack')
+                        help='DEPRECATED: Use --os-cloud to specify auth '
+                             'details. '
+                             'The user domain for connecting to OpenStack')
     parser.add_argument('--os-project-domain',
                         dest='project_domain',
                         required=False,
                         default='',
-                        help='The project domain for connecting to OpenStack')
+                        help='DEPRECATED: Use --os-cloud to specify auth '
+                             'details. '
+                             'The project domain for connecting to OpenStack')
     parser.add_argument('--cache-status',
                         dest='cache_status',
                         default=False,
@@ -254,6 +279,12 @@ def main():
                              'can reduce load on the host cloud, but if the '
                              'instance status is changed outside the BMC then '
                              'it may become out of sync.')
+    parser.add_argument('--os-cloud',
+                        dest='os_cloud',
+                        required=False,
+                        default=os.environ.get('OS_CLOUD'),
+                        help='Use the specified cloud from clouds.yaml. '
+                             'Defaults to the OS_CLOUD environment variable.')
     args = parser.parse_args()
     # Default to ipv6 format, but if we get an ipv4 address passed in use the
     # appropriate format for pyghmi to listen on it.
@@ -270,7 +301,8 @@ def main():
                          project=args.project,
                          user_domain=args.user_domain,
                          project_domain=args.project_domain,
-                         cache_status=args.cache_status)
+                         cache_status=args.cache_status,
+                         os_cloud=args.os_cloud)
     mybmc.listen()
 
 

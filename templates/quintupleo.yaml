@@ -158,6 +158,11 @@ parameters:
       The project domain for os_user.  Required for Keystone v3, should be left
       blank for Keystone v2.
 
+  cloud_data:
+    type: string
+    default: '{}'
+
+
 resources:
   provision_network:
     type: OS::Neutron::Net
@@ -233,6 +238,7 @@ resources:
       os_project: {get_param: os_project}
       os_user_domain: {get_param: os_user_domain}
       os_project_domain: {get_param: os_project_domain}
+      cloud_data: {get_param: cloud_data}
 
 outputs:
   undercloud_host_floating_ip:

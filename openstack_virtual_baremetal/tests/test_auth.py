@@ -13,6 +13,7 @@
 # under the License.
 
 import fixtures
+import json
 import mock
 import testtools
 
@@ -137,4 +138,23 @@ class TestCreateAuthParameters(testtools.TestCase):
                     'os_user_domain': 'default',
                     'os_project_domain': 'default',
                     }
+        self.assertEqual(expected, result)
+
+class TestCloudJSON(testtools.TestCase):
+    @mock.patch('openstack_virtual_baremetal.auth.OS_CLOUD', 'foo')
+    @mock.patch('os_client_config.OpenStackConfig')
+    def test_cloud_json(self, mock_osc):
+        mock_data = mock.Mock()
+        mock_data.config = {'auth': {'username': 'admin',
+                                     'password': 'password',
+                                     'project_name': 'admin',
+                                     'auth_url': 'http://host:5000',
+                                     'user_domain_name': 'default',
+                                     'project_domain_name': 'default',
+                                     }}
+        mock_instance = mock.Mock()
+        mock_instance.get_one_cloud.return_value = mock_data
+        mock_osc.return_value = mock_instance
+        result = auth._cloud_json()
+        expected = json.dumps(mock_data.config)
         self.assertEqual(expected, result)

@@ -116,6 +116,10 @@ parameters:
       The project domain for os_user.  Required for Keystone v3, should be left
       blank for Keystone v2.
 
+  cloud_data:
+    type: string
+    default: '{}'
+
   # Ignored parameters for compatibility with QuintupleO env files
   undercloud_image:
     type: string
@@ -184,6 +188,7 @@ resources:
             $bm_prefix: {get_param: baremetal_prefix}
             $private_net: {get_param: private_net}
             $openstackbmc_script: {get_file: ../bin/openstackbmc}
+            $cloud_data: {get_param: cloud_data}
           template: {get_file: ../bin/install_openstackbmc.sh}
 
   baremetal_networks:
