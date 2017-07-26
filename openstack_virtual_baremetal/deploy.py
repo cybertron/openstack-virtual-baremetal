@@ -153,7 +153,7 @@ def _deploy(stack_name, stack_template, env_path, poll):
     all_files = {}
     all_files.update(template_files)
     all_files.update(env_files)
-    parameters = {'cloud_data': auth._cloud_json()}
+    parameters = auth._create_auth_parameters()
 
     hclient.stacks.create(stack_name=stack_name,
                           template=template,

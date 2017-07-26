@@ -48,8 +48,7 @@ class TestOpenStackBmcInitDeprecated(unittest.TestCase):
                                         project='',
                                         user_domain='',
                                         project_domain='',
-                                        cache_status=False,
-                                        os_cloud=None
+                                        cache_status=False
                                         )
         if old_nova:
             mock_nova.assert_called_once_with(2, 'admin', 'password', 'admin',
@@ -104,8 +103,7 @@ class TestOpenStackBmcInitDeprecated(unittest.TestCase):
                                         project='admin',
                                         user_domain='default',
                                         project_domain='default',
-                                        cache_status=False,
-                                        os_cloud=None
+                                        cache_status=False
                                         )
         mock_nova.assert_called_once_with(2, 'admin', 'password',
                                           auth_url='http://keystone:5000/v3',
@@ -129,6 +127,7 @@ class TestOpenStackBmcInitDeprecated(unittest.TestCase):
 class TestOpenStackBmcInit(testtools.TestCase):
     def test_init_os_client_config(self, mock_make_client, mock_find_instance,
                                    mock_bmc_init, mock_log):
+        self.useFixture(fixtures.EnvironmentVariable('OS_CLOUD', None))
         mock_client = mock.Mock()
         mock_server = mock.Mock()
         mock_server.name = 'foo-instance'
@@ -146,8 +145,7 @@ class TestOpenStackBmcInit(testtools.TestCase):
                                         project='',
                                         user_domain='',
                                         project_domain='',
-                                        cache_status=False,
-                                        os_cloud=None
+                                        cache_status=False
                                         )
 
         mock_make_client.assert_called_once_with('compute',
@@ -157,36 +155,6 @@ class TestOpenStackBmcInit(testtools.TestCase):
             os_project_name='admin',
             os_user_domain='',
             os_username='admin')
-        mock_find_instance.assert_called_once_with('foo')
-        self.assertEqual('abc-123', bmc.instance)
-        mock_client.servers.get.assert_called_once_with('abc-123')
-        mock_log.assert_called_once_with('Managing instance: %s UUID: %s' %
-                                         ('foo-instance', 'abc-123'))
-
-    def test_init_os_cloud(self, mock_make_client, mock_find_instance,
-                           mock_bmc_init, mock_log):
-        mock_client = mock.Mock()
-        mock_server = mock.Mock()
-        mock_server.name = 'foo-instance'
-        mock_client.servers.get.return_value = mock_server
-        mock_make_client.return_value = mock_client
-        mock_find_instance.return_value = 'abc-123'
-        bmc = openstackbmc.OpenStackBmc(authdata={'admin': 'password'},
-                                        port=623,
-                                        address='::ffff:127.0.0.1',
-                                        instance='foo',
-                                        user='',
-                                        password='',
-                                        tenant='',
-                                        auth_url='',
-                                        project='',
-                                        user_domain='',
-                                        project_domain='',
-                                        cache_status=False,
-                                        os_cloud='bar'
-                                        )
-
-        mock_make_client.assert_called_once_with('compute', cloud='bar')
         mock_find_instance.assert_called_once_with('foo')
         self.assertEqual('abc-123', bmc.instance)
         mock_client.servers.get.assert_called_once_with('abc-123')
@@ -207,17 +175,22 @@ class TestOpenStackBmcInit(testtools.TestCase):
                                         port=623,
                                         address='::ffff:127.0.0.1',
                                         instance='foo',
-                                        user='',
-                                        password='',
-                                        tenant='',
-                                        auth_url='',
+                                        user='admin',
+                                        password='password',
+                                        tenant='admin',
+                                        auth_url='http://keystone:5000',
                                         project='',
                                         user_domain='',
                                         project_domain='',
-                                        cache_status=False,
-                                        os_cloud='foo'
+                                        cache_status=False
                                         )
-        mock_make_client.assert_called_once_with('compute', cloud='foo')
+        mock_make_client.assert_called_once_with('compute',
+            os_auth_url='http://keystone:5000',
+            os_password='password',
+            os_project_domain='',
+            os_project_name='admin',
+            os_user_domain='',
+            os_username='admin')
         find_calls = [mock.call('foo'), mock.call('foo')]
         self.assertEqual(find_calls, mock_find_instance.mock_calls)
         self.assertEqual('abc-123', bmc.instance)
@@ -249,8 +222,7 @@ class TestOpenStackBmc(unittest.TestCase):
                                              project='',
                                              user_domain='',
                                              project_domain='',
-                                             cache_status=False,
-                                             os_cloud=None
+                                             cache_status=False
                                              )
         self.bmc.novaclient = self.mock_client
         self.bmc.instance = 'abc-123'
@@ -452,22 +424,23 @@ class TestMain(unittest.TestCase):
         mock_instance = mock.Mock()
         mock_bmc.return_value = mock_instance
         mock_argv = ['openstackbmc', '--port', '111', '--address', '1.2.3.4',
-                     '--instance', 'foobar', '--os-cloud', 'foo']
+                     '--instance', 'foobar', '--os-user', 'admin',
+                     '--os-password', 'password', '--os-tenant', 'admin',
+                     '--os-auth-url', 'http://host:5000/v2.0']
         with mock.patch.object(sys, 'argv', mock_argv):
             openstackbmc.main()
         mock_bmc.assert_called_once_with({'admin': 'password'},
                                          port=111,
                                          address='::ffff:1.2.3.4',
                                          instance='foobar',
-                                         user='',
-                                         password='',
-                                         tenant='',
-                                         auth_url='',
+                                         user='admin',
+                                         password='password',
+                                         tenant='admin',
+                                         auth_url='http://host:5000/v2.0',
                                          project='',
                                          user_domain='',
                                          project_domain='',
-                                         cache_status=False,
-                                         os_cloud='foo'
+                                         cache_status=False
                                          )
         mock_instance.listen.assert_called_once_with()
 
@@ -476,21 +449,22 @@ class TestMain(unittest.TestCase):
         mock_instance = mock.Mock()
         mock_bmc.return_value = mock_instance
         mock_argv = ['openstackbmc', '--port', '111',
-                     '--instance', 'foobar']
+                     '--instance', 'foobar', '--os-user', 'admin',
+                     '--os-password', 'password', '--os-tenant', 'admin',
+                     '--os-auth-url', 'http://host:5000/v2.0']
         with mock.patch.object(sys, 'argv', mock_argv):
             openstackbmc.main()
         mock_bmc.assert_called_once_with({'admin': 'password'},
                                          port=111,
                                          address='::',
                                          instance='foobar',
-                                         user='',
-                                         password='',
-                                         tenant='',
-                                         auth_url='',
+                                         user='admin',
+                                         password='password',
+                                         tenant='admin',
+                                         auth_url='http://host:5000/v2.0',
                                          project='',
                                          user_domain='',
                                          project_domain='',
-                                         cache_status=False,
-                                         os_cloud=None
+                                         cache_status=False
                                          )
         mock_instance.listen.assert_called_once_with()
