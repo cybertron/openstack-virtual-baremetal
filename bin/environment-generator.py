@@ -20,8 +20,11 @@
 # other projects in a less hacky way.
 # *************************************************************************
 
+import argparse
 import errno
+import json
 import os
+import re
 import sys
 import yaml
 
@@ -56,6 +59,13 @@ _PRIVATE_OVERRIDES = []
 # static.  This allows us to generate sample environments using them when
 # necessary, but they won't be improperly included by accident.
 _HIDDEN_PARAMS = []
+# We also want to hide some patterns by default.  If a parameter name matches
+# one of the patterns in this list (a "match" being defined by Python's
+# re.match function returning a value other than None), then the parameter
+# will be omitted by default.
+_HIDDEN_RE = []
+
+_index_data = {}
 
 
 def _create_output_dir(target_file):
@@ -89,6 +99,11 @@ def _generate_environment(input_env, parent_env=None):
                     if (hidden not in (static_names + sample_values.keys()) and
                             hidden in new_names):
                         new_names.remove(hidden)
+                for hidden_re in _HIDDEN_RE:
+                    new_names = [n for n in new_names
+                                 if n in (static_names +
+                                          sample_values.keys()) or
+                                 not re.match(hidden_re, n)]
             else:
                 new_names = template_data['parameters']
             missing_params = [name for name in new_names
@@ -126,6 +141,10 @@ def _generate_environment(input_env, parent_env=None):
             default = '<None>'
         if value.get('sample') is not None:
             default = value['sample']
+        if isinstance(default, dict):
+            # We need to explicitly sort these so the order doesn't change
+            # from one run to the next
+            default = json.dumps(default, sort_keys=True)
         # We ultimately cast this to str for output anyway
         default = str(default)
         if default == '':
@@ -134,7 +153,7 @@ def _generate_environment(input_env, parent_env=None):
         # parse the output correctly unless we wrap it in quotes.
         # However, not all default values can be wrapped so we need to
         # do it conditionally.
-        if default.startswith('%'):
+        if default.startswith('%') or default.startswith('*'):
             default = "'%s'" % default
         if not default.startswith('\n'):
             default = ' ' + default
@@ -162,6 +181,9 @@ def _generate_environment(input_env, parent_env=None):
         env_file.write(u'# description: |\n')
         for line in env_desc.splitlines():
             env_file.write(u'#   %s\n' % line)
+        _index_data[target_file] = {'title': env_title,
+                                    'description': env_desc
+                                    }
 
         if parameter_defaults:
             env_file.write(u'parameter_defaults:\n')
@@ -199,17 +221,36 @@ def generate_environments(config_path):
             _generate_environment(env)
 
 
-def usage(exit_code=1):
-    print('Usage: %s [<filename.yaml> | <directory>]' % sys.argv[0])
-    sys.exit(exit_code)
+def generate_index(index_path):
+    with open(index_path, 'w') as f:
+        f.write('Sample Environment Index\n')
+        f.write('========================\n\n')
+        for filename, details in sorted(_index_data.items()):
+            f.write(details['title'] + '\n')
+            f.write('-' * len(details['title']) + '\n\n')
+            f.write('**File:** ' + filename + '\n\n')
+            f.write('**Description:** ' + details['description'] + '\n\n')
+
+
+def _parse_args():
+    parser = argparse.ArgumentParser(description='Generate Heat sample '
+                                                 'environments.')
+    parser.add_argument('config_path',
+                        help='Filename or directory containing the sample '
+                             'environment definitions.')
+    parser.add_argument('--index',
+                        help='Specify the output path for an index file '
+                             'listing all the generated environments. '
+                             'The file will be in RST format. '
+                             'If not specified, no index will be generated.')
+    return parser.parse_args()
 
 
 def main():
-    try:
-        config_path = sys.argv[1]
-    except IndexError:
-        usage()
-    generate_environments(config_path)
+    args = _parse_args()
+    generate_environments(args.config_path)
+    if args.index:
+        generate_index(args.index)
 
 
 if __name__ == '__main__':
