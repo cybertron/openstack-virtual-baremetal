@@ -1,0 +1,22 @@
+# *******************************************************************
+# This file was created automatically by the sample environment
+# generator. Developers should use `tox -e genconfig` to update it.
+# Users are recommended to make changes to a copy of the file instead
+# of the original, if any customizations are needed.
+# *******************************************************************
+# title: Assign the Undercloud an Existing Floating IP
+# description: |
+#   When deploying the undercloud, assign it an existing floating IP instead
+#   of creating a new one.
+parameter_defaults:
+  # Address of existing floating ip to use.
+  # Type: string
+  undercloud_floating_ip: ''
+
+  # ID of existing floating ip to use.
+  # Mandatory. This parameter must be set by the user.
+  # Type: string
+  undercloud_floating_ip_id: <None>
+
+resource_registry:
+  OS::OVB::UndercloudFloating: ../templates/undercloud-floating-existing.yaml

@@ -97,12 +97,11 @@ class TestBuildNodesJson(testtools.TestCase):
         args = mock.Mock()
         args.env = 'foo.yaml'
         args.add_undercloud = False
-        mock_env = {'parameters':
+        mock_env = {'parameter_defaults':
                         {'bmc_prefix': 'bmc-foo',
                          'baremetal_prefix': 'baremetal-foo',
                          'provision_net': 'provision-foo'
                          },
-                    'parameter_defaults': {}
                     }
         mock_load.return_value = mock_env
         bmc_base, baremetal_base, provision_net, undercloud_name = (
@@ -119,12 +118,12 @@ class TestBuildNodesJson(testtools.TestCase):
         args = mock.Mock()
         args.env = 'foo.yaml'
         args.add_undercloud = False
-        mock_env = {'parameters':
+        mock_env = {'parameter_defaults':
                         {'bmc_prefix': 'bmc',
                          'baremetal_prefix': 'baremetal',
-                         'provision_net': 'provision'
+                         'provision_net': 'provision',
+                         'role': 'foo',
                          },
-                    'parameter_defaults': {'role': 'foo'}
                     }
         mock_load.return_value = mock_env
         bmc_base, baremetal_base, provision_net, undercloud_name = (
@@ -141,12 +140,12 @@ class TestBuildNodesJson(testtools.TestCase):
         args = mock.Mock()
         args.env = 'foo.yaml'
         args.add_undercloud = False
-        mock_env = {'parameters':
+        mock_env = {'parameter_defaults':
                         {'bmc_prefix': 'bmc-foo',
                          'baremetal_prefix': 'baremetal-foo-bar',
-                         'provision_net': 'provision-foo'
+                         'provision_net': 'provision-foo',
+                         'role': 'bar',
                          },
-                    'parameter_defaults': {'role': 'bar'}
                     }
         mock_load.return_value = mock_env
         bmc_base, baremetal_base, provision_net, undercloud_name = (

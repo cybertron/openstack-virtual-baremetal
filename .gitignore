@@ -1,5 +1,5 @@
 nodes.json
-env*.yaml
+env-*.yaml
 bmc_bm_pairs
 *.pyc
 *.pyo

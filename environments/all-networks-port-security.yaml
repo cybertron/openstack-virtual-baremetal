@@ -1,0 +1,17 @@
+# *******************************************************************
+# This file was created automatically by the sample environment
+# generator. Developers should use `tox -e genconfig` to update it.
+# Users are recommended to make changes to a copy of the file instead
+# of the original, if any customizations are needed.
+# *******************************************************************
+# title: Deploy with All Networks Enabled
+# description: |
+#   Deploy an OVB stack that adds interfaces for all the standard TripleO
+#   network isolation networks.  This version uses the port-security
+#   Neutron extension to allow OVB to be run on clouds with security
+#   groups enabled.
+resource_registry:
+  OS::OVB::BMCPort: ../templates/bmc-port-port-security.yaml
+  OS::OVB::BaremetalNetworks: ../templates/baremetal-networks-all.yaml
+  OS::OVB::BaremetalPorts: ../templates/baremetal-ports-all-port-security.yaml
+  OS::OVB::UndercloudPorts: ../templates/undercloud-ports-port-security.yaml

@@ -1,0 +1,12 @@
+# *******************************************************************
+# This file was created automatically by the sample environment
+# generator. Developers should use `tox -e genconfig` to update it.
+# Users are recommended to make changes to a copy of the file instead
+# of the original, if any customizations are needed.
+# *******************************************************************
+# title: Disable the Undercloud in a QuintupleO Stack
+# description: |
+#   Deploy a QuintupleO environment, but do not create the undercloud
+#   instance.
+resource_registry:
+  OS::OVB::UndercloudEnvironment: OS::Heat::None

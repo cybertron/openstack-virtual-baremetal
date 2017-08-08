@@ -1,0 +1,76 @@
+# *******************************************************************
+# This file was created automatically by the sample environment
+# generator. Developers should use `tox -e genconfig` to update it.
+# Users are recommended to make changes to a copy of the file instead
+# of the original, if any customizations are needed.
+# *******************************************************************
+# title: Base Configuration Options
+# description: |
+#   Basic configuration options needed for all OVB environments
+parameter_defaults:
+  # Recommended to be at least 1 vcpu, 4 GB RAM, 50 GB disk
+  # Type: string
+  baremetal_flavor: baremetal
+
+  # The base image to use for baremetal instances
+  # Type: string
+  baremetal_image: ipxe-boot
+
+  # Prefix for the name of the baremetal instances
+  # Type: string
+  baremetal_prefix: baremetal
+
+  # The Nova flavor to use for the bmc instance
+  # Type: string
+  bmc_flavor: m1.small
+
+  # The base image for the bmc instance.  A CentOS 7 image is currently the
+  # only one supported.
+  # Type: string
+  bmc_image: CentOS-7-x86_64-GenericCloud
+
+  # Prefix for the name of the bmc instance
+  # Type: string
+  bmc_prefix: bmc
+
+  # An external network from which floating ips can be provisioned
+  # Type: string
+  external_net: external
+
+  # Nova keypair to inject into the undercloud and bmc
+  # Type: string
+  key_name: default
+
+  # Number of baremetal nodes to deploy
+  # Type: number
+  node_count: 2
+
+  # Name of a private network which can have floating ips associated with it
+  # Type: string
+  private_net: private
+
+  # Name of a network that will be used for provisioning traffic
+  # Type: string
+  provision_net: provision
+
+  # Name of the overcloud external network
+  # Type: string
+  public_net: public
+
+  # The default role for nodes in this environment.  This parameter is
+  # ignored by Heat, but used by build-nodes-json.
+  # Type: string
+  role: ''
+
+  # Nova flavor to use for the undercloud instance
+  # Type: string
+  undercloud_flavor: m1.large
+
+  # Image to boot as the undercloud instance
+  # Type: string
+  undercloud_image: CentOS-7-x86_64-GenericCloud-1503
+
+  # Name of the undercloud instance
+  # Type: string
+  undercloud_name: undercloud
+

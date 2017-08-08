@@ -1,0 +1,141 @@
+environments:
+  - name: base
+    title: Base Configuration Options
+    description: Basic configuration options needed for all OVB environments
+    files:
+      templates/quintupleo.yaml:
+        parameters:
+          - bmc_flavor
+          - bmc_image
+          - baremetal_flavor
+          - baremetal_image
+          - key_name
+          - private_net
+          - bmc_prefix
+          - baremetal_prefix
+          - node_count
+          - public_net
+          - provision_net
+          - undercloud_name
+          - undercloud_image
+          - undercloud_flavor
+          - external_net
+          - role
+    sample_values:
+      baremetal_image: ipxe-boot
+  -
+    name: base-role
+    title: Base Configuration Options for Secondary Roles
+    description: |
+      Configuration options that need to be set when deploying an OVB
+      environment that has multiple roles.
+    files:
+      templates/quintupleo.yaml:
+        parameters:
+          - baremetal_flavor
+          - key_name
+          - node_count
+          - role
+    sample_values:
+      role: compute
+  -
+    name: all-networks
+    title: Deploy with All Networks Enabled
+    description: |
+      Deploy an OVB stack that adds interfaces for all the standard TripleO
+      network isolation networks.
+    files: {}
+    resource_registry:
+      OS::OVB::BaremetalNetworks: ../templates/baremetal-networks-all.yaml
+      OS::OVB::BaremetalPorts: ../templates/baremetal-ports-all.yaml
+    children:
+      -
+        name: all-networks-port-security
+        description: |
+          Deploy an OVB stack that adds interfaces for all the standard TripleO
+          network isolation networks.  This version uses the port-security
+          Neutron extension to allow OVB to be run on clouds with security
+          groups enabled.
+        resource_registry:
+          OS::OVB::BaremetalNetworks: ../templates/baremetal-networks-all.yaml
+          OS::OVB::BaremetalPorts: ../templates/baremetal-ports-all-port-security.yaml
+          OS::OVB::BMCPort: ../templates/bmc-port-port-security.yaml
+          OS::OVB::UndercloudPorts: ../templates/undercloud-ports-port-security.yaml
+      -
+        name: all-networks-public-bond
+        title: Deploy with All Networks Enabled and Two Public Interfaces
+        description: |
+          Deploy an OVB stack that adds interfaces for all the standard TripleO
+          network isolation networks.  This version will deploy duplicate
+          public network interfaces on the baremetal instances so that the
+          public network can be configured as a bond.
+        resource_registry:
+          OS::OVB::BaremetalNetworks: ../templates/baremetal-networks-all.yaml
+          OS::OVB::BaremetalPorts: ../templates/baremetal-ports-public-bond.yaml
+      -
+        name: all-networks-public-bond-port-security
+        title: Deploy with All Networks Enabled and Two Public Interfaces
+        description: |
+          Deploy an OVB stack that adds interfaces for all the standard TripleO
+          network isolation networks.  This version will deploy duplicate
+          public network interfaces on the baremetal instances so that the
+          public network can be configured as a bond.  It will also use the
+          port-security Neutron extension to allow OVB to be run on clouds with
+          security groups enabled.
+        resource_registry:
+          OS::OVB::BaremetalNetworks: ../templates/baremetal-networks-all.yaml
+          OS::OVB::BaremetalPorts: ../templates/baremetal-ports-public-bond-port-security.yaml
+          OS::OVB::BMCPort: ../templates/bmc-port-port-security.yaml
+          OS::OVB::UndercloudPorts: ../templates/undercloud-ports-port-security.yaml
+  -
+    name: port-security
+    title: Deploy a Basic OVB Environment Using Neutron port-security
+    description: |
+      Deploy an OVB stack that uses the Neutron port-security extension to
+      allow OVB functionality in clouds with security groups enabled.
+    files: {}
+    resource_registry:
+      OS::OVB::BaremetalPorts: ../templates/baremetal-ports-default-port-security.yaml
+      OS::OVB::BMCPort: ../templates/bmc-port-port-security.yaml
+      OS::OVB::UndercloudPorts: ../templates/undercloud-ports-port-security.yaml
+  -
+    name: create-private-network
+    title: Create a Private Network
+    description: |
+      Create the private network as part of the OVB stack instead of using an
+      existing one.
+    files:
+      templates/private-net-create.yaml:
+        parameters: all
+    resource_registry:
+      OS::OVB::PrivateNetwork: ../templates/private-net-create.yaml
+  -
+    name: quintupleo-no-undercloud
+    title: Disable the Undercloud in a QuintupleO Stack
+    description: |
+      Deploy a QuintupleO environment, but do not create the undercloud
+      instance.
+    files: {}
+    resource_registry:
+      OS::OVB::UndercloudEnvironment: OS::Heat::None
+  -
+    name: undercloud-floating-none
+    title: Do Not Assign a Floating IP to the Undercloud
+    description: |
+      When deploying the undercloud, do not assign a floating ip to it.
+    files: {}
+    resource_registry:
+      OS::OVB::UndercloudFloating: ../templates/undercloud-floating-none.yaml
+  -
+    name: undercloud-floating-existing
+    title: Assign the Undercloud an Existing Floating IP
+    description: |
+      When deploying the undercloud, assign it an existing floating IP instead
+      of creating a new one.
+    files:
+      templates/undercloud-floating-existing.yaml:
+        parameters:
+          - undercloud_floating_ip
+          - undercloud_floating_ip_id
+    resource_registry:
+      OS::OVB::UndercloudFloating: ../templates/undercloud-floating-existing.yaml

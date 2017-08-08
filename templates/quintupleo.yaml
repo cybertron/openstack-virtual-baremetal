@@ -162,6 +162,14 @@ parameters:
     type: string
     default: '{}'
 
+  # Unused parameter for compatibility with the environment generator
+  role:
+    type: string
+    description: |
+      The default role for nodes in this environment.  This parameter is
+      ignored by Heat, but used by build-nodes-json.
+    default: ''
+
 
 resources:
   provision_network:

@@ -29,7 +29,7 @@ def _parse_args():
         prog='build-nodes-json.py',
         description='Tool for collecting virtual IPMI details',
     )
-    parser.add_argument('--env',
+    parser.add_argument('--env', '-e',
                         dest='env',
                         default=None,
                         help='YAML file containing OVB environment details')
@@ -72,14 +72,14 @@ def _get_names(args):
     else:
         with open(args.env) as f:
             e = yaml.safe_load(f)
-        bmc_base = e['parameters']['bmc_prefix']
-        baremetal_base = e['parameters']['baremetal_prefix']
-        provision_net = e['parameters']['provision_net']
+        bmc_base = e['parameter_defaults']['bmc_prefix']
+        baremetal_base = e['parameter_defaults']['baremetal_prefix']
+        provision_net = e['parameter_defaults']['provision_net']
         role = e['parameter_defaults'].get('role')
         if role and baremetal_base.endswith('-' + role):
             baremetal_base = baremetal_base[:-len(role) - 1]
         if args.add_undercloud:
-            undercloud_name = e['parameters']['undercloud_name']
+            undercloud_name = e['parameter_defaults']['undercloud_name']
     return bmc_base, baremetal_base, provision_net, undercloud_name
 
 

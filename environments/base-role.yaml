@@ -1,0 +1,28 @@
+# *******************************************************************
+# This file was created automatically by the sample environment
+# generator. Developers should use `tox -e genconfig` to update it.
+# Users are recommended to make changes to a copy of the file instead
+# of the original, if any customizations are needed.
+# *******************************************************************
+# title: Base Configuration Options for Secondary Roles
+# description: |
+#   Configuration options that need to be set when deploying an OVB
+#   environment that has multiple roles.
+parameter_defaults:
+  # Recommended to be at least 1 vcpu, 4 GB RAM, 50 GB disk
+  # Type: string
+  baremetal_flavor: baremetal
+
+  # Nova keypair to inject into the undercloud and bmc
+  # Type: string
+  key_name: default
+
+  # Number of baremetal nodes to deploy
+  # Type: number
+  node_count: 2
+
+  # The default role for nodes in this environment.  This parameter is
+  # ignored by Heat, but used by build-nodes-json.
+  # Type: string
+  role: compute
+

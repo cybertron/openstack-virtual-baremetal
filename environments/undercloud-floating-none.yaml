@@ -1,0 +1,11 @@
+# *******************************************************************
+# This file was created automatically by the sample environment
+# generator. Developers should use `tox -e genconfig` to update it.
+# Users are recommended to make changes to a copy of the file instead
+# of the original, if any customizations are needed.
+# *******************************************************************
+# title: Do Not Assign a Floating IP to the Undercloud
+# description: |
+#   When deploying the undercloud, do not assign a floating ip to it.
+resource_registry:
+  OS::OVB::UndercloudFloating: ../templates/undercloud-floating-none.yaml
