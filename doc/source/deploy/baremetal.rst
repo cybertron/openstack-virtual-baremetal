@@ -59,7 +59,11 @@ method, which creates most of the resources needed automatically.
 
 #. Copy the example env file and edit it to reflect the host environment::
 
-    cp templates/env.yaml.example env.yaml
+   .. note:: Some of the parameters in the base environment file are only
+             used for QuintupleO deployments.  Their values will be ignored
+             in a plain virtual-baremetal deployment.
+
+    cp environments/base.yaml env.yaml
     vi env.yaml
 
 #. Deploy the stack::

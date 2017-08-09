@@ -17,7 +17,8 @@ parameter_defaults:
   # Type: string
   overcloud_internal_net: overcloud_internal
 
-  # CIDR for internal API network subnet
+  # CIDR for internal API network subnet.  This is typically irrelevant and
+  # does not need to be changed.
   # Type: string
   overcloud_internal_net_cidr: 172.17.0.0/24
 
@@ -25,7 +26,8 @@ parameter_defaults:
   # Type: string
   overcloud_storage_mgmt_net: overcloud_storage_mgmt
 
-  # CIDR for storage management network subnet
+  # CIDR for storage management network subnet.  This is typically irrelevant
+  # and does not need to be changed.
   # Type: string
   overcloud_storage_mgmt_net_cidr: 172.19.0.0/24
 
@@ -33,7 +35,8 @@ parameter_defaults:
   # Type: string
   overcloud_storage_net: overcloud_storage
 
-  # CIDR for storage network subnet
+  # CIDR for storage network subnet.  This is typically irrelevant and
+  # does not need to be changed.
   # Type: string
   overcloud_storage_net_cidr: 172.18.0.0/24
 
@@ -41,7 +44,8 @@ parameter_defaults:
   # Type: string
   overcloud_tenant_net: overcloud_tenant
 
-  # CIDR for tenant network subnet
+  # CIDR for tenant network subnet.  This is typically irrelevant and
+  # does not need to be changed.
   # Type: string
   overcloud_tenant_net_cidr: 172.16.0.0/24
 

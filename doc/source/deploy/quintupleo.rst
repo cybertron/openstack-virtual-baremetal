@@ -7,15 +7,9 @@ deployment method is able to deploy a full TripleO development environment
 in one command.  It should be useful for non-TripleO users of OVB as well,
 however.
 
-#. Copy the example env file and edit it to reflect the host environment:
+#. Copy the example env file and edit it to reflect the host environment::
 
-   .. note:: QuintupleO environments require a few more configuration
-             parameters to be set.  It also allows enabling a few more
-             features in env.yaml.
-
-   ::
-
-      cp templates/env.yaml.example env.yaml
+      cp environments/base.yaml env.yaml
       vi env.yaml
 
 #. Deploy a QuintupleO stack::
@@ -35,7 +29,10 @@ however.
              file will be ``env-${id}.yaml``.  This new file should be passed
              to build-nodes-json instead of the original.
 
-#. Wait for Heat stack to complete:
+   .. note:: There are a number of
+
+#. Wait for Heat stack to complete.  To make this easier, the ``--poll``
+   option can be passed to ``deploy.py``.
 
    .. note:: The BMC instance does post-deployment configuration that can
              take a while to complete, so the Heat stack completing does
@@ -55,6 +52,10 @@ however.
     bin/build-nodes-json
     scp nodes.json centos@[undercloud floating ip]:~/instackenv.json
 
+   .. note:: Only the base environment file needs to be passed to this command.
+             Additional option environments that may have been passed to the
+             deploy command should *not* be included here.
+
    .. note:: ``build-nodes-json`` also outputs a file named ``bmc_bm_pairs``
              that lists which BMC address corresponds to a given baremetal
              instance.
@@ -64,3 +65,15 @@ however.
              ``--env`` parameter.  Example::
 
                 bin/build-nodes-json --env env-foo.yaml
+
+Advanced Options
+----------------
+
+There are also a number of advanced options that can be enabled for a
+QuintupleO deployment.  For each such option there is a sample environment
+to be passed to the deploy command.
+
+For example, to deploy using the Neutron port-security extension to allow
+DHCP and PXE booting, the following command could be used::
+
+    bin/deploy.py --quintupleo -e env.yaml -e environments/port-security.yaml
