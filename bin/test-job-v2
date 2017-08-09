@@ -1,0 +1,69 @@
+#!/bin/bash
+
+# Edit these to match your environment
+BMC_IMAGE=bmc-base
+BMC_FLAVOR=bmc
+KEY_NAME=default
+UNDERCLOUD_IMAGE=centos7-base
+UNDERCLOUD_FLAVOR=undercloud-16
+BAREMETAL_FLAVOR=baremetal
+EXTERNAL_NET=external
+# Set to 0 if you're not running in bnemec's private cloud
+LOCAL=1
+
+set -ex
+
+date
+start_seconds=$(date +%s)
+
+BIN_DIR=$(cd $(dirname $0); pwd -P)
+MY_ID=$1
+
+BMC_PREFIX=bmc-$MY_ID
+BAREMETAL_PREFIX=baremetal-$MY_ID
+UNDERCLOUD_NAME=undercloud-$MY_ID
+PUBLIC_NET=public-$MY_ID
+PROVISION_NET=provision-$MY_ID
+PRIVATE_NET=private-$MY_ID
+
+# NOTE(bnemec): I'm intentionally not adding a trap to clean this up because
+# if something fails it may be helpful to look at the contents of the tempdir.
+TEMPDIR=$(mktemp -d)
+echo "Working in $TEMPDIR"
+cd $TEMPDIR
+
+cp -r $BIN_DIR/../templates .
+cp -r $BIN_DIR/../environments .
+cp environments/base.yaml ./env.yaml
+sed -i "s/bmc_image: .*/bmc_image: $BMC_IMAGE/" env.yaml
+sed -i "s/bmc_flavor: .*/bmc_flavor: $BMC_FLAVOR/" env.yaml
+sed -i "s/key_name: .*/key_name: $KEY_NAME/" env.yaml
+sed -i "s/baremetal_flavor: .*/baremetal_flavor: $BAREMETAL_FLAVOR/" env.yaml
+sed -i "s/undercloud_image: .*/undercloud_image: $UNDERCLOUD_IMAGE/" env.yaml
+sed -i "s/undercloud_flavor: .*/undercloud_flavor: $UNDERCLOUD_FLAVOR/" env.yaml
+sed -i "s|external_net: .*|external_net: $EXTERNAL_NET|" env.yaml
+sed -i "s/private_net: .*/private_net: $PRIVATE_NET/" env.yaml
+if [ $LOCAL -eq 1 ]
+then
+    sed -i "s/dns_nameservers: .*/dns_nameservers: 11.1.1.1/" environments/create-private-network.yaml
+fi
+
+cp -r $BIN_DIR ./bin
+cp -r $BIN_DIR/../openstack_virtual_baremetal .
+STACK_NAME=$MY_ID
+$BIN_DIR/deploy.py --quintupleo --id $MY_ID --name $STACK_NAME --poll -e env.yaml -e environments/create-private-network.yaml -e environments/all-networks-port-security.yaml
+UNDERCLOUD_IP=$(heat output-show $STACK_NAME undercloud_host_floating_ip | sed -e 's/"//g')
+bin/build-nodes-json --env env-$MY_ID.yaml
+SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=Verbose -o PasswordAuthentication=no -o ConnectionAttempts=32 "
+# Canary command to make sure the undercloud is ready
+until ssh -t -t $SSH_OPTS centos@$UNDERCLOUD_IP ls; do sleep 1; done
+scp $SSH_OPTS bin/ovb-instack centos@$UNDERCLOUD_IP:/tmp
+scp $SSH_OPTS nodes.json centos@$UNDERCLOUD_IP:~/instackenv.json
+ssh -t -t $SSH_OPTS centos@$UNDERCLOUD_IP LOCAL=$LOCAL VERSION=2 /tmp/ovb-instack
+heat stack-delete -y $STACK_NAME
+
+date
+end_seconds=$(date +%s)
+elapsed_seconds=$(($end_seconds - $start_seconds))
+echo "Finished in $elapsed_seconds seconds"
+rm -rf $TEMPDIR

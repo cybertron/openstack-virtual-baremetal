@@ -13,16 +13,31 @@ then
     export no_proxy=9.1.1.1,192.0.2.1,9.1.1.2,192.0.2.2,192.168.0.1,192.168.0.2,192.168.24.1,192.168.24.2
 fi
 
+# Set up the undercloud in preparation for running the deployment
 sudo yum install -y git
 rm -rf git-tripleo-ci
 git clone https://git.openstack.org/openstack-infra/tripleo-ci git-tripleo-ci
 echo '#!/bin/bash' > tripleo.sh
 echo 'git-tripleo-ci/scripts/tripleo.sh $@' >> tripleo.sh
 chmod +x tripleo.sh
+git clone https://github.com/cybertron/openstack-virtual-baremetal
+
+cat >> /tmp/eth2.cfg <<EOF_CAT
+network_config:
+    - type: interface
+      name: eth2
+      use_dhcp: false
+      addresses:
+        - ip_netmask: 10.0.0.1/24
+        - ip_netmask: 2001:db8:fd00:1000::1/64
+EOF_CAT
+sudo os-net-config -c /tmp/eth2.cfg -v
+sudo iptables -A POSTROUTING -s 10.0.0.0/24 ! -d 10.0.0.0/24 -j MASQUERADE -t nat
 
 export OVERCLOUD_PINGTEST_OLD_HEATCLIENT=0
 export TRIPLEOSH=/home/centos/tripleo.sh
 
+# Do the tripleo deployment
 $TRIPLEOSH --repo-setup
 
 cat << EOF > undercloud.conf
@@ -43,5 +58,13 @@ $TRIPLEOSH --overcloud-images
 $TRIPLEOSH --register-nodes --introspect-nodes
 sleep 60
 export OVERCLOUD_DEPLOY_ARGS="--libvirt-type qemu -e /usr/share/openstack-tripleo-heat-templates/environments/disable-telemetry.yaml"
+if [ ${VERSION:-1} -eq 2 ]
+then
+    OVERCLOUD_DEPLOY_ARGS="$OVERCLOUD_DEPLOY_ARGS -e /home/centos/openstack-virtual-baremetal/overcloud-templates/network-templates-v2/network-isolation-absolute.yaml -e /home/centos/openstack-virtual-baremetal/overcloud-templates/network-templates-v2/network-environment.yaml"
+fi
 $TRIPLEOSH --overcloud-deploy
+export FLOATING_IP_CIDR=10.0.0.0/24
+export FLOATING_IP_START=10.0.0.50
+export FLOATING_IP_END=10.0.0.70
+export EXTERNAL_NETWORK_GATEWAY=10.0.0.1
 $TRIPLEOSH --overcloud-pingtest --skip-pingtest-cleanup
