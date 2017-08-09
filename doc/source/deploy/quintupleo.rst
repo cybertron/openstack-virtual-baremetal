@@ -81,6 +81,11 @@ DHCP and PXE booting, the following command could be used::
 
     bin/deploy.py --quintupleo -e env.yaml -e environments/port-security.yaml
 
+.. important:: When deploying with multiple environment files, ``env.yaml``
+               *must* be explicitly passed to the deploy command.
+               ``deploy.py`` will only default to using ``env.yaml`` if no
+               environments are specified.
+
 Some options may have additional configuration parameters.  These parameters
 will be listed in the environment file.
 
