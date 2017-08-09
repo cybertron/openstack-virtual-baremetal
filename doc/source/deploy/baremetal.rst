@@ -57,11 +57,13 @@ method, which creates most of the resources needed automatically.
        neutron net-create public
        neutron subnet-create --name public --no-gateway --disable-dhcp public 10.0.0.0/24
 
-#. Copy the example env file and edit it to reflect the host environment::
+#. Copy the example env file and edit it to reflect the host environment:
 
    .. note:: Some of the parameters in the base environment file are only
              used for QuintupleO deployments.  Their values will be ignored
              in a plain virtual-baremetal deployment.
+
+   ::
 
     cp environments/base.yaml env.yaml
     vi env.yaml
@@ -109,7 +111,3 @@ method, which creates most of the resources needed automatically.
 #. The undercloud vm can now be used with something like TripleO
    to do a baremetal-style deployment to the virtual baremetal instances
    deployed previously.
-
-#. If using the full network isolation provided by OS::OVB::BaremetalNetworks
-   then the overcloud can be created with the network templates in
-   the ``network-templates`` directory.

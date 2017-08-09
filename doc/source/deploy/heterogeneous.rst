@@ -10,8 +10,19 @@ Each node type will be identified as a ``role``.  A simple QuintupleO
 deployment can be thought of as a single-role deployment.  To deploy
 multiple roles, additional environment files describing the extra roles
 are required.  These environments are simplified versions of the
-standard environment file.  See ``templates/env-role.yaml.example``
+standard environment file.  See ``environments/base-role.yaml``
 for a starting point when writing these role files.
+
+.. note:: Each extra role consists of exactly one environment file.  This
+          means that the standalone option environments cannot be used with
+          roles.  To override the options specified for the primary role in
+          a secondary role, the parameter_defaults and resource_registry
+          entries from the option environment must be copied into the role
+          environment.
+
+          However, note that most resource_registry entries are filtered out
+          of role environments anyway since they are not relevant for a
+          secondary stack.
 
 Steps for deploying the environment:
 
