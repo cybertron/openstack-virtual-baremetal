@@ -10,6 +10,39 @@
 #   network isolation networks.  This version will deploy duplicate
 #   public network interfaces on the baremetal instances so that the
 #   public network can be configured as a bond.
+parameter_defaults:
+  # Name of internal API network
+  # Type: string
+  overcloud_internal_net: overcloud_internal
+
+  # CIDR for internal API network subnet
+  # Type: string
+  overcloud_internal_net_cidr: 172.17.0.0/24
+
+  # Name of storage management network
+  # Type: string
+  overcloud_storage_mgmt_net: overcloud_storage_mgmt
+
+  # CIDR for storage management network subnet
+  # Type: string
+  overcloud_storage_mgmt_net_cidr: 172.19.0.0/24
+
+  # Name of storage network
+  # Type: string
+  overcloud_storage_net: overcloud_storage
+
+  # CIDR for storage network subnet
+  # Type: string
+  overcloud_storage_net_cidr: 172.18.0.0/24
+
+  # Name of tenant network
+  # Type: string
+  overcloud_tenant_net: overcloud_tenant
+
+  # CIDR for tenant network subnet
+  # Type: string
+  overcloud_tenant_net_cidr: 172.16.0.0/24
+
 resource_registry:
   OS::OVB::BaremetalNetworks: ../templates/baremetal-networks-all.yaml
   OS::OVB::BaremetalPorts: ../templates/baremetal-ports-public-bond.yaml

@@ -44,7 +44,9 @@ environments:
     description: |
       Deploy an OVB stack that adds interfaces for all the standard TripleO
       network isolation networks.
-    files: {}
+    files:
+      templates/baremetal-networks-all.yaml:
+        parameters: all
     resource_registry:
       OS::OVB::BaremetalNetworks: ../templates/baremetal-networks-all.yaml
       OS::OVB::BaremetalPorts: ../templates/baremetal-ports-all.yaml
