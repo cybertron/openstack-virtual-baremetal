@@ -108,7 +108,9 @@ environments:
       existing one.
     files:
       templates/private-net-create.yaml:
-        parameters: all
+        parameters:
+          - dns_nameservers
+          - private_net_cidr
     resource_registry:
       OS::OVB::PrivateNetwork: ../templates/private-net-create.yaml
   -

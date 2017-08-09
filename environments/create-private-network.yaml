@@ -13,16 +13,6 @@ parameter_defaults:
   # Type: comma_delimited_list
   dns_nameservers: ['8.8.8.8']
 
-  # An external network for the private network to route to
-  # Mandatory. This parameter must be set by the user.
-  # Type: string
-  external_net: <None>
-
-  # Name of private network
-  # Mandatory. This parameter must be set by the user.
-  # Type: string
-  private_net: <None>
-
   # CIDR for private network subnet
   # Type: string
   private_net_cidr: 10.0.1.0/24
