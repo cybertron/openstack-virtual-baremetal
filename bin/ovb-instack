@@ -22,18 +22,6 @@ echo 'git-tripleo-ci/scripts/tripleo.sh $@' >> tripleo.sh
 chmod +x tripleo.sh
 git clone https://github.com/cybertron/openstack-virtual-baremetal
 
-cat >> /tmp/eth2.cfg <<EOF_CAT
-network_config:
-    - type: interface
-      name: eth2
-      use_dhcp: false
-      addresses:
-        - ip_netmask: 10.0.0.1/24
-        - ip_netmask: 2001:db8:fd00:1000::1/64
-EOF_CAT
-sudo os-net-config -c /tmp/eth2.cfg -v
-sudo iptables -A POSTROUTING -s 10.0.0.0/24 ! -d 10.0.0.0/24 -j MASQUERADE -t nat
-
 export OVERCLOUD_PINGTEST_OLD_HEATCLIENT=0
 export TRIPLEOSH=/home/centos/tripleo.sh
 
@@ -54,6 +42,19 @@ EOF
 # Workaround until https://review.openstack.org/#/c/475533 merges
 export OVB=0
 $TRIPLEOSH --undercloud
+
+cat >> /tmp/eth2.cfg <<EOF_CAT
+network_config:
+    - type: interface
+      name: eth2
+      use_dhcp: false
+      addresses:
+        - ip_netmask: 10.0.0.1/24
+        - ip_netmask: 2001:db8:fd00:1000::1/64
+EOF_CAT
+sudo os-net-config -c /tmp/eth2.cfg -v
+sudo iptables -A POSTROUTING -s 10.0.0.0/24 ! -d 10.0.0.0/24 -j MASQUERADE -t nat
+
 $TRIPLEOSH --overcloud-images
 $TRIPLEOSH --register-nodes --introspect-nodes
 sleep 60
