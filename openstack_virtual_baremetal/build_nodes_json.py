@@ -61,6 +61,13 @@ def _parse_args():
     return args
 
 
+def _get_from_env(env, name):
+    try:
+        return env['parameters'][name]
+    except KeyError:
+        return env['parameter_defaults'][name]
+
+
 def _get_names(args):
     undercloud_name = None
     if args.env is None:
@@ -72,10 +79,10 @@ def _get_names(args):
     else:
         with open(args.env) as f:
             e = yaml.safe_load(f)
-        bmc_base = e['parameter_defaults']['bmc_prefix']
-        baremetal_base = e['parameter_defaults']['baremetal_prefix']
-        provision_net = e['parameter_defaults']['provision_net']
-        role = e['parameter_defaults'].get('role')
+        bmc_base = _get_from_env(e, 'bmc_prefix')
+        baremetal_base = _get_from_env(e, 'baremetal_prefix')
+        provision_net = _get_from_env(e, 'provision_net')
+        role = e.get('parameter_defaults', {}).get('role')
         if role and baremetal_base.endswith('-' + role):
             baremetal_base = baremetal_base[:-len(role) - 1]
         if args.add_undercloud:
