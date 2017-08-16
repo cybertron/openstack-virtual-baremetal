@@ -93,6 +93,7 @@ test_env = u"""parameters:
 test_env_param_defaults = u"""
 parameter_defaults:
   overcloud_internal_net: internalapi
+  role: ''
 """
 test_env_output = {
     'baremetal_prefix': 'baremetal-foo',
@@ -154,6 +155,26 @@ class TestIdEnv(unittest.TestCase):
         env_output = dict(test_env_output)
         env_output['undercloud_name'] = 'test-undercloud-foo'
         env_output['overcloud_internal_net'] = 'internalapi-foo'
+        path = deploy._generate_id_env(mock_args)
+        self.assertEqual(['foo.yaml', 'env-foo.yaml'], path)
+        dumped_dict = mock_safe_dump.call_args_list[0][0][0]
+        for k, v in env_output.items():
+            if k in mock_bed.return_value['parameters']:
+                self.assertEqual(v, dumped_dict['parameters'][k])
+            self.assertEqual(v, dumped_dict['parameter_defaults'][k])
+
+    @mock.patch('openstack_virtual_baremetal.deploy._build_env_data')
+    @mock.patch('yaml.safe_dump')
+    def test_generate_with_role(self, mock_safe_dump, mock_bed):
+        mock_args = mock.Mock()
+        mock_args.id = 'foo'
+        mock_args.env = ['foo.yaml']
+        env = (test_env + test_env_param_defaults)
+        mock_bed.return_value = yaml.safe_load(env)
+        mock_bed.return_value['parameter_defaults']['role'] = 'compute'
+        env_output = dict(test_env_output)
+        env_output['overcloud_internal_net'] = 'internalapi-foo'
+        env_output['baremetal_prefix'] = 'baremetal-foo-compute'
         path = deploy._generate_id_env(mock_args)
         self.assertEqual(['foo.yaml', 'env-foo.yaml'], path)
         dumped_dict = mock_safe_dump.call_args_list[0][0][0]

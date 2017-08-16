@@ -131,7 +131,7 @@ def _generate_id_env(args):
     _add_identifier(env_data, 'public_net', args.id, default='public')
     _add_identifier(env_data, 'baremetal_prefix', args.id, default='baremetal')
     role = env_data['parameter_defaults'].get('role')
-    if role is not None:
+    if role:
         _add_identifier(env_data, 'baremetal_prefix', role)
     _add_identifier(env_data, 'bmc_prefix', args.id, default='bmc')
     _add_identifier(env_data, 'undercloud_name', args.id, default='undercloud')
