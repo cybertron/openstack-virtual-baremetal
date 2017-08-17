@@ -101,7 +101,7 @@ parameters:
 
   undercloud_image:
     type: string
-    default: CentOS-7-x86_64-GenericCloud-1503
+    default: CentOS-7-x86_64-GenericCloud
     description: Image to boot as the undercloud instance
 
   undercloud_user_data:
