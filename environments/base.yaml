@@ -53,9 +53,17 @@ parameter_defaults:
   # Type: string
   provision_net: provision
 
+  # Whether this network should be shared across all tenants
+  # Type: boolean
+  provision_net_shared: False
+
   # Name of the overcloud external network
   # Type: string
   public_net: public
+
+  # Whether this network should be shared across all tenants
+  # Type: boolean
+  public_net_shared: False
 
   # The default role for nodes in this environment.  This parameter is
   # ignored by Heat, but used by build-nodes-json.

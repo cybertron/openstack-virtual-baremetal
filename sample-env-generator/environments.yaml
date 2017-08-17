@@ -15,7 +15,9 @@ environments:
           - baremetal_prefix
           - node_count
           - public_net
+          - public_net_shared
           - provision_net
+          - provision_net_shared
           - undercloud_name
           - undercloud_image
           - undercloud_flavor
