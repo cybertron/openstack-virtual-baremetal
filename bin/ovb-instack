@@ -64,8 +64,11 @@ then
     OVERCLOUD_DEPLOY_ARGS="$OVERCLOUD_DEPLOY_ARGS -e /home/centos/openstack-virtual-baremetal/overcloud-templates/network-templates-v2/network-isolation-absolute.yaml -e /home/centos/openstack-virtual-baremetal/overcloud-templates/network-templates-v2/network-environment.yaml"
 fi
 $TRIPLEOSH --overcloud-deploy
-export FLOATING_IP_CIDR=10.0.0.0/24
-export FLOATING_IP_START=10.0.0.50
-export FLOATING_IP_END=10.0.0.70
-export EXTERNAL_NETWORK_GATEWAY=10.0.0.1
+if [ ${VERSION:-1} -eq 2 ]
+then
+    export FLOATING_IP_CIDR=10.0.0.0/24
+    export FLOATING_IP_START=10.0.0.50
+    export FLOATING_IP_END=10.0.0.70
+    export EXTERNAL_NETWORK_GATEWAY=10.0.0.1
+fi
 $TRIPLEOSH --overcloud-pingtest --skip-pingtest-cleanup
