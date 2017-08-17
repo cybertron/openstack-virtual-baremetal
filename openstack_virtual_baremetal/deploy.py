@@ -202,7 +202,18 @@ def _poll_stack(stack_name,  hclient):
     done = False
     while not done:
         print '.',
-        stack = hclient.stacks.get(stack_name, resolve_outputs=False)
+        # By the time we get here we know Heat was up at one point because
+        # we were able to start the stack create.  Therefore, we can
+        # reasonably guess that any errors from this call are going to be
+        # transient.
+        try:
+            stack = hclient.stacks.get(stack_name, resolve_outputs=False)
+        except Exception as e:
+            # Print the error so the user can determine whether they need
+            # to cancel the deployment, but keep trying otherwise.
+            print 'WARNING: Exception occurred while polling stack: %s' % e
+            time.sleep(10)
+            continue
         sys.stdout.flush()
         if stack.status == 'COMPLETE':
             print 'Stack %s created successfully' % stack_name

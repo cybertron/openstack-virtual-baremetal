@@ -348,6 +348,19 @@ class TestDeploy(testtools.TestCase):
                           mock.call('foo', resolve_outputs=False)],
                           hclient.stacks.get.mock_calls)
 
+    @mock.patch('time.sleep')
+    def test_poll_retry(self, mock_sleep):
+        hclient = mock.Mock()
+        stacks = [mock.Mock(), Exception, mock.Mock()]
+        stacks[0].status = 'IN_PROGRESS'
+        stacks[2].status = 'COMPLETE'
+        hclient.stacks.get.side_effect = stacks
+        deploy._poll_stack('foo', hclient)
+        self.assertEqual([mock.call('foo', resolve_outputs=False),
+                          mock.call('foo', resolve_outputs=False),
+                          mock.call('foo', resolve_outputs=False)],
+                          hclient.stacks.get.mock_calls)
+
     @mock.patch('openstack_virtual_baremetal.deploy._write_role_file')
     @mock.patch('openstack_virtual_baremetal.deploy._load_role_data')
     def test_process_role(self, mock_load, mock_write):
