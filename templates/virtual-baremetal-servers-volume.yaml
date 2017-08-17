@@ -1,0 +1,70 @@
+heat_template_version: 2014-10-16
+
+parameters:
+
+  baremetal_flavor:
+    type: string
+
+  baremetal_image:
+    type: string
+
+  baremetal_volume_size:
+    type: number
+    default: 41
+    description: The size of the baremetal instance volumes
+
+  key_name:
+    type: string
+
+  baremetal_prefix:
+    type: string
+
+  provision_net:
+    type: string
+
+  public_net:
+    type: string
+
+  suffix:
+    type: string
+
+resources:
+
+  baremetal_ports:
+    type: OS::OVB::BaremetalPorts
+    properties:
+      suffix: {get_param: suffix}
+      baremetal_prefix: {get_param: baremetal_prefix}
+      provision_net: {get_param: provision_net}
+      public_net: {get_param: public_net}
+
+  baremetal_volume:
+    type: OS::Cinder::Volume
+    properties:
+      name:
+        list_join:
+        - ''
+        - - {get_param: baremetal_prefix}
+          - {get_param: suffix}
+      image: {get_param: baremetal_image}
+      size: {get_param: baremetal_volume_size}
+
+  baremetal_server:
+    type: OS::Nova::Server
+    properties:
+      flavor: {get_param: baremetal_flavor}
+      config_drive: false
+      key_name: {get_param: key_name}
+      networks: {get_attr: [baremetal_ports, ports]}
+      block_device_mapping:
+        - device_name: vda
+          volume_id: {get_resource: baremetal_volume}
+      name:
+        list_join:
+        - ''
+        - - {get_param: baremetal_prefix}
+          - {get_param: suffix}
+
+outputs:
+  bmc_nic:
+    value: {port: {get_resource: bmc_port}}

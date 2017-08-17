@@ -148,16 +148,19 @@ def _build_nodes(nova, glance, bmc_ports, bm_ports, provision_net,
 
         # If a node has uefi firmware ironic needs to be aware of this, in nova
         # this is set using a image property called "hw_firmware_type"
-        if not cache.get(baremetal.image['id']):
-            cache[baremetal.image['id']] = glance.images.get(baremetal.image['id'])
-        image = cache.get(baremetal.image['id'])
-        if image.get('hw_firmware_type') == 'uefi':
-            node['capabilities'] += ",boot_mode:uefi"
+        # NOTE(bnemec): Boot from volume does not have an image associated with
+        # the instance so we can't do this.
+        if baremetal.image:
+            if not cache.get(baremetal.image['id']):
+                cache[baremetal.image['id']] = glance.images.get(baremetal.image['id'])
+            image = cache.get(baremetal.image['id'])
+            if image.get('hw_firmware_type') == 'uefi':
+                node['capabilities'] += ",boot_mode:uefi"
 
-        bm_name_end = baremetal.name[len(baremetal_base):]
-        if '-' in bm_name_end:
-            profile = bm_name_end[1:].split('_')[0]
-            node['capabilities'] += ',profile:%s' % profile
+            bm_name_end = baremetal.name[len(baremetal_base):]
+            if '-' in bm_name_end:
+                profile = bm_name_end[1:].split('_')[0]
+                node['capabilities'] += ',profile:%s' % profile
 
         nodes.append(node)
 

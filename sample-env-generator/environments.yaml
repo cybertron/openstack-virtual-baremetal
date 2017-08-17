@@ -143,3 +143,19 @@ environments:
           - undercloud_floating_ip_id
     resource_registry:
       OS::OVB::UndercloudFloating: ../templates/undercloud-floating-existing.yaml
+  -
+    name: boot-from-volume
+    title: Boot Undercloud and Baremetal Instances from Volume
+    description: |
+      Boot the undercloud and baremetal instances from Cinder volumes instead of
+      ephemeral storage.
+    files:
+      templates/undercloud-volume.yaml:
+        parameters:
+          - undercloud_volume_size
+      templates/virtual-baremetal-servers-volume.yaml:
+        parameters:
+          - baremetal_volume_size
+    resource_registry:
+      OS::OVB::UndercloudEnvironment: ../templates/undercloud-volume.yaml
+      OS::OVB::ServerPair: ../templates/virtual-baremetal-servers-volume.yaml

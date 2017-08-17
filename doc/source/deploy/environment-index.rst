@@ -61,6 +61,15 @@ Base Configuration Options
 
 **Description:** Basic configuration options needed for all OVB environments
 
+Boot Undercloud and Baremetal Instances from Volume
+---------------------------------------------------
+
+**File:** environments/boot-from-volume.yaml
+
+**Description:** Boot the undercloud and baremetal instances from Cinder volumes instead of
+ephemeral storage.
+
+
 Create a Private Network
 ------------------------
 
