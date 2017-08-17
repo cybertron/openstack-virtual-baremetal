@@ -159,3 +159,16 @@ environments:
     resource_registry:
       OS::OVB::UndercloudEnvironment: ../templates/undercloud-volume.yaml
       OS::OVB::ServerPair: ../templates/virtual-baremetal-servers-volume.yaml
+  -
+    name: bmc-use-cache
+    title: Enable Instance Status Caching in BMC
+    description: |
+      Enable caching of instance status in the BMC.  This should reduce load on
+      the host cloud, but at the cost of potential inconsistency if the state
+      of a baremetal instance is changed without using the BMC.
+    files:
+      templates/virtual-baremetal.yaml:
+        parameters:
+          - bmc_use_cache
+    sample_values:
+      bmc_use_cache: True

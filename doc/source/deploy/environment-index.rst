@@ -61,6 +61,16 @@ Base Configuration Options
 
 **Description:** Basic configuration options needed for all OVB environments
 
+Enable Instance Status Caching in BMC
+-------------------------------------
+
+**File:** environments/bmc-use-cache.yaml
+
+**Description:** Enable caching of instance status in the BMC.  This should reduce load on
+the host cloud, but at the cost of potential inconsistency if the state
+of a baremetal instance is changed without using the BMC.
+
+
 Boot Undercloud and Baremetal Instances from Volume
 ---------------------------------------------------
 

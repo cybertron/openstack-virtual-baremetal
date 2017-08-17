@@ -1,0 +1,18 @@
+# *******************************************************************
+# This file was created automatically by the sample environment
+# generator. Developers should use `tox -e genconfig` to update it.
+# Users are recommended to make changes to a copy of the file instead
+# of the original, if any customizations are needed.
+# *******************************************************************
+# title: Enable Instance Status Caching in BMC
+# description: |
+#   Enable caching of instance status in the BMC.  This should reduce load on
+#   the host cloud, but at the cost of potential inconsistency if the state
+#   of a baremetal instance is changed without using the BMC.
+parameter_defaults:
+  # Enable instance status caching on the BMC.  This can reduce load on the
+  # host cloud, but if an instance's status is changed outside the BMC it may
+  # become out of sync.
+  # Type: boolean
+  bmc_use_cache: True
+
