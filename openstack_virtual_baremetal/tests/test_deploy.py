@@ -215,7 +215,8 @@ role_base_data = {
         },
     'resource_registry': {
         'OS::OVB::BaremetalNetworks': 'templates/baremetal-networks-all.yaml',
-        'OS::OVB::BaremetalPorts': 'templates/baremetal-ports-public-bond.yaml'
+        'OS::OVB::BaremetalPorts': 'templates/baremetal-ports-public-bond.yaml',
+        'OS::OVB::BMCPort': 'templates/bmc-port-port-security.yaml'
         }
     }
 role_specific_data = {
@@ -262,7 +263,8 @@ role_original_data = {
         },
     'resource_registry': {
         'OS::OVB::BaremetalNetworks': 'templates/baremetal-networks-all.yaml',
-        'OS::OVB::BaremetalPorts': 'templates/baremetal-ports-public-bond.yaml'
+        'OS::OVB::BaremetalPorts': 'templates/baremetal-ports-public-bond.yaml',
+        'OS::OVB::BMCPort': 'templates/bmc-port-port-security.yaml'
         }
     }
 # end _process_role test data
@@ -389,6 +391,9 @@ class TestDeploy(testtools.TestCase):
         # This should be the value set in the role env, not the base one
         self.assertEqual('templates/baremetal-ports-all.yaml',
                          output['resource_registry']['OS::OVB::BaremetalPorts'])
+        # This should be inherited from the base env
+        self.assertEqual('templates/bmc-port-port-security.yaml',
+                         output['resource_registry']['OS::OVB::BMCPort'])
 
     @mock.patch('openstack_virtual_baremetal.deploy._write_role_file')
     @mock.patch('openstack_virtual_baremetal.deploy._load_role_data')

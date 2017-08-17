@@ -255,7 +255,7 @@ def _process_role(role_file, base_envs, stack_name, args):
                       'overcloud_internal_net', 'overcloud_storage_mgmt_net',
                       'overcloud_storage_net','overcloud_tenant_net',
                       ]
-    allowed_registry_keys = ['OS::OVB::BaremetalPorts']
+    allowed_registry_keys = ['OS::OVB::BaremetalPorts', 'OS::OVB::BMCPort']
     role_env = role_data
     # resource_registry is intentionally omitted as it should not be inherited
     for section in ['parameters', 'parameter_defaults']:
@@ -264,9 +264,15 @@ def _process_role(role_file, base_envs, stack_name, args):
             if k in inherited_keys})
     # Most of the resource_registry should not be included in role envs.
     # Only allow specific entries that may be needed.
+    role_env.setdefault('resource_registry', {})
     role_env['resource_registry'] = {
-        k: v for k, v in role_env.get('resource_registry', {}).items()
+        k: v for k, v in role_env['resource_registry'].items()
         if k in allowed_registry_keys}
+    role_reg = role_env['resource_registry']
+    base_reg = base_data['resource_registry']
+    for k in allowed_registry_keys:
+        if k not in role_reg and k in base_reg:
+            role_reg[k] = base_reg[k]
     # We need to start with the unmodified prefix
     try:
         base_prefix = orig_data['parameters']['baremetal_prefix']
