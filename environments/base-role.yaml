@@ -13,6 +13,10 @@ parameter_defaults:
   # Type: string
   baremetal_flavor: baremetal
 
+  # The base image to use for baremetal instances
+  # Type: string
+  baremetal_image: ipxe-boot
+
   # Nova keypair to inject into the undercloud and bmc
   # Type: string
   key_name: default

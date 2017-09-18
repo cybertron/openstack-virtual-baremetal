@@ -35,11 +35,13 @@ environments:
       templates/quintupleo.yaml:
         parameters:
           - baremetal_flavor
+          - baremetal_image
           - key_name
           - node_count
           - role
     sample_values:
       role: compute
+      baremetal_image: ipxe-boot
   -
     name: all-networks
     title: Deploy with All Networks Enabled
