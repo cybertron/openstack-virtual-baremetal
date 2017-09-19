@@ -157,10 +157,10 @@ def _build_nodes(nova, glance, bmc_ports, bm_ports, provision_net,
             if image.get('hw_firmware_type') == 'uefi':
                 node['capabilities'] += ",boot_mode:uefi"
 
-            bm_name_end = baremetal.name[len(baremetal_base):]
-            if '-' in bm_name_end:
-                profile = bm_name_end[1:].split('_')[0]
-                node['capabilities'] += ',profile:%s' % profile
+        bm_name_end = baremetal.name[len(baremetal_base):]
+        if '-' in bm_name_end:
+            profile = bm_name_end[1:].split('_')[0]
+            node['capabilities'] += ',profile:%s' % profile
 
         nodes.append(node)
 
