@@ -4,14 +4,20 @@
 # Users are recommended to make changes to a copy of the file instead
 # of the original, if any customizations are needed.
 # *******************************************************************
-# title: Base Configuration Options for Secondary Roles
+# title: Base Configuration Options for Extra Nodes
 # description: |
 #   Configuration options that need to be set when deploying an OVB
-#   environment that has multiple roles.
+#   environment with extra undercloud-like nodes.  This environment
+#   should be used like a role file, but will deploy an undercloud-like
+#   node instead of more baremetal nodes.
 parameter_defaults:
   # Recommended to be at least 1 vcpu, 4 GB RAM, 50 GB disk
   # Type: string
   baremetal_flavor: baremetal
+
+  # The base image to use for baremetal instances
+  # Type: string
+  baremetal_image: CentOS-7-x86_64-GenericCloud
 
   # Nova keypair to inject into the undercloud and bmc
   # Type: string
@@ -24,5 +30,7 @@ parameter_defaults:
   # The default role for nodes in this environment.  This parameter is
   # ignored by Heat, but used by build-nodes-json.
   # Type: string
-  role: compute
+  role: extra
 
+resource_registry:
+  OS::OVB::BaremetalPorts: ../templates/baremetal-ports-extra-node-port-security.yaml

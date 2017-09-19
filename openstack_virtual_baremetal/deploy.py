@@ -255,13 +255,18 @@ def _process_role(role_file, base_envs, stack_name, args):
                       'overcloud_internal_net', 'overcloud_storage_mgmt_net',
                       'overcloud_storage_net','overcloud_tenant_net',
                       ]
+    # Parameters that are inherited but can be overridden by the role
+    allowed_parameter_keys = ['baremetal_image']
     allowed_registry_keys = ['OS::OVB::BaremetalPorts', 'OS::OVB::BMCPort']
     role_env = role_data
     # resource_registry is intentionally omitted as it should not be inherited
     for section in ['parameters', 'parameter_defaults']:
         role_env.setdefault(section, {}).update({
             k: v for k, v in base_data.get(section, {}).items()
-            if k in inherited_keys})
+            if k in inherited_keys and
+            (k not in role_env.get(section, {}) or
+             k not in allowed_parameter_keys)
+            })
     # Most of the resource_registry should not be included in role envs.
     # Only allow specific entries that may be needed.
     role_env.setdefault('resource_registry', {})

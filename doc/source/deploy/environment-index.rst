@@ -45,6 +45,17 @@ Deploy with All Networks Enabled
 network isolation networks.
 
 
+Base Configuration Options for Extra Nodes
+------------------------------------------
+
+**File:** environments/base-extra-node.yaml
+
+**Description:** Configuration options that need to be set when deploying an OVB
+environment with extra undercloud-like nodes.  This environment
+should be used like a role file, but will deploy an undercloud-like
+node instead of more baremetal nodes.
+
+
 Base Configuration Options for Secondary Roles
 ----------------------------------------------
 

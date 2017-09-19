@@ -408,6 +408,7 @@ class TestDeploy(testtools.TestCase):
         pd_base_data = move_params_to_param_defaults(role_base_data)
         pd_specific_data = move_params_to_param_defaults(role_specific_data)
         pd_original_data = move_params_to_param_defaults(role_original_data)
+        pd_specific_data['parameter_defaults']['baremetal_image'] = 'centos'
         mock_load.return_value = (pd_base_data, pd_specific_data,
                                   pd_original_data)
         args = mock.Mock()
@@ -423,6 +424,9 @@ class TestDeploy(testtools.TestCase):
                          output['parameters']['baremetal_prefix'])
         self.assertEqual('bmc-foo-compute',
                          output['parameters']['bmc_prefix'])
+        # This parameter should be inherited (as tested above) but overrideable
+        self.assertEqual('centos',
+                         output['parameter_defaults']['baremetal_image'])
 
     @mock.patch('openstack_virtual_baremetal.deploy._deploy')
     @mock.patch('openstack_virtual_baremetal.deploy._process_role')

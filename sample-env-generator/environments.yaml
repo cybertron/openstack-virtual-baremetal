@@ -35,13 +35,32 @@ environments:
       templates/quintupleo.yaml:
         parameters:
           - baremetal_flavor
-          - baremetal_image
           - key_name
           - node_count
           - role
     sample_values:
       role: compute
-      baremetal_image: ipxe-boot
+  -
+    name: base-extra-node
+    title: Base Configuration Options for Extra Nodes
+    description: |
+      Configuration options that need to be set when deploying an OVB
+      environment with extra undercloud-like nodes.  This environment
+      should be used like a role file, but will deploy an undercloud-like
+      node instead of more baremetal nodes.
+    files:
+      templates/quintupleo.yaml:
+        parameters:
+          - baremetal_flavor
+          - baremetal_image
+          - key_name
+          - node_count
+          - role
+    sample_values:
+      role: extra
+      baremetal_image: CentOS-7-x86_64-GenericCloud
+    resource_registry:
+      OS::OVB::BaremetalPorts: ../templates/baremetal-ports-extra-node-port-security.yaml
   -
     name: all-networks
     title: Deploy with All Networks Enabled
