@@ -57,15 +57,22 @@ however.
              Additional option environments that may have been passed to the
              deploy command should *not* be included here.
 
-   .. note:: ``build-nodes-json`` also outputs a file named ``bmc_bm_pairs``
-             that lists which BMC address corresponds to a given baremetal
-             instance.
-
    .. note:: If ``--id`` was used to deploy the stack, make sure to pass the
              generated ``env-${id}.yaml`` file to build-nodes-json using the
              ``--env`` parameter.  Example::
 
                 bin/build-nodes-json --env env-foo.yaml
+
+   .. note:: If roles were used for the deployment, separate node files named
+             ``nodes-<profile>.json`` will also be output that list only the
+             nodes for that particular profile.  Nodes with no profile
+             specified will go in ``nodes-no-profile.json``.  The base
+             ``nodes.json`` will still contain all of the nodes in the
+             deployment, regardless of profile.
+
+   .. note:: ``build-nodes-json`` also outputs a file named ``bmc_bm_pairs``
+             that lists which BMC address corresponds to a given baremetal
+             instance.
 
 .. _advanced-options:
 

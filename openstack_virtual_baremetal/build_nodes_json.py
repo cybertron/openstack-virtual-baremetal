@@ -197,7 +197,38 @@ def _write_nodes(nodes, extra_nodes, args):
         print('Wrote node definitions to %s' % args.nodes_json)
 
 
+def _get_node_profile(node):
+    parts = node['capabilities'].split(',')
+    for p in parts:
+        if p.startswith('profile'):
+            return p.split(':')[-1]
+    return ''
+
+
+def _write_role_nodes(nodes, args):
+    by_profile = {}
+    for n in nodes:
+        by_profile.setdefault(_get_node_profile(n), []).append(n)
+    # Don't write role-specific files if no roles were used.
+    if len(by_profile) == 1 and list(by_profile.keys())[0] == '':
+        return
+    for profile, profile_nodes in by_profile.items():
+        filepart = profile
+        if not profile:
+            filepart = 'no-profile'
+        outfile = '%s-%s.json' % (os.path.splitext(args.nodes_json)[0],
+                                  filepart)
+        with open(outfile, 'w') as f:
+            contents = json.dumps({'nodes': profile_nodes}, indent=2)
+            f.write(contents)
+            print(contents)
+            print('Wrote profile "%s" node definitions to %s' %
+                  (profile, outfile))
+
+
 # TODO(bnemec): parameterize this based on args.nodes_json
+# Or deprecate and remove it since it isn't necessary now that we set node
+# names in the JSON file?
 def _write_pairs(bmc_bm_pairs):
     filename = 'bmc_bm_pairs'
     with open(filename, 'w') as pairs_file:
@@ -221,6 +252,7 @@ def main():
                                                     baremetal_base,
                                                     undercloud_name)
     _write_nodes(nodes, extra_nodes, args)
+    _write_role_nodes(nodes, args)
     _write_pairs(bmc_bm_pairs)
 
 

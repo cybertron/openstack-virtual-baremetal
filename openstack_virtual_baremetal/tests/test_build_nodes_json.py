@@ -347,6 +347,35 @@ class TestBuildNodesJson(testtools.TestCase):
 
     @mock.patch('openstack_virtual_baremetal.build_nodes_json.open',
                 create=True)
+    def test_write_role_nodes(self, mock_open):
+        test_nodes = copy.deepcopy(TEST_NODES)
+        args = mock.Mock()
+        args.nodes_json = 'test.json'
+        build_nodes_json._write_role_nodes(test_nodes, args)
+        mock_open.assert_not_called()
+
+    @mock.patch('openstack_virtual_baremetal.build_nodes_json.open',
+                create=True)
+    def test_write_role_nodes_profile(self, mock_open):
+        test_nodes = copy.deepcopy(TEST_NODES)
+        test_nodes[1]['capabilities'] = ('boot_option:local,'
+                                         'boot_mode:uefi,'
+                                         'profile:extra')
+        args = mock.Mock()
+        args.nodes_json = 'test.json'
+        build_nodes_json._write_role_nodes(test_nodes, args)
+        self.assertIn(mock.call('test-no-profile.json', 'w'),
+                      mock_open.mock_calls)
+        self.assertIn(mock.call('test-extra.json', 'w'),
+                      mock_open.mock_calls)
+        f = mock_open.return_value.__enter__.return_value
+        f.write.assert_any_call(json.dumps({'nodes': [test_nodes[0]]},
+                                            indent=2))
+        f.write.assert_any_call(json.dumps({'nodes': [test_nodes[1]]},
+                                            indent=2))
+
+    @mock.patch('openstack_virtual_baremetal.build_nodes_json.open',
+                create=True)
     def test_write_pairs(self, mock_open):
         pairs = [('1.1.1.1', 'bm_0'), ('1.1.1.2', 'bm_1')]
         mock_open.return_value = mock.MagicMock()
@@ -360,6 +389,8 @@ class TestBuildNodesJson(testtools.TestCase):
         self.assertEqual(calls, f.write.mock_calls)
 
     @mock.patch('openstack_virtual_baremetal.build_nodes_json._write_pairs')
+    @mock.patch('openstack_virtual_baremetal.build_nodes_json.'
+                '_write_role_nodes')
     @mock.patch('openstack_virtual_baremetal.build_nodes_json._write_nodes')
     @mock.patch('openstack_virtual_baremetal.build_nodes_json._build_nodes')
     @mock.patch('openstack_virtual_baremetal.build_nodes_json._get_ports')
@@ -368,7 +399,7 @@ class TestBuildNodesJson(testtools.TestCase):
     @mock.patch('openstack_virtual_baremetal.build_nodes_json._parse_args')
     def test_main(self, mock_parse_args, mock_get_names, mock_get_clients,
                   mock_get_ports, mock_build_nodes, mock_write_nodes,
-                  mock_write_pairs):
+                  mock_write_role_nodes, mock_write_pairs):
         args = mock.Mock()
         mock_parse_args.return_value = args
         bmc_base = mock.Mock()
@@ -401,5 +432,6 @@ class TestBuildNodesJson(testtools.TestCase):
                                                  baremetal_base,
                                                  undercloud_name)
         mock_write_nodes.assert_called_once_with(nodes, extra_nodes, args)
+        mock_write_role_nodes.assert_called_once_with(nodes, args)
         mock_write_pairs.assert_called_once_with(pairs)
 
