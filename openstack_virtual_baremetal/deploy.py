@@ -256,7 +256,7 @@ def _process_role(role_file, base_envs, stack_name, args):
                       'overcloud_storage_net','overcloud_tenant_net',
                       ]
     # Parameters that are inherited but can be overridden by the role
-    allowed_parameter_keys = ['baremetal_image']
+    allowed_parameter_keys = ['baremetal_image', 'bmc_flavor']
     allowed_registry_keys = ['OS::OVB::BaremetalPorts', 'OS::OVB::BMCPort']
     role_env = role_data
     # resource_registry is intentionally omitted as it should not be inherited
