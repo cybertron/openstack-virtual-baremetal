@@ -1,0 +1,63 @@
+heat_template_version: 2015-10-15
+
+parameters:
+
+  baremetal_prefix:
+    type: string
+
+  provision_net:
+    type: string
+
+  public_net:
+    type: string
+    description: Name of external network
+    default: public
+
+  private_net:
+    type: string
+
+  suffix:
+    type: string
+
+resources:
+
+  private_port:
+    type: OS::Neutron::Port
+    properties:
+      name:
+        list_join:
+        - ''
+        - - private_
+          - {get_param: baremetal_prefix}
+          - {get_param: suffix}
+      network: {get_param: private_net}
+
+  provision_port:
+    type: OS::Neutron::Port
+    properties:
+      name:
+        list_join:
+        - ''
+        - - {get_param: baremetal_prefix}
+          - {get_param: suffix}
+      network: {get_param: provision_net}
+      port_security_enabled: False
+
+  public_port:
+    type: OS::Neutron::Port
+    properties:
+      name:
+        list_join:
+        - ''
+        - - public_
+          - {get_param: baremetal_prefix}
+          - {get_param: suffix}
+      network: {get_param: public_net}
+      port_security_enabled: False
+
+outputs:
+  ports:
+    value:
+    - {port: {get_resource: private_port}}
+    - {port: {get_resource: provision_port}}
+    - {port: {get_resource: public_port}}
