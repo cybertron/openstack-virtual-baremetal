@@ -23,12 +23,15 @@ resources:
         - '_'
         - - {get_param: undercloud_name}
           - 'sg'
-      description: Ping and SSH
+      description: Ping, SSH, and TripleO UI
       rules:
       - protocol: icmp
       - protocol: tcp
         port_range_min: 22
         port_range_max: 22
+      - protocol: tcp
+        port_range_min: 3000
+        port_range_max: 3000
 
   private_undercloud_port:
     type: OS::Neutron::Port
