@@ -253,3 +253,7 @@ outputs:
     description: "floating ip of the undercloud instance"
     value:
       get_attr: [undercloud_env, undercloud_host_floating_ip]
+  undercloud_host_private_ip:
+    description: "ip of the undercloud instance on the private network"
+    value:
+      get_attr: [undercloud_env, undercloud_host_private_ip]
