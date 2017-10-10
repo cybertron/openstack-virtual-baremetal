@@ -25,7 +25,7 @@ parameter_defaults:
 
   # Number of baremetal nodes to deploy
   # Type: number
-  node_count: 2
+  node_count: 1
 
   # The default role for nodes in this environment.  This parameter is
   # ignored by Heat, but used by build-nodes-json.
