@@ -1,0 +1,17 @@
+heat_template_version: 2015-04-30
+
+# Template that creates a new floating IP to access the extranode
+
+parameters:
+  external_net:
+    type: string
+    default: external
+    description: An external network from which floating ips can be provisioned
+
+  extranode_port:
+    type: string
+    description: Port id of extranode server for floating ip
+
+outputs:
+  extranode_host:
+    value: 'none'

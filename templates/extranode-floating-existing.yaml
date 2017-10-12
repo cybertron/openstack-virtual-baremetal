@@ -1,0 +1,35 @@
+heat_template_version: 2015-04-30
+
+# Template that creates a new floating IP to access the extranode
+
+parameters:
+  external_net:
+    type: string
+    default: external
+    description: An external network from which floating ips can be provisioned
+
+  extranode_port:
+    type: string
+    description: Port id of extranode server for floating ip
+
+  extranode_floating_ip_id:
+    type: string
+    description: ID of existing floating ip to use.
+
+  extranode_floating_ip:
+    type: string
+    description: Address of existing floating ip to use.
+    default: ''
+
+resources:
+
+  extranode_floating_ip_assoc:
+    type: OS::Neutron::FloatingIPAssociation
+    properties:
+      floatingip_id: {get_param: extranode_floating_ip_id}
+      port_id: {get_param: extranode_port}
+
+outputs:
+  extranode_host:
+    value:
+      get_param: extranode_floating_ip

@@ -1,0 +1,65 @@
+heat_template_version: 2015-04-30
+
+parameters:
+  extranode_flavor:
+    type: string
+  extranode_image:
+    type: string
+  key_name:
+    type: string
+  extranode_name:
+    type: string
+  extranode_user_data_format:
+    type: string
+  extranode_user_data:
+    type: string
+  private_net:
+    type: string
+  provision_net:
+    type: string
+  public_net:
+    type: string
+  external_net:
+    type: string
+  extra_node_count:
+    type: number
+    default: 1
+    description: Number of baremetal nodes to deploy
+
+resources:
+  extranode_ports:
+    type: OS::OVB::ExtraNodePorts
+    properties:
+      extranode_name: {get_param: extranode_name}
+      private_net: {get_param: private_net}
+      provision_net: {get_param: provision_net}
+      public_net: {get_param: public_net}
+
+  extranode_server:
+    type: OS::Nova::Server
+    properties:
+      flavor: {get_param: extranode_flavor}
+      image: {get_param: extranode_image}
+      key_name: {get_param: key_name}
+      networks: {get_attr: [extranode_ports, ports]}
+      name: {get_param: extranode_name}
+      user_data_format: {get_param: extranode_user_data_format}
+      user_data: {get_param: extranode_user_data}
+
+  extranode_floating_ip:
+    type: OS::OVB::ExtraNodeFloating
+    properties:
+      external_net: {get_param: external_net}
+      extranode_port:
+        get_attr:
+        - extranode_server
+        - addresses
+        - {get_param: private_net}
+        - 0
+        - port
+
+outputs:
+  extranode_host_floating_ip:
+    description: "floating ip of the extranode instance"
+    value:
+      get_attr: [extranode_floating_ip, extranode_host]
