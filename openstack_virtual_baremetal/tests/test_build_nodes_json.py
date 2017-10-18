@@ -74,7 +74,7 @@ class TestBuildNodesJson(testtools.TestCase):
         self.assertEqual('bmc-foo', bmc_base)
         self.assertEqual('baremetal-foo', baremetal_base)
         self.assertEqual('provision-foo', provision_net)
-        self.assertIsNone(undercloud_name)
+        self.assertEqual('undercloud', undercloud_name)
 
     def test_get_names_no_env_w_undercloud(self):
         args = mock.Mock()
@@ -245,13 +245,17 @@ class TestBuildNodesJson(testtools.TestCase):
         servers[0].name = 'bm_0'
         servers[0].flavor = {'id': '1'}
         servers[0].addresses = {'provision': [{'OS-EXT-IPS-MAC:mac_addr':
-                                                   'aa:aa:aa:aa:aa:aa'}]}
+                                                   'aa:aa:aa:aa:aa:aa',
+                                               'addr': '2.1.1.1'}]}
         servers[0].image = {'id': 'f00'}
+        servers[0].id = '123abc'
         servers[1].name = 'bm_1'
         servers[1].flavor = {'id': '1'}
         servers[1].addresses = {'provision': [{'OS-EXT-IPS-MAC:mac_addr':
-                                                   'aa:aa:aa:aa:aa:ab'}]}
+                                                   'aa:aa:aa:aa:aa:ab',
+                                               'addr': '2.1.1.2'}]}
         servers[1].image = {'id': 'f00'}
+        servers[1].id = '456def'
         mock_flavor = mock.Mock()
         mock_flavor.vcpus = 128
         mock_flavor.ram = 145055
@@ -277,7 +281,10 @@ class TestBuildNodesJson(testtools.TestCase):
 
         glance = mock.Mock()
 
-        nodes, bmc_bm_pairs, extra_nodes = build_nodes_json._build_nodes(
+        (nodes,
+         bmc_bm_pairs,
+         extra_nodes,
+         network_details) = build_nodes_json._build_nodes(
             nova, glance, bmc_ports, bm_ports, 'provision', 'bm', 'undercloud')
         expected_nodes = TEST_NODES
         self.assertEqual(expected_nodes, nodes)
@@ -285,6 +292,10 @@ class TestBuildNodesJson(testtools.TestCase):
                          bmc_bm_pairs)
         self.assertEqual(1, len(extra_nodes))
         self.assertEqual('undercloud', extra_nodes[0]['name'])
+        self.assertEqual('2.1.1.1',
+                         network_details['bm_0']['ips']['provision'][0]['addr'])
+        self.assertEqual('2.1.1.2',
+                         network_details['bm_1']['ips']['provision'][0]['addr'])
 
     def test_build_nodes_role_uefi(self):
         bmc_ports = [{'fixed_ips': [{'ip_address': '1.1.1.1'}]},
@@ -304,7 +315,7 @@ class TestBuildNodesJson(testtools.TestCase):
         mock_image_get.get.return_value = 'uefi'
         glance.images.get.return_value = mock_image_get
 
-        nodes, bmc_bm_pairs, extra_nodes = build_nodes_json._build_nodes(
+        nodes, bmc_bm_pairs, extra_nodes, _ = build_nodes_json._build_nodes(
             nova, glance, bmc_ports, bm_ports, 'provision', 'bm-foo', None)
         expected_nodes = copy.deepcopy(TEST_NODES)
         expected_nodes[0]['name'] = 'bm-foo-control-0'
@@ -326,8 +337,9 @@ class TestBuildNodesJson(testtools.TestCase):
         args = mock.Mock()
         mock_open.return_value = mock.MagicMock()
         args.nodes_json = 'test.json'
+        args.network_details = False
         extra_nodes = []
-        build_nodes_json._write_nodes(TEST_NODES, extra_nodes, args)
+        build_nodes_json._write_nodes(TEST_NODES, extra_nodes, {}, args)
         data = json.dumps({'nodes': TEST_NODES}, indent=2)
         f = mock_open.return_value.__enter__.return_value
         f.write.assert_called_once_with(data)
@@ -338,10 +350,14 @@ class TestBuildNodesJson(testtools.TestCase):
         args = mock.Mock()
         mock_open.return_value = mock.MagicMock()
         args.nodes_json = 'test.json'
+        args.network_details = True
         extra_nodes = [{'foo': 'bar'}]
-        build_nodes_json._write_nodes(TEST_NODES, extra_nodes, args)
+        network_details = {'bar': 'baz'}
+        build_nodes_json._write_nodes(TEST_NODES, extra_nodes,
+                                      network_details, args)
         data = json.dumps({'nodes': TEST_NODES,
-                           'extra_nodes': extra_nodes}, indent=2)
+                           'extra_nodes': extra_nodes,
+                           'network_details': network_details}, indent=2)
         f = mock_open.return_value.__enter__.return_value
         f.write.assert_called_once_with(data)
 
@@ -418,7 +434,9 @@ class TestBuildNodesJson(testtools.TestCase):
         nodes = mock.Mock()
         pairs = mock.Mock()
         extra_nodes = mock.Mock()
-        mock_build_nodes.return_value = (nodes, pairs, extra_nodes)
+        network_details = mock.Mock()
+        mock_build_nodes.return_value = (nodes, pairs, extra_nodes,
+                                         network_details)
 
         build_nodes_json.main()
 
@@ -431,7 +449,8 @@ class TestBuildNodesJson(testtools.TestCase):
                                                  bm_ports, provision_net,
                                                  baremetal_base,
                                                  undercloud_name)
-        mock_write_nodes.assert_called_once_with(nodes, extra_nodes, args)
+        mock_write_nodes.assert_called_once_with(nodes, extra_nodes,
+                                                 network_details, args)
         mock_write_role_nodes.assert_called_once_with(nodes, args)
         mock_write_pairs.assert_called_once_with(pairs)
 

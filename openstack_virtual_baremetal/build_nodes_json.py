@@ -56,7 +56,13 @@ def _parse_args():
     parser.add_argument('--add_undercloud',
                         dest='add_undercloud',
                         action='store_true',
-                        help='Adds the undercloud details to the json file.')
+                        help='DEPRECATED: Use --network_details instead. '
+                             'Adds the undercloud details to the json file.')
+    parser.add_argument('--network_details',
+                        dest='network_details',
+                        action='store_true',
+                        help='Include addresses for all nodes on all networks '
+                             'in a network_details key')
     args = parser.parse_args()
     return args
 
@@ -69,13 +75,12 @@ def _get_from_env(env, name):
 
 
 def _get_names(args):
-    undercloud_name = None
     if args.env is None:
         bmc_base = args.bmc_prefix
         baremetal_base = args.baremetal_prefix
         provision_net = args.provision_net
-        if args.add_undercloud:
-            undercloud_name = 'undercloud'
+        # FIXME: This is not necessarily true.
+        undercloud_name = 'undercloud'
     else:
         with open(args.env) as f:
             e = yaml.safe_load(f)
@@ -85,8 +90,7 @@ def _get_names(args):
         role = e.get('parameter_defaults', {}).get('role')
         if role and baremetal_base.endswith('-' + role):
             baremetal_base = baremetal_base[:-len(role) - 1]
-        if args.add_undercloud:
-            undercloud_name = e['parameter_defaults']['undercloud_name']
+        undercloud_name = e.get('parameter_defaults', {}).get('undercloud_name')
     return bmc_base, baremetal_base, provision_net, undercloud_name
 
 
@@ -130,8 +134,12 @@ def _build_nodes(nova, glance, bmc_ports, bm_ports, provision_net,
     nodes = []
     bmc_bm_pairs = []
     cache = {}
+    network_details = {}
     for bmc_port, baremetal_port in zip(bmc_ports, bm_ports):
         baremetal = nova.servers.get(baremetal_port['device_id'])
+        network_details[baremetal.name] = {}
+        network_details[baremetal.name]['id'] = baremetal.id
+        network_details[baremetal.name]['ips'] = baremetal.addresses
         node = dict(node_template)
         node['pm_addr'] = bmc_port['fixed_ips'][0]['ip_address']
         bmc_bm_pairs.append((node['pm_addr'], baremetal.name))
@@ -176,21 +184,27 @@ def _build_nodes(nova, glance, bmc_ports, bm_ports, provision_net,
             undercloud_instance = nova.servers.list(
                 search_opts={'name': undercloud_name})[0]
         except IndexError:
-            raise RuntimeError(
-                'undercloud %s specified in the environment file is not '
-                'available in nova' % undercloud_name)
-        undercloud_node_template['id'] = undercloud_instance.id
-        undercloud_node_template['ips'] = nova.servers.ips(undercloud_instance)
+            print ('Undercloud %s specified in the environment file is not '
+                   'available in nova. No undercloud details will be '
+                   'included in the output.' % undercloud_name)
+        else:
+            undercloud_node_template['id'] = undercloud_instance.id
+            undercloud_node_template['ips'] = nova.servers.ips(undercloud_instance)
 
-        extra_nodes.append(undercloud_node_template)
-    return nodes, bmc_bm_pairs, extra_nodes
+            extra_nodes.append(undercloud_node_template)
+            network_details[undercloud_name] = {}
+            network_details[undercloud_name]['id'] = undercloud_instance.id
+            network_details[undercloud_name]['ips'] = undercloud_instance.addresses
+    return nodes, bmc_bm_pairs, extra_nodes, network_details
 
 
-def _write_nodes(nodes, extra_nodes, args):
+def _write_nodes(nodes, extra_nodes, network_details, args):
     with open(args.nodes_json, 'w') as node_file:
         resulting_json = {'nodes': nodes}
-        if extra_nodes:
+        if args.add_undercloud and extra_nodes:
             resulting_json['extra_nodes'] = extra_nodes
+        if args.network_details:
+            resulting_json['network_details'] = network_details
         contents = json.dumps(resulting_json, indent=2)
         node_file.write(contents)
         print(contents)
@@ -246,12 +260,13 @@ def main():
     bmc_base, baremetal_base, provision_net, undercloud_name = _get_names(args)
     nova, neutron, glance = _get_clients()
     bmc_ports, bm_ports = _get_ports(neutron, bmc_base, baremetal_base)
-    nodes, bmc_bm_pairs, extra_nodes = _build_nodes(nova, glance, bmc_ports,
-                                                    bm_ports,
-                                                    provision_net,
-                                                    baremetal_base,
-                                                    undercloud_name)
-    _write_nodes(nodes, extra_nodes, args)
+    (nodes,
+     bmc_bm_pairs,
+     extra_nodes,
+     network_details) = _build_nodes(nova, glance, bmc_ports, bm_ports,
+                                     provision_net, baremetal_base,
+                                     undercloud_name)
+    _write_nodes(nodes, extra_nodes, network_details, args)
     _write_role_nodes(nodes, args)
     _write_pairs(bmc_bm_pairs)
 
