@@ -306,8 +306,8 @@ def _deploy_roles(stack_name, args, env_paths):
 
 if __name__ == '__main__':
     args = _parse_args()
-    env_paths = args.env
     stack_name, stack_template = _process_args(args)
+    env_paths = args.env
     if args.id:
         env_paths = _generate_id_env(args)
     _validate_env(args, env_paths)
