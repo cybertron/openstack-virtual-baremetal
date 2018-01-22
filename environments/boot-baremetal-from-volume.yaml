@@ -1,0 +1,17 @@
+# *******************************************************************
+# This file was created automatically by the sample environment
+# generator. Developers should use `tox -e genconfig` to update it.
+# Users are recommended to make changes to a copy of the file instead
+# of the original, if any customizations are needed.
+# *******************************************************************
+# title: Boot Baremetal Instances from Volume
+# description: |
+#   Boot the baremetal instances from Cinder volumes instead of
+#   ephemeral storage.
+parameter_defaults:
+  # The size of the baremetal instance volumes
+  # Type: number
+  baremetal_volume_size: 41
+
+resource_registry:
+  OS::OVB::ServerPair: ../templates/virtual-baremetal-servers-volume.yaml

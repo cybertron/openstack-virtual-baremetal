@@ -82,12 +82,30 @@ the host cloud, but at the cost of potential inconsistency if the state
 of a baremetal instance is changed without using the BMC.
 
 
+Boot Baremetal Instances from Volume
+------------------------------------
+
+**File:** environments/boot-baremetal-from-volume.yaml
+
+**Description:** Boot the baremetal instances from Cinder volumes instead of
+ephemeral storage.
+
+
 Boot Undercloud and Baremetal Instances from Volume
 ---------------------------------------------------
 
 **File:** environments/boot-from-volume.yaml
 
 **Description:** Boot the undercloud and baremetal instances from Cinder volumes instead of
+ephemeral storage.
+
+
+Boot Undercloud Instance from Volume
+------------------------------------
+
+**File:** environments/boot-undercloud-from-volume.yaml
+
+**Description:** Boot the undercloud instance from a Cinder volume instead of
 ephemeral storage.
 
 
