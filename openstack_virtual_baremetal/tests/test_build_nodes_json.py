@@ -396,7 +396,9 @@ class TestBuildNodesJson(testtools.TestCase):
         pairs = [('1.1.1.1', 'bm_0'), ('1.1.1.2', 'bm_1')]
         mock_open.return_value = mock.MagicMock()
         build_nodes_json._write_pairs(pairs)
-        calls = [mock.call('# A list of BMC addresses and the name of the '
+        calls = [mock.call('# This file is DEPRECATED.  The mapping is now '
+                           'available in nodes.json.\n'),
+                 mock.call('# A list of BMC addresses and the name of the '
                            'instance that BMC manages.\n'),
                  mock.call('1.1.1.1 bm_0\n'),
                  mock.call('1.1.1.2 bm_1\n'),

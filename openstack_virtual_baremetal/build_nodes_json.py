@@ -240,12 +240,13 @@ def _write_role_nodes(nodes, args):
                   (profile, outfile))
 
 
-# TODO(bnemec): parameterize this based on args.nodes_json
-# Or deprecate and remove it since it isn't necessary now that we set node
-# names in the JSON file?
+# TODO(bnemec): This functionality was deprecated 2018-01-24.  Remove it in
+# about six months.
 def _write_pairs(bmc_bm_pairs):
     filename = 'bmc_bm_pairs'
     with open(filename, 'w') as pairs_file:
+        pairs_file.write('# This file is DEPRECATED.  The mapping is now '
+                         'available in nodes.json.\n')
         pairs_file.write('# A list of BMC addresses and the name of the '
                          'instance that BMC manages.\n')
         for i in bmc_bm_pairs:
