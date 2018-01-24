@@ -13,6 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import copy
 import io
 import unittest
 import yaml
@@ -399,7 +400,7 @@ class TestDeploy(testtools.TestCase):
     @mock.patch('openstack_virtual_baremetal.deploy._load_role_data')
     def test_process_role_param_defaults(self, mock_load, mock_write):
         def move_params_to_param_defaults(d):
-            data = dict(d)
+            data = copy.deepcopy(d)
             for k, v in data['parameters'].items():
                 data['parameter_defaults'][k] = v
             data.pop('parameters', None)
@@ -427,6 +428,17 @@ class TestDeploy(testtools.TestCase):
         # This parameter should be inherited (as tested above) but overrideable
         self.assertEqual('centos',
                          output['parameter_defaults']['baremetal_image'])
+
+    @mock.patch('openstack_virtual_baremetal.deploy._load_role_data')
+    def test_process_role_invalid_name(self, mock_load):
+        bad_role_specific_data = copy.deepcopy(role_specific_data)
+        bad_role_specific_data['parameter_defaults']['role'] = 'foo_bar'
+        mock_load.return_value = (role_base_data, bad_role_specific_data,
+                                  role_original_data)
+        args = mock.Mock()
+        args.id = 'foo'
+        self.assertRaises(RuntimeError, deploy._process_role,
+                          'foo-foo_bar.yaml', 'foo.yaml', 'foo', args)
 
     @mock.patch('openstack_virtual_baremetal.deploy._deploy')
     @mock.patch('openstack_virtual_baremetal.deploy._process_role')

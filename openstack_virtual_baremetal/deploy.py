@@ -292,6 +292,8 @@ def _process_role(role_file, base_envs, stack_name, args):
     except KeyError:
         bmc_prefix = base_data['parameter_defaults']['bmc_prefix']
     role = role_data['parameter_defaults']['role']
+    if '_' in role:
+        raise RuntimeError('_ character not allowed in role name "%s".' % role)
     role_env['parameters']['baremetal_prefix'] = '%s-%s' % (base_prefix, role)
     role_env['parameters']['bmc_prefix'] = '%s-%s' % (bmc_prefix, role)
     role_file = 'env-%s-%s.yaml' % (stack_name, role)
