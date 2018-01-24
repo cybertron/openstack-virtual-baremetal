@@ -111,3 +111,12 @@ method, which creates most of the resources needed automatically.
 #. The undercloud vm can now be used with something like TripleO
    to do a baremetal-style deployment to the virtual baremetal instances
    deployed previously.
+
+Deleting an OVB Environment
+---------------------------
+
+All of the OpenStack resources created by OVB are part of the Heat stack, so
+to delete the environment just delete the Heat stack.  There are a few local
+files that may also have been created as part of the deployment, such as
+nodes.json files and bmc_bm_pairs.  Once the stack is deleted these can be
+removed safely as well.
