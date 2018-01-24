@@ -219,6 +219,7 @@ def _poll_stack(stack_name,  hclient):
             print 'Stack %s created successfully' % stack_name
             done = True
         elif stack.status == 'FAILED':
+            print stack.to_dict().get('stack_status_reason')
             raise RuntimeError('Failed to create stack %s' % stack_name)
         else:
             time.sleep(10)
