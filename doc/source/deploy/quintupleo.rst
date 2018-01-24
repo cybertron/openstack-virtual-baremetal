@@ -12,9 +12,14 @@ however.
       cp environments/base.yaml env.yaml
       vi env.yaml
 
-#. Deploy a QuintupleO stack::
+#. Deploy a QuintupleO stack.  The example command includes a number of
+   environment files intended to simplify the deployment process or make
+   it compatible with a broader set of host clouds.  However, these
+   environments are not necessary in every situation and may not even work
+   with some older clouds.  See below for details on customizing an OVB
+   deployment for your particular situation::
 
-    bin/deploy.py --quintupleo
+    bin/deploy.py --quintupleo -e env.yaml -e environments/all-networks-port-security.yaml -e environments/create-private-network.yaml
 
    .. note:: There is a quintupleo-specific option ``--id`` in deploy.py.
              It appends the value passed in to the name of all resources
