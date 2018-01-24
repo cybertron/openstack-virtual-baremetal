@@ -44,7 +44,7 @@ chmod +x /usr/local/bin/openstackbmc
 mkdir -p ~/.config/openstack
 # Passing this as an argument is problematic because it has quotes inline that
 # cause syntax errors.  Reading from a file should be easier.
-cat <<EOF >/tmp/bmc-cloud-data
+cat <<'EOF' >/tmp/bmc-cloud-data
 $cloud_data
 EOF
 python -c 'import json
