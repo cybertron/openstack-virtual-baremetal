@@ -64,8 +64,14 @@ def _parse_args():
     return parser.parse_args()
 
 def _process_args(args):
-    if args.id and not args.quintupleo:
-        raise RuntimeError('--id requires --quintupleo')
+    if args.id:
+        if not args.quintupleo:
+            raise RuntimeError('--id requires --quintupleo')
+        id_env = 'env-%s.yaml' % args.id
+        if id_env in args.env:
+            raise ValueError('Input env file "%s" would be overwritten by ID '
+                             'env file.  Either rename the input file or '
+                             'change the deploy ID.' % id_env)
     if args.role and not args.quintupleo:
         raise RuntimeError('--role requires --quintupleo')
 

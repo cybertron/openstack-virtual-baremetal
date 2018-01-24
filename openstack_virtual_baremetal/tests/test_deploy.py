@@ -26,36 +26,38 @@ from openstack_virtual_baremetal import auth
 from openstack_virtual_baremetal import deploy
 
 class TestProcessArgs(unittest.TestCase):
-    def test_basic(self):
+    def _basic_mock_args(self):
+        """Return a mock with basic args set"""
         mock_args = mock.Mock()
         mock_args.name = None
         mock_args.quintupleo = False
         mock_args.id = None
+        mock_args.env = []
         mock_args.role = []
+        return mock_args
+
+    def test_basic(self):
+        mock_args = self._basic_mock_args()
         name, template = deploy._process_args(mock_args)
         self.assertEqual('baremetal', name)
         self.assertEqual('templates/virtual-baremetal.yaml', template)
 
     def test_name(self):
-        mock_args = mock.Mock()
+        mock_args = self._basic_mock_args()
         mock_args.name = 'foo'
-        mock_args.quintupleo = False
-        mock_args.id = None
-        mock_args.role = []
         name, template = deploy._process_args(mock_args)
         self.assertEqual('foo', name)
         self.assertEqual('templates/virtual-baremetal.yaml', template)
 
     def test_quintupleo(self):
-        mock_args = mock.Mock()
-        mock_args.name = None
+        mock_args = self._basic_mock_args()
         mock_args.quintupleo = True
         name, template = deploy._process_args(mock_args)
         self.assertEqual('quintupleo', name)
         self.assertEqual('templates/quintupleo.yaml', template)
 
     def test_quintupleo_name(self):
-        mock_args = mock.Mock()
+        mock_args = self._basic_mock_args()
         mock_args.name = 'foo'
         mock_args.quintupleo = True
         name, template = deploy._process_args(mock_args)
@@ -63,27 +65,30 @@ class TestProcessArgs(unittest.TestCase):
         self.assertEqual('templates/quintupleo.yaml', template)
 
     def test_id_quintupleo(self):
-        mock_args = mock.Mock()
+        mock_args = self._basic_mock_args()
         mock_args.id = 'foo'
-        mock_args.quintupleo = False
         self.assertRaises(RuntimeError, deploy._process_args, mock_args)
 
     def test_role_quintupleo(self):
-        mock_args = mock.Mock()
+        mock_args = self._basic_mock_args()
         mock_args.role = 'foo.yaml'
-        mock_args.id = None
-        mock_args.quintupleo = False
         self.assertRaises(RuntimeError, deploy._process_args, mock_args)
 
     def test_maintain_old_default(self):
-        mock_args = mock.Mock()
+        mock_args = self._basic_mock_args()
         mock_args.name = 'foo'
         mock_args.quintupleo = True
-        mock_args.env = []
         name, template = deploy._process_args(mock_args)
         self.assertEqual('foo', name)
         self.assertEqual('templates/quintupleo.yaml', template)
         self.assertEqual(['env.yaml'], mock_args.env)
+
+    def test_no_overwrite(self):
+        mock_args = self._basic_mock_args()
+        mock_args.quintupleo = True
+        mock_args.id = 'foo'
+        mock_args.env = ['env-foo.yaml']
+        self.assertRaises(ValueError, deploy._process_args, mock_args)
 
 test_env = u"""parameters:
   provision_net: provision
