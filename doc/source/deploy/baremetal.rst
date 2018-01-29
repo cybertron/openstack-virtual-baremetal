@@ -89,7 +89,7 @@ method, which creates most of the resources needed automatically.
 
 #. Boot a VM to serve as the undercloud::
 
-    nova boot undercloud --flavor m1.large --image centos7 --nic net-id=[tenant net uuid] --nic net-id=[provisioning net uuid]
+    nova boot undercloud --flavor m1.xlarge --image centos7 --nic net-id=[tenant net uuid] --nic net-id=[provisioning net uuid]
     neutron floatingip-create [external net uuid]
     neutron port-list
     neutron floatingip-associate [floatingip uuid] [undercloud instance port id]

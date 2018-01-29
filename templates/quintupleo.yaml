@@ -96,7 +96,7 @@ parameters:
 
   undercloud_flavor:
     type: string
-    default: m1.large
+    default: m1.xlarge
     description: Nova flavor to use for the undercloud instance
 
   undercloud_image:

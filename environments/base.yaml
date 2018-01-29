@@ -72,7 +72,7 @@ parameter_defaults:
 
   # Nova flavor to use for the undercloud instance
   # Type: string
-  undercloud_flavor: m1.large
+  undercloud_flavor: m1.xlarge
 
   # Image to boot as the undercloud instance
   # Type: string
