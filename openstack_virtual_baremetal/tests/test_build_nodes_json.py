@@ -262,7 +262,8 @@ class TestBuildNodesJson(testtools.TestCase):
         mock_flavor.disk = 1024
         nova.flavors.get.return_value = mock_flavor
 
-    def test_build_nodes(self):
+    @mock.patch('os_client_config.make_client')
+    def test_build_nodes(self, mock_make_client):
         bmc_ports = [{'fixed_ips': [{'ip_address': '1.1.1.1'}]},
                      {'fixed_ips': [{'ip_address': '1.1.1.2'}]}
                      ]
@@ -270,6 +271,15 @@ class TestBuildNodesJson(testtools.TestCase):
         nova = mock.Mock()
         servers = [mock.Mock(), mock.Mock(), mock.Mock()]
         self._create_build_nodes_mocks(nova, servers)
+        servers[1].image = None
+        mock_to_dict = {'os-extended-volumes:volumes_attached':
+                            [{'id': 'v0lume'}]}
+        servers[1].to_dict.return_value = mock_to_dict
+        mock_cinder = mock.Mock()
+        mock_make_client.return_value = mock_cinder
+        mock_vol = mock.Mock()
+        mock_vol.size = 100
+        mock_cinder.volumes.get.return_value = mock_vol
         servers[2].name = 'undercloud'
         servers[2].flavor = {'id': '1'}
         servers[2].addresses = {'provision': [{'OS-EXT-IPS-MAC:mac_addr':
@@ -286,7 +296,8 @@ class TestBuildNodesJson(testtools.TestCase):
          extra_nodes,
          network_details) = build_nodes_json._build_nodes(
             nova, glance, bmc_ports, bm_ports, 'provision', 'bm', 'undercloud')
-        expected_nodes = TEST_NODES
+        expected_nodes = copy.deepcopy(TEST_NODES)
+        expected_nodes[1]['disk'] = 100
         self.assertEqual(expected_nodes, nodes)
         self.assertEqual([('1.1.1.1', 'bm_0'), ('1.1.1.2', 'bm_1')],
                          bmc_bm_pairs)

@@ -164,6 +164,14 @@ def _build_nodes(nova, glance, bmc_ports, bm_ports, provision_net,
             image = cache.get(baremetal.image['id'])
             if image.get('hw_firmware_type') == 'uefi':
                 node['capabilities'] += ",boot_mode:uefi"
+        else:
+            # With boot from volume the flavor disk size doesn't matter.  We
+            # need to look up the volume disk size.
+            cloud = os.environ.get('OS_CLOUD')
+            cinder = os_client_config.make_client('volume', cloud=cloud)
+            vol_id = baremetal.to_dict()['os-extended-volumes:volumes_attached'][0]['id']
+            volume = cinder.volumes.get(vol_id)
+            node['disk'] = volume.size
 
         bm_name_end = baremetal.name[len(baremetal_base):]
         if '-' in bm_name_end:
