@@ -1,7 +1,20 @@
 #!/bin/bash
 
+function timer
+{
+    name=${1:-}
+    seconds=$(date +%s)
+    if [ -n "$name" ]
+    then
+        echo "${name}: $((seconds - start_time))" >> ~/timer-results
+    else
+        start_time=$seconds
+    fi
+}
+
 set -ex
 
+timer
 # When not running my local cloud we don't want these set
 if [ ${LOCAL:-1} -eq 1 ]
 then
@@ -30,6 +43,9 @@ export TRIPLEOSH=/home/centos/tripleo.sh
 wget -r --no-parent -nd -e robots=off -l 1 -A 'python2-tripleo-repos-*' https://trunk.rdoproject.org/centos7/current/
 sudo yum install -y python2-tripleo-repos-*
 sudo tripleo-repos current-tripleo-dev --rdo-mirror http://mirror.regionone.tripleo-test-cloud-rh1.openstack.org:8080/rdo --centos-mirror http://mirror.regionone.tripleo-test-cloud-rh1.openstack.org
+
+timer 'system setup'
+timer
 
 # Undercloud install
 cat << EOF > undercloud.conf
@@ -60,14 +76,24 @@ EOF_CAT
 sudo os-net-config -c /tmp/eth2.cfg -v
 sudo iptables -A POSTROUTING -s 10.0.0.0/24 ! -d 10.0.0.0/24 -j MASQUERADE -t nat
 
+timer 'undercloud install'
+timer
+
 # Image creation
 export DIB_YUM_REPO_CONF="/etc/yum.repos.d/delorean*"
 openstack overcloud image build
 openstack overcloud image upload --update-existing
 
+timer 'image build'
+timer
+
 # Node registration and introspection
 openstack overcloud node import --introspect --provide instackenv.json
+timer 'node introspection'
+
 sleep 60
+
+timer
 
 # Overcloud deploy
 export OVERCLOUD_DEPLOY_ARGS="--libvirt-type qemu -e /usr/share/openstack-tripleo-heat-templates/environments/disable-telemetry.yaml"
@@ -76,6 +102,9 @@ then
     OVERCLOUD_DEPLOY_ARGS="$OVERCLOUD_DEPLOY_ARGS -e /home/centos/openstack-virtual-baremetal/overcloud-templates/network-templates-v2/network-isolation-absolute.yaml -e /home/centos/openstack-virtual-baremetal/overcloud-templates/network-templates-v2/network-environment.yaml"
 fi
 openstack overcloud deploy --templates $OVERCLOUD_DEPLOY_ARGS
+
+timer 'overcloud deploy'
+timer
 
 # Overcloud validation
 if [ ${VERSION:-1} -eq 2 ]
@@ -86,3 +115,7 @@ then
     export EXTERNAL_NETWORK_GATEWAY=10.0.0.1
 fi
 $TRIPLEOSH --overcloud-pingtest --skip-pingtest-cleanup
+
+timer 'ping test'
+
+cat ~/timer-results
