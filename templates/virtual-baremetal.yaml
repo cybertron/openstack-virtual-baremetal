@@ -119,6 +119,7 @@ parameters:
   cloud_data:
     type: string
     default: '{}'
+    hidden: true
 
   # Ignored parameters for compatibility with QuintupleO env files
   undercloud_image:
