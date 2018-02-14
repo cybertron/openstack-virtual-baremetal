@@ -52,7 +52,7 @@ class TestBuildNodesJson(testtools.TestCase):
         mock_argv = ['build-nodes-json', '--env', 'foo.yaml', '--bmc_prefix',
                      'bmc-foo', '--baremetal_prefix', 'baremetal-foo',
                      '--provision_net', 'provision-foo', '--nodes_json',
-                     'nodes-foo.json'
+                     'nodes-foo.json', '--driver', 'ipmi'
                      ]
         with mock.patch.object(sys, 'argv', mock_argv):
             args = build_nodes_json._parse_args()
@@ -61,6 +61,7 @@ class TestBuildNodesJson(testtools.TestCase):
             self.assertEqual('baremetal-foo', args.baremetal_prefix)
             self.assertEqual('provision-foo', args.provision_net)
             self.assertEqual('nodes-foo.json', args.nodes_json)
+            self.assertEqual('ipmi', args.driver)
 
     def test_get_names_no_env(self):
         args = mock.Mock()
@@ -295,9 +296,59 @@ class TestBuildNodesJson(testtools.TestCase):
          bmc_bm_pairs,
          extra_nodes,
          network_details) = build_nodes_json._build_nodes(
-            nova, glance, bmc_ports, bm_ports, 'provision', 'bm', 'undercloud')
+            nova, glance, bmc_ports, bm_ports, 'provision', 'bm', 'undercloud',
+            'pxe_ipmitool')
         expected_nodes = copy.deepcopy(TEST_NODES)
         expected_nodes[1]['disk'] = 100
+        self.assertEqual(expected_nodes, nodes)
+        self.assertEqual([('1.1.1.1', 'bm_0'), ('1.1.1.2', 'bm_1')],
+                         bmc_bm_pairs)
+        self.assertEqual(1, len(extra_nodes))
+        self.assertEqual('undercloud', extra_nodes[0]['name'])
+        self.assertEqual('2.1.1.1',
+                         network_details['bm_0']['ips']['provision'][0]['addr'])
+        self.assertEqual('2.1.1.2',
+                         network_details['bm_1']['ips']['provision'][0]['addr'])
+
+    @mock.patch('os_client_config.make_client')
+    def test_build_nodes_with_driver(self, mock_make_client):
+        bmc_ports = [{'fixed_ips': [{'ip_address': '1.1.1.1'}]},
+                     {'fixed_ips': [{'ip_address': '1.1.1.2'}]}
+                     ]
+        bm_ports = [{'device_id': '1'}, {'device_id': '2'}]
+        nova = mock.Mock()
+        servers = [mock.Mock(), mock.Mock(), mock.Mock()]
+        self._create_build_nodes_mocks(nova, servers)
+        servers[1].image = None
+        mock_to_dict = {'os-extended-volumes:volumes_attached':
+                            [{'id': 'v0lume'}]}
+        servers[1].to_dict.return_value = mock_to_dict
+        mock_cinder = mock.Mock()
+        mock_make_client.return_value = mock_cinder
+        mock_vol = mock.Mock()
+        mock_vol.size = 100
+        mock_cinder.volumes.get.return_value = mock_vol
+        servers[2].name = 'undercloud'
+        servers[2].flavor = {'id': '1'}
+        servers[2].addresses = {'provision': [{'OS-EXT-IPS-MAC:mac_addr':
+                                                   'aa:aa:aa:aa:aa:ac'}]}
+        servers[2].image = {'id': 'f00'}
+        nova.servers.list.return_value = [servers[2]]
+        ips_return_val = 'ips call value'
+        nova.servers.ips.return_value = ips_return_val
+
+        glance = mock.Mock()
+
+        (nodes,
+         bmc_bm_pairs,
+         extra_nodes,
+         network_details) = build_nodes_json._build_nodes(
+            nova, glance, bmc_ports, bm_ports, 'provision', 'bm', 'undercloud',
+            'ipmi')
+        expected_nodes = copy.deepcopy(TEST_NODES)
+        expected_nodes[1]['disk'] = 100
+        for node in expected_nodes:
+            node['pm_type'] = 'ipmi'
         self.assertEqual(expected_nodes, nodes)
         self.assertEqual([('1.1.1.1', 'bm_0'), ('1.1.1.2', 'bm_1')],
                          bmc_bm_pairs)
@@ -327,7 +378,8 @@ class TestBuildNodesJson(testtools.TestCase):
         glance.images.get.return_value = mock_image_get
 
         nodes, bmc_bm_pairs, extra_nodes, _ = build_nodes_json._build_nodes(
-            nova, glance, bmc_ports, bm_ports, 'provision', 'bm-foo', None)
+            nova, glance, bmc_ports, bm_ports, 'provision', 'bm-foo', None,
+            'pxe_ipmitool')
         expected_nodes = copy.deepcopy(TEST_NODES)
         expected_nodes[0]['name'] = 'bm-foo-control-0'
         expected_nodes[0]['capabilities'] = ('boot_option:local,'
@@ -461,7 +513,8 @@ class TestBuildNodesJson(testtools.TestCase):
         mock_build_nodes.assert_called_once_with(nova, glance, bmc_ports,
                                                  bm_ports, provision_net,
                                                  baremetal_base,
-                                                 undercloud_name)
+                                                 undercloud_name,
+                                                 args.driver)
         mock_write_nodes.assert_called_once_with(nodes, extra_nodes,
                                                  network_details, args)
         mock_write_role_nodes.assert_called_once_with(nodes, args)
