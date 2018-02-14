@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Script to rebuild baremetal instances to the ipxe-boot image.
+# When using OVB without the Nova PXE boot patch, this is required after
+# each deployment to ensure the nodes can PXE boot for the next one.
+
+# Usage: rebuild-baremetal <number of nodes> [baremetal_base] [environment ID]
+# Examples: rebuild-baremetal 2
+#           rebuild-baremetal 5 my-baremetal-name
+#           rebuild-baremetal 5 baremetal test
+
+node_num=$1
+baremetal_base=${2:-'baremetal'}
+env_id=${3:-}
+
+name_base="$baremetal_base"
+if [ -n "$env_id" ]
+then
+    name_base="$baremetal_base-$env_id"
+fi
+
+for i in `seq 0 $((node_num - 1))`
+do
+    echo nova rebuild "${instance_list}${name_base}_$i" ipxe-boot
+    nova rebuild "${instance_list}${name_base}_$i" ipxe-boot
+done
