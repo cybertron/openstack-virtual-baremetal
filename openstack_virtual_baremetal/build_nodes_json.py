@@ -63,6 +63,9 @@ def _parse_args():
                         action='store_true',
                         help='Include addresses for all nodes on all networks '
                              'in a network_details key')
+    # TODO(dtantsur): change the default to ipmi when Ocata is not supported
+    parser.add_argument('--driver', default='pxe_ipmitool',
+                        help='Bare metal driver to use')
     args = parser.parse_args()
     return args
 
@@ -116,9 +119,9 @@ def _get_ports(neutron, bmc_base, baremetal_base):
 
 
 def _build_nodes(nova, glance, bmc_ports, bm_ports, provision_net,
-                 baremetal_base, undercloud_name):
+                 baremetal_base, undercloud_name, driver):
     node_template = {
-        'pm_type': 'pxe_ipmitool',
+        'pm_type': driver,
         'mac': '',
         'cpu': '',
         'memory': '',
@@ -274,7 +277,7 @@ def main():
      extra_nodes,
      network_details) = _build_nodes(nova, glance, bmc_ports, bm_ports,
                                      provision_net, baremetal_base,
-                                     undercloud_name)
+                                     undercloud_name, args.driver)
     _write_nodes(nodes, extra_nodes, network_details, args)
     _write_role_nodes(nodes, args)
     _write_pairs(bmc_bm_pairs)
