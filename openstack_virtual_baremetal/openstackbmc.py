@@ -20,7 +20,7 @@
 # Sample ipmitool commands:
 # ipmitool -I lanplus -U admin -P password -H 127.0.0.1 power on
 # ipmitool -I lanplus -U admin -P password -H 127.0.0.1 power status
-# ipmitool -I lanplus -U admin -P password -H 127.0.0.1 chassis bootdev pxe|disk
+# ipmitool -I lanplus -U admin -P password -H 127.0.0.1 chassis bootdev pxe|disk  # noqa: E501
 # ipmitool -I lanplus -U admin -P password -H 127.0.0.1 mc reset cold
 
 import argparse
@@ -44,10 +44,12 @@ NO_OCC_DEPRECATION = ('WARNING: Creating novaclient without os-client-config '
 
 
 class OpenStackBmc(bmc.Bmc):
-    def __init__(self, authdata, port, address, instance, user, password, tenant,
-                 auth_url, project, user_domain, project_domain, cache_status,
-                 os_cloud):
-        super(OpenStackBmc, self).__init__(authdata, port=port, address=address)
+    def __init__(self, authdata, port, address, instance, user, password,
+                 tenant, auth_url, project, user_domain, project_domain,
+                 cache_status, os_cloud):
+        super(OpenStackBmc, self).__init__(authdata,
+                                           port=port,
+                                           address=address)
         if os_client_config:
             if user:
                 # NOTE(bnemec): This is deprecated.  clouds.yaml is a much
@@ -66,7 +68,7 @@ class OpenStackBmc(bmc.Bmc):
         else:
             # NOTE(bnemec): This path was deprecated 2017-7-17
             self.log(NO_OCC_DEPRECATION)
-            if not '/v3' in auth_url:
+            if '/v3' not in auth_url:
                 # novaclient 7+ is backwards-incompatible :-(
                 if int(nc.__version__[0]) <= 6:
                     self.novaclient = novaclient.Client(2, user, password,
@@ -76,11 +78,13 @@ class OpenStackBmc(bmc.Bmc):
                                                         auth_url=auth_url,
                                                         project_name=tenant)
             else:
-                self.novaclient = novaclient.Client(2, user, password,
-                                                    auth_url=auth_url,
-                                                    project_name=project,
-                                                    user_domain_name=user_domain,
-                                                    project_domain_name=project_domain)
+                self.novaclient = novaclient.Client(
+                    2, user, password,
+                    auth_url=auth_url,
+                    project_name=project,
+                    user_domain_name=user_domain,
+                    project_domain_name=project_domain
+                )
         self.instance = None
         self.cache_status = cache_status
         self.cached_status = None
@@ -120,7 +124,10 @@ class OpenStackBmc(bmc.Bmc):
     def get_boot_device(self):
         """Return the currently configured boot device"""
         server = self.novaclient.servers.get(self.instance)
-        retval = 'network' if server.metadata.get('libvirt:pxe-first') else 'hd'
+        if server.metadata.get('libvirt:pxe-first'):
+            retval = 'network'
+        else:
+            retval = 'hd'
         self.log('Reporting boot device', retval)
         return retval
 
@@ -132,9 +139,13 @@ class OpenStackBmc(bmc.Bmc):
         """
         server = self.novaclient.servers.get(self.instance)
         if bootdevice == 'network':
-            self.novaclient.servers.set_meta_item(server, 'libvirt:pxe-first', '1')
+            self.novaclient.servers.set_meta_item(
+                server, 'libvirt:pxe-first', '1'
+            )
         else:
-            self.novaclient.servers.set_meta_item(server, 'libvirt:pxe-first', '')
+            self.novaclient.servers.set_meta_item(
+                server, 'libvirt:pxe-first', ''
+            )
         self.log('Set boot device to', bootdevice)
 
     def cold_reset(self):
@@ -146,7 +157,7 @@ class OpenStackBmc(bmc.Bmc):
         if (self.cached_status is None or
                 self.cached_status != self.target_status or
                 not self.cache_status):
-            self.cached_status = self.novaclient.servers.get(self.instance).status
+            self.cached_status = self.novaclient.servers.get(self.instance).status  # noqa: E501
         return self.cached_status == 'ACTIVE'
 
     def get_power_state(self):
@@ -221,7 +232,8 @@ def main():
     parser.add_argument('--instance',
                         dest='instance',
                         required=True,
-                        help='The uuid or name of the OpenStack instance to manage')
+                        help='The uuid or name of the OpenStack instance '
+                        'to manage')
     parser.add_argument('--os-user',
                         dest='user',
                         required=False,

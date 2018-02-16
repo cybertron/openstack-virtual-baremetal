@@ -12,56 +12,63 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
+from __future__ import print_function
 
 import argparse
-import os
-import random
 import sys
 import time
 import yaml
 
-from heatclient import client as heat_client
+
 from heatclient.common import template_utils
 import os_client_config
 
 import auth
 
+
 def _parse_args():
     parser = argparse.ArgumentParser(description='Deploy an OVB environment')
-    parser.add_argument('--env', '-e',
-                        help='Path to Heat environment file describing the OVB '
-                             'environment to be deployed. Default: %(default)s',
-                        action='append',
-                        default=[])
-    parser.add_argument('--id',
-                        help='Identifier to add to all resource names. The '
-                             'resulting names will look like undercloud-ID or '
-                             'baremetal-ID. By default no changes will be made to '
-                             'the resource names. If an id is specified, a new '
-                             'environment file will be written to env-ID.yaml. ')
-    parser.add_argument('--name',
-                        help='Name for the Heat stack to be created. Defaults '
-                             'to "baremetal" in a standard deployment. If '
-                             '--quintupleo is specified then the default is '
-                             '"quintupleo".')
-    parser.add_argument('--quintupleo',
-                        help='Deploy a full environment suitable for TripleO '
-                             'development.',
-                        action='store_true',
-                        default=False)
-    parser.add_argument('--role',
-                        help='Additional environment file describing a '
-                             'secondary role to be deployed alongside the '
-                             'primary one described in the main environment.',
-                        action='append',
-                        default=[])
-    parser.add_argument('--poll',
-                        help='Poll until the Heat stack(s) are complete. '
-                             'Automatically enabled when multiple roles are '
-                             'deployed.',
-                        action='store_true',
-                        default=False)
+    parser.add_argument(
+        '--env', '-e',
+        help='Path to Heat environment file describing the OVB '
+             'environment to be deployed. Default: %(default)s',
+        action='append',
+        default=[])
+    parser.add_argument(
+        '--id',
+        help='Identifier to add to all resource names. The '
+             'resulting names will look like undercloud-ID or '
+             'baremetal-ID. By default no changes will be made to '
+             'the resource names. If an id is specified, a new '
+             'environment file will be written to env-ID.yaml. ')
+    parser.add_argument(
+        '--name',
+        help='Name for the Heat stack to be created. Defaults '
+             'to "baremetal" in a standard deployment. If '
+             '--quintupleo is specified then the default is '
+             '"quintupleo".')
+    parser.add_argument(
+        '--quintupleo',
+        help='Deploy a full environment suitable for TripleO '
+             'development.',
+        action='store_true',
+        default=False)
+    parser.add_argument(
+        '--role',
+        help='Additional environment file describing a '
+             'secondary role to be deployed alongside the '
+             'primary one described in the main environment.',
+        action='append',
+        default=[])
+    parser.add_argument(
+        '--poll',
+        help='Poll until the Heat stack(s) are complete. '
+             'Automatically enabled when multiple roles are '
+             'deployed.',
+        action='store_true',
+        default=False)
     return parser.parse_args()
+
 
 def _process_args(args):
     if args.id:
@@ -92,6 +99,7 @@ def _process_args(args):
     else:
         stack_template = 'templates/quintupleo.yaml'
     return stack_name, stack_template
+
 
 def _add_identifier(env_data, name, identifier, default=None):
     # We require both sections for id environments
@@ -131,16 +139,23 @@ def _build_env_data(env_paths):
         env_paths)
     return env_data
 
+
 def _generate_id_env(args):
     env_data = _build_env_data(args.env)
     _add_identifier(env_data, 'provision_net', args.id, default='provision')
     _add_identifier(env_data, 'public_net', args.id, default='public')
-    _add_identifier(env_data, 'baremetal_prefix', args.id, default='baremetal')
+    _add_identifier(env_data,
+                    'baremetal_prefix',
+                    args.id,
+                    default='baremetal')
     role = env_data['parameter_defaults'].get('role')
     if role:
         _add_identifier(env_data, 'baremetal_prefix', role)
     _add_identifier(env_data, 'bmc_prefix', args.id, default='bmc')
-    _add_identifier(env_data, 'undercloud_name', args.id, default='undercloud')
+    _add_identifier(env_data,
+                    'undercloud_name',
+                    args.id,
+                    default='undercloud')
     _add_identifier(env_data, 'overcloud_internal_net', args.id,
                     default='internal')
     _add_identifier(env_data, 'overcloud_storage_net', args.id,
@@ -158,6 +173,7 @@ def _generate_id_env(args):
         yaml.safe_dump(env_data, f, default_flow_style=False)
     return args.env + [env_path]
 
+
 def _validate_env(args, env_paths):
     """Check for invalid environment configurations
 
@@ -173,12 +189,14 @@ def _validate_env(args, env_paths):
             prefix = env_data['parameter_defaults']['baremetal_prefix']
         if role and prefix.endswith('-' + role):
             raise RuntimeError('baremetal_prefix ends with role name.  This '
-                               'will break build-nodes-json.  Please choose a '
-                               'different baremetal_prefix or role name.')
+                               'will break build-nodes-json.  Please choose '
+                               'a different baremetal_prefix or role name.')
+
 
 def _get_heat_client():
     return os_client_config.make_client('orchestration',
                                         cloud=auth.OS_CLOUD)
+
 
 def _deploy(stack_name, stack_template, env_paths, poll):
     hclient = _get_heat_client()
@@ -198,16 +216,17 @@ def _deploy(stack_name, stack_template, env_paths, poll):
                           files=all_files,
                           parameters=parameters)
 
-    print 'Deployment of stack "%s" started.' % stack_name
+    print('Deployment of stack "%s" started.' % stack_name)
     if poll:
         _poll_stack(stack_name, hclient)
 
-def _poll_stack(stack_name,  hclient):
+
+def _poll_stack(stack_name, hclient):
     """Poll status for stack_name until it completes or fails"""
-    print 'Waiting for stack to complete',
+    print('Waiting for stack to complete', end="")
     done = False
     while not done:
-        print '.',
+        print('.', end="")
         # By the time we get here we know Heat was up at one point because
         # we were able to start the stack create.  Therefore, we can
         # reasonably guess that any errors from this call are going to be
@@ -217,18 +236,19 @@ def _poll_stack(stack_name,  hclient):
         except Exception as e:
             # Print the error so the user can determine whether they need
             # to cancel the deployment, but keep trying otherwise.
-            print 'WARNING: Exception occurred while polling stack: %s' % e
+            print('WARNING: Exception occurred while polling stack: %s' % e)
             time.sleep(10)
             continue
         sys.stdout.flush()
         if stack.status == 'COMPLETE':
-            print 'Stack %s created successfully' % stack_name
+            print('Stack %s created successfully' % stack_name)
             done = True
         elif stack.status == 'FAILED':
-            print stack.to_dict().get('stack_status_reason')
+            print(stack.to_dict().get('stack_status_reason'))
             raise RuntimeError('Failed to create stack %s' % stack_name)
         else:
             time.sleep(10)
+
 
 # Abstract out the role file interactions for easier unit testing
 def _load_role_data(base_envs, role_file, args):
@@ -238,9 +258,11 @@ def _load_role_data(base_envs, role_file, args):
     orig_data = _build_env_data(args.env)
     return base_data, role_data, orig_data
 
+
 def _write_role_file(role_env, role_file):
     with open(role_file, 'w') as f:
         yaml.safe_dump(role_env, f, default_flow_style=False)
+
 
 def _process_role(role_file, base_envs, stack_name, args):
     """Merge a partial role env with the base env
@@ -260,7 +282,7 @@ def _process_role(role_file, base_envs, stack_name, args):
                       'os_password', 'os_tenant', 'os_user',
                       'private_net', 'provision_net', 'public_net',
                       'overcloud_internal_net', 'overcloud_storage_mgmt_net',
-                      'overcloud_storage_net','overcloud_tenant_net',
+                      'overcloud_storage_net', 'overcloud_tenant_net',
                       ]
     # Parameters that are inherited but can be overridden by the role
     allowed_parameter_keys = ['baremetal_image', 'bmc_flavor']
@@ -273,7 +295,7 @@ def _process_role(role_file, base_envs, stack_name, args):
             if k in inherited_keys and
             (k not in role_env.get(section, {}) or
              k not in allowed_parameter_keys)
-            })
+        })
     # Most of the resource_registry should not be included in role envs.
     # Only allow specific entries that may be needed.
     role_env.setdefault('resource_registry', {})
@@ -306,12 +328,14 @@ def _process_role(role_file, base_envs, stack_name, args):
     _write_role_file(role_env, role_file)
     return role_file, role
 
+
 def _deploy_roles(stack_name, args, env_paths):
     for r in args.role:
         role_env, role_name = _process_role(r, env_paths, stack_name, args)
         _deploy(stack_name + '-%s' % role_name,
                 'templates/virtual-baremetal.yaml',
                 [role_env], poll=True)
+
 
 if __name__ == '__main__':
     args = _parse_args()

@@ -14,10 +14,7 @@
 
 import json
 import os
-import sys
 
-from keystoneclient.v2_0 import client as keystone_client
-from keystoneclient.v3 import client as keystone_v3_client
 import os_client_config
 
 
@@ -60,6 +57,7 @@ def _create_auth_parameters():
             'os_user_domain': user_domain,
             'os_project_domain': project_domain,
             }
+
 
 def _cloud_json():
     """Return the current cloud's data in JSON

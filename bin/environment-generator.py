@@ -25,7 +25,6 @@ import errno
 import json
 import os
 import re
-import sys
 import yaml
 
 
@@ -38,7 +37,7 @@ _STATIC_MESSAGE_START = (
     '  # Static parameters - these are values that must be\n'
     '  # included in the environment but should not be changed.\n'
     '  # ******************************************************\n'
-    )
+)
 _STATIC_MESSAGE_END = ('  # *********************\n'
                        '  # End static parameters\n'
                        '  # *********************\n'
@@ -50,7 +49,7 @@ _FILE_HEADER = (
     '# Users are recommended to make changes to a copy of the file instead\n'
     '# of the original, if any customizations are needed.\n'
     '# *******************************************************************\n'
-    )
+)
 # Certain parameter names can't be changed, but shouldn't be shown because
 # they are never intended for direct user input.
 _PRIVATE_OVERRIDES = []
