@@ -98,12 +98,13 @@ class TestBuildNodesJson(testtools.TestCase):
         args = mock.Mock()
         args.env = 'foo.yaml'
         args.add_undercloud = False
-        mock_env = {'parameters':
-                        {'bmc_prefix': 'bmc-foo',
-                         'baremetal_prefix': 'baremetal-foo',
-                         'provision_net': 'provision-foo'
-                         },
-                    }
+        mock_env = {
+            'parameters': {
+                'bmc_prefix': 'bmc-foo',
+                'baremetal_prefix': 'baremetal-foo',
+                'provision_net': 'provision-foo'
+            },
+        }
         mock_load.return_value = mock_env
         bmc_base, baremetal_base, provision_net, undercloud_name = (
             build_nodes_json._get_names(args))
@@ -119,12 +120,13 @@ class TestBuildNodesJson(testtools.TestCase):
         args = mock.Mock()
         args.env = 'foo.yaml'
         args.add_undercloud = False
-        mock_env = {'parameter_defaults':
-                        {'bmc_prefix': 'bmc-foo',
-                         'baremetal_prefix': 'baremetal-foo',
-                         'provision_net': 'provision-foo'
-                         },
-                    }
+        mock_env = {
+            'parameter_defaults': {
+                'bmc_prefix': 'bmc-foo',
+                'baremetal_prefix': 'baremetal-foo',
+                'provision_net': 'provision-foo'
+            },
+        }
         mock_load.return_value = mock_env
         bmc_base, baremetal_base, provision_net, undercloud_name = (
             build_nodes_json._get_names(args))
@@ -140,13 +142,14 @@ class TestBuildNodesJson(testtools.TestCase):
         args = mock.Mock()
         args.env = 'foo.yaml'
         args.add_undercloud = False
-        mock_env = {'parameter_defaults':
-                        {'bmc_prefix': 'bmc',
-                         'baremetal_prefix': 'baremetal',
-                         'provision_net': 'provision',
-                         'role': 'foo',
-                         },
-                    }
+        mock_env = {
+            'parameter_defaults': {
+                'bmc_prefix': 'bmc',
+                'baremetal_prefix': 'baremetal',
+                'provision_net': 'provision',
+                'role': 'foo',
+            },
+        }
         mock_load.return_value = mock_env
         bmc_base, baremetal_base, provision_net, undercloud_name = (
             build_nodes_json._get_names(args))
@@ -162,13 +165,14 @@ class TestBuildNodesJson(testtools.TestCase):
         args = mock.Mock()
         args.env = 'foo.yaml'
         args.add_undercloud = False
-        mock_env = {'parameter_defaults':
-                        {'bmc_prefix': 'bmc-foo',
-                         'baremetal_prefix': 'baremetal-foo-bar',
-                         'provision_net': 'provision-foo',
-                         'role': 'bar',
-                         },
-                    }
+        mock_env = {
+            'parameter_defaults': {
+                'bmc_prefix': 'bmc-foo',
+                'baremetal_prefix': 'baremetal-foo-bar',
+                'provision_net': 'provision-foo',
+                'role': 'bar',
+            },
+        }
         mock_load.return_value = mock_env
         bmc_base, baremetal_base, provision_net, undercloud_name = (
             build_nodes_json._get_names(args))
@@ -195,17 +199,17 @@ class TestBuildNodesJson(testtools.TestCase):
                  mock.call('image', cloud=None)]
         self.assertEqual(calls, mock_make_client.mock_calls)
 
-
     def test_get_ports(self):
         neutron = mock.Mock()
-        fake_ports = {'ports':
-                          [{'name': 'random'},
-                           {'name': 'bmc_1'},
-                           {'name': 'bmc_0'},
-                           {'name': 'baremetal_1'},
-                           {'name': 'baremetal_0'},
-                           ]
-                          }
+        fake_ports = {
+            'ports': [
+                {'name': 'random'},
+                {'name': 'bmc_1'},
+                {'name': 'bmc_0'},
+                {'name': 'baremetal_1'},
+                {'name': 'baremetal_0'},
+            ]
+        }
         neutron.list_ports.return_value = fake_ports
         bmc_ports, bm_ports = build_nodes_json._get_ports(neutron, 'bmc',
                                                           'baremetal')
@@ -222,14 +226,15 @@ class TestBuildNodesJson(testtools.TestCase):
 
     def test_get_ports_multiple(self):
         neutron = mock.Mock()
-        fake_ports = {'ports':
-                          [{'name': 'random'},
-                           {'name': 'bmc-foo_0'},
-                           {'name': 'bmc-bar_0'},
-                           {'name': 'baremetal-foo_0'},
-                           {'name': 'baremetal-bar_0'},
-                           ]
-                          }
+        fake_ports = {
+            'ports': [
+                {'name': 'random'},
+                {'name': 'bmc-foo_0'},
+                {'name': 'bmc-bar_0'},
+                {'name': 'baremetal-foo_0'},
+                {'name': 'baremetal-bar_0'},
+            ]
+        }
         neutron.list_ports.return_value = fake_ports
         bmc_ports, bm_ports = build_nodes_json._get_ports(neutron, 'bmc-foo',
                                                           'baremetal-foo')
@@ -246,14 +251,14 @@ class TestBuildNodesJson(testtools.TestCase):
         servers[0].name = 'bm_0'
         servers[0].flavor = {'id': '1'}
         servers[0].addresses = {'provision': [{'OS-EXT-IPS-MAC:mac_addr':
-                                                   'aa:aa:aa:aa:aa:aa',
+                                               'aa:aa:aa:aa:aa:aa',
                                                'addr': '2.1.1.1'}]}
         servers[0].image = {'id': 'f00'}
         servers[0].id = '123abc'
         servers[1].name = 'bm_1'
         servers[1].flavor = {'id': '1'}
         servers[1].addresses = {'provision': [{'OS-EXT-IPS-MAC:mac_addr':
-                                                   'aa:aa:aa:aa:aa:ab',
+                                               'aa:aa:aa:aa:aa:ab',
                                                'addr': '2.1.1.2'}]}
         servers[1].image = {'id': 'f00'}
         servers[1].id = '456def'
@@ -274,7 +279,7 @@ class TestBuildNodesJson(testtools.TestCase):
         self._create_build_nodes_mocks(nova, servers)
         servers[1].image = None
         mock_to_dict = {'os-extended-volumes:volumes_attached':
-                            [{'id': 'v0lume'}]}
+                        [{'id': 'v0lume'}]}
         servers[1].to_dict.return_value = mock_to_dict
         mock_cinder = mock.Mock()
         mock_make_client.return_value = mock_cinder
@@ -284,7 +289,7 @@ class TestBuildNodesJson(testtools.TestCase):
         servers[2].name = 'undercloud'
         servers[2].flavor = {'id': '1'}
         servers[2].addresses = {'provision': [{'OS-EXT-IPS-MAC:mac_addr':
-                                                   'aa:aa:aa:aa:aa:ac'}]}
+                                              'aa:aa:aa:aa:aa:ac'}]}
         servers[2].image = {'id': 'f00'}
         nova.servers.list.return_value = [servers[2]]
         ips_return_val = 'ips call value'
@@ -305,10 +310,10 @@ class TestBuildNodesJson(testtools.TestCase):
                          bmc_bm_pairs)
         self.assertEqual(1, len(extra_nodes))
         self.assertEqual('undercloud', extra_nodes[0]['name'])
-        self.assertEqual('2.1.1.1',
-                         network_details['bm_0']['ips']['provision'][0]['addr'])
-        self.assertEqual('2.1.1.2',
-                         network_details['bm_1']['ips']['provision'][0]['addr'])
+        self.assertEqual(
+            '2.1.1.1', network_details['bm_0']['ips']['provision'][0]['addr'])
+        self.assertEqual(
+            '2.1.1.2', network_details['bm_1']['ips']['provision'][0]['addr'])
 
     @mock.patch('os_client_config.make_client')
     def test_build_nodes_with_driver(self, mock_make_client):
@@ -321,7 +326,7 @@ class TestBuildNodesJson(testtools.TestCase):
         self._create_build_nodes_mocks(nova, servers)
         servers[1].image = None
         mock_to_dict = {'os-extended-volumes:volumes_attached':
-                            [{'id': 'v0lume'}]}
+                        [{'id': 'v0lume'}]}
         servers[1].to_dict.return_value = mock_to_dict
         mock_cinder = mock.Mock()
         mock_make_client.return_value = mock_cinder
@@ -331,7 +336,7 @@ class TestBuildNodesJson(testtools.TestCase):
         servers[2].name = 'undercloud'
         servers[2].flavor = {'id': '1'}
         servers[2].addresses = {'provision': [{'OS-EXT-IPS-MAC:mac_addr':
-                                                   'aa:aa:aa:aa:aa:ac'}]}
+                                              'aa:aa:aa:aa:aa:ac'}]}
         servers[2].image = {'id': 'f00'}
         nova.servers.list.return_value = [servers[2]]
         ips_return_val = 'ips call value'
@@ -354,10 +359,10 @@ class TestBuildNodesJson(testtools.TestCase):
                          bmc_bm_pairs)
         self.assertEqual(1, len(extra_nodes))
         self.assertEqual('undercloud', extra_nodes[0]['name'])
-        self.assertEqual('2.1.1.1',
-                         network_details['bm_0']['ips']['provision'][0]['addr'])
-        self.assertEqual('2.1.1.2',
-                         network_details['bm_1']['ips']['provision'][0]['addr'])
+        self.assertEqual(
+            '2.1.1.1', network_details['bm_0']['ips']['provision'][0]['addr'])
+        self.assertEqual(
+            '2.1.1.2', network_details['bm_1']['ips']['provision'][0]['addr'])
 
     def test_build_nodes_role_uefi(self):
         bmc_ports = [{'fixed_ips': [{'ip_address': '1.1.1.1'}]},
@@ -449,9 +454,9 @@ class TestBuildNodesJson(testtools.TestCase):
                       mock_open.mock_calls)
         f = mock_open.return_value.__enter__.return_value
         f.write.assert_any_call(json.dumps({'nodes': [test_nodes[0]]},
-                                            indent=2))
+                                           indent=2))
         f.write.assert_any_call(json.dumps({'nodes': [test_nodes[1]]},
-                                            indent=2))
+                                           indent=2))
 
     @mock.patch('openstack_virtual_baremetal.build_nodes_json.open',
                 create=True)
@@ -519,4 +524,3 @@ class TestBuildNodesJson(testtools.TestCase):
                                                  network_details, args)
         mock_write_role_nodes.assert_called_once_with(nodes, args)
         mock_write_pairs.assert_called_once_with(pairs)
-

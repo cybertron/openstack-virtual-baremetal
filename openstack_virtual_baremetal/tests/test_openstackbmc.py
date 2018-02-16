@@ -22,6 +22,7 @@ import testtools
 
 from openstack_virtual_baremetal import openstackbmc
 
+
 @mock.patch('openstack_virtual_baremetal.openstackbmc.OpenStackBmc.'
             'log')
 @mock.patch('pyghmi.ipmi.bmc.Bmc.__init__')
@@ -120,6 +121,7 @@ class TestOpenStackBmcInitDeprecated(unittest.TestCase):
                                     ('foo-instance', 'abc-123'))],
                          mock_log.mock_calls)
 
+
 @mock.patch('openstack_virtual_baremetal.openstackbmc.OpenStackBmc.'
             'log')
 @mock.patch('pyghmi.ipmi.bmc.Bmc.__init__')
@@ -150,7 +152,8 @@ class TestOpenStackBmcInit(testtools.TestCase):
                                         os_cloud=None
                                         )
 
-        mock_make_client.assert_called_once_with('compute',
+        mock_make_client.assert_called_once_with(
+            'compute',
             os_auth_url='http://keystone:5000',
             os_password='password',
             os_project_domain='',
@@ -229,6 +232,7 @@ class TestOpenStackBmcInit(testtools.TestCase):
                      ]
         self.assertEqual(log_calls, mock_log.mock_calls)
 
+
 @mock.patch('openstack_virtual_baremetal.openstackbmc.OpenStackBmc.'
             '__init__', return_value=None)
 @mock.patch('openstack_virtual_baremetal.openstackbmc.OpenStackBmc.'
@@ -281,17 +285,16 @@ class TestOpenStackBmc(unittest.TestCase):
         mock_server = mock.Mock()
         self.mock_client.servers.get.side_effect = exceptions.NotFound('foo')
         self.mock_client.servers.list.return_value = [mock_server, mock_server]
-        instance = self.bmc._find_instance('abc-123')
+        self.bmc._find_instance('abc-123')
         mock_exit.assert_called_once_with(1)
 
     @mock.patch('sys.exit')
     def test_find_instance_not_found(self, mock_exit, mock_nova, mock_log,
                                      mock_init):
         self._create_bmc(mock_nova)
-        mock_server = mock.Mock()
         self.mock_client.servers.get.side_effect = exceptions.NotFound('foo')
         self.mock_client.servers.list.return_value = []
-        instance = self.bmc._find_instance('abc-123')
+        self.bmc._find_instance('abc-123')
         mock_exit.assert_called_once_with(1)
 
     def test_get_boot_device(self, mock_nova, mock_log, mock_init):

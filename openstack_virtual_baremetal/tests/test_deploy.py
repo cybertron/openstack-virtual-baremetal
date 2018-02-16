@@ -14,16 +14,14 @@
 # under the License.
 
 import copy
-import io
 import unittest
 import yaml
 
-import fixtures
 import mock
 import testtools
 
-from openstack_virtual_baremetal import auth
 from openstack_virtual_baremetal import deploy
+
 
 class TestProcessArgs(unittest.TestCase):
     def _basic_mock_args(self):
@@ -90,6 +88,7 @@ class TestProcessArgs(unittest.TestCase):
         mock_args.env = ['env-foo.yaml']
         self.assertRaises(ValueError, deploy._process_args, mock_args)
 
+
 test_env = u"""parameters:
   provision_net: provision
   public_net: public
@@ -111,7 +110,7 @@ test_env_output = {
     'overcloud_storage_net': 'storage-foo',
     'overcloud_storage_mgmt_net': 'storage_mgmt-foo',
     'overcloud_tenant_net': 'tenant-foo'
-    }
+}
 
 
 class TestIdEnv(unittest.TestCase):
@@ -189,6 +188,7 @@ class TestIdEnv(unittest.TestCase):
                 self.assertEqual(v, dumped_dict['parameters'][k])
             self.assertEqual(v, dumped_dict['parameter_defaults'][k])
 
+
 # _process_role test data
 role_base_data = {
     'parameter_defaults': {
@@ -197,7 +197,7 @@ role_base_data = {
         'overcloud_storage_net': 'storage-foo',
         'role': 'control',
         'overcloud_tenant_net': 'tenant-foo'
-        },
+    },
     'parameters': {
         'os_user': 'admin',
         'key_name': 'default',
@@ -218,17 +218,18 @@ role_base_data = {
         'undercloud_flavor': 'undercloud-16',
         'node_count': 3,
         'bmc_flavor': 'bmc'
-        },
+    },
     'resource_registry': {
         'OS::OVB::BaremetalNetworks': 'templates/baremetal-networks-all.yaml',
-        'OS::OVB::BaremetalPorts': 'templates/baremetal-ports-public-bond.yaml',
+        'OS::OVB::BaremetalPorts':
+            'templates/baremetal-ports-public-bond.yaml',
         'OS::OVB::BMCPort': 'templates/bmc-port-port-security.yaml'
-        }
     }
+}
 role_specific_data = {
     'parameter_defaults': {
         'role': 'compute',
-        },
+    },
     'parameters': {
         'key_name': 'default',
         'baremetal_flavor': 'baremetal',
@@ -236,17 +237,17 @@ role_specific_data = {
         'bmc_prefix': 'bmc',
         'node_count': 2,
         'bmc_flavor': 'bmc'
-        },
+    },
     'resource_registry': {
         'OS::OVB::BaremetalNetworks': 'templates/baremetal-networks-all.yaml',
         'OS::OVB::BaremetalPorts': 'templates/baremetal-ports-all.yaml'
-        }
     }
+}
 role_original_data = {
     'parameter_defaults': {
         'role': 'control',
         'baremetal_prefix': 'baremetal',
-        },
+    },
     'parameters': {
         'os_user': 'admin',
         'key_name': 'default',
@@ -266,14 +267,16 @@ role_original_data = {
         'undercloud_flavor': 'undercloud-16',
         'node_count': 3,
         'bmc_flavor': 'bmc'
-        },
+    },
     'resource_registry': {
         'OS::OVB::BaremetalNetworks': 'templates/baremetal-networks-all.yaml',
-        'OS::OVB::BaremetalPorts': 'templates/baremetal-ports-public-bond.yaml',
+        'OS::OVB::BaremetalPorts':
+            'templates/baremetal-ports-public-bond.yaml',
         'OS::OVB::BMCPort': 'templates/bmc-port-port-security.yaml'
-        }
     }
+}
 # end _process_role test data
+
 
 class TestDeploy(testtools.TestCase):
     def _test_deploy(self, mock_ghc, mock_tu, mock_poll, mock_cj, poll=False):
@@ -283,13 +286,13 @@ class TestDeploy(testtools.TestCase):
         template = {'foo': 'bar'}
         mock_tu.get_template_contents.return_value = (
             template_files, template
-            )
+        )
         env_files = {'templates/resource_registry.yaml': {'bar': 'baz'},
                      'env.yaml': {'parameters': {}}}
         env = {'parameters': {}}
         mock_tu.process_multiple_environments_and_files.return_value = (
             env_files, env
-            )
+        )
         all_files = {}
         all_files.update(template_files)
         all_files.update(env_files)
@@ -340,9 +343,11 @@ class TestDeploy(testtools.TestCase):
         stacks[1].status = 'COMPLETE'
         hclient.stacks.get.side_effect = stacks
         deploy._poll_stack('foo', hclient)
-        self.assertEqual([mock.call('foo', resolve_outputs=False),
-                          mock.call('foo', resolve_outputs=False)],
-                          hclient.stacks.get.mock_calls)
+        self.assertEqual(
+            [
+                mock.call('foo', resolve_outputs=False),
+                mock.call('foo', resolve_outputs=False)
+            ], hclient.stacks.get.mock_calls)
 
     @mock.patch('time.sleep')
     def test_poll_fail(self, mock_sleep):
@@ -352,9 +357,11 @@ class TestDeploy(testtools.TestCase):
         stacks[1].status = 'FAILED'
         hclient.stacks.get.side_effect = stacks
         self.assertRaises(RuntimeError, deploy._poll_stack, 'foo', hclient)
-        self.assertEqual([mock.call('foo', resolve_outputs=False),
-                          mock.call('foo', resolve_outputs=False)],
-                          hclient.stacks.get.mock_calls)
+        self.assertEqual(
+            [
+                mock.call('foo', resolve_outputs=False),
+                mock.call('foo', resolve_outputs=False)
+            ], hclient.stacks.get.mock_calls)
 
     @mock.patch('time.sleep')
     def test_poll_retry(self, mock_sleep):
@@ -364,10 +371,12 @@ class TestDeploy(testtools.TestCase):
         stacks[2].status = 'COMPLETE'
         hclient.stacks.get.side_effect = stacks
         deploy._poll_stack('foo', hclient)
-        self.assertEqual([mock.call('foo', resolve_outputs=False),
-                          mock.call('foo', resolve_outputs=False),
-                          mock.call('foo', resolve_outputs=False)],
-                          hclient.stacks.get.mock_calls)
+        self.assertEqual(
+            [
+                mock.call('foo', resolve_outputs=False),
+                mock.call('foo', resolve_outputs=False),
+                mock.call('foo', resolve_outputs=False)
+            ], hclient.stacks.get.mock_calls)
 
     @mock.patch('openstack_virtual_baremetal.deploy._write_role_file')
     @mock.patch('openstack_virtual_baremetal.deploy._load_role_data')
@@ -395,8 +404,9 @@ class TestDeploy(testtools.TestCase):
         self.assertNotIn('OS::OVB::BaremetalNetworks',
                          output['resource_registry'])
         # This should be the value set in the role env, not the base one
-        self.assertEqual('templates/baremetal-ports-all.yaml',
-                         output['resource_registry']['OS::OVB::BaremetalPorts'])
+        self.assertEqual(
+            'templates/baremetal-ports-all.yaml',
+            output['resource_registry']['OS::OVB::BaremetalPorts'])
         # This should be inherited from the base env
         self.assertEqual('templates/bmc-port-port-security.yaml',
                          output['resource_registry']['OS::OVB::BMCPort'])

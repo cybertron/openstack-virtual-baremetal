@@ -140,6 +140,7 @@ class TestCreateAuthParameters(testtools.TestCase):
                     }
         self.assertEqual(expected, result)
 
+
 class TestCloudJSON(testtools.TestCase):
     @mock.patch('openstack_virtual_baremetal.auth.OS_CLOUD', 'foo')
     @mock.patch('os_client_config.OpenStackConfig')
