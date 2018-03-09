@@ -29,8 +29,10 @@ function have_packages() {
 }
 
 if ! have_packages; then
-    yum -y update centos-release # required for rdo-release install to work
-    yum install -y https://rdo.fedorapeople.org/rdo-release.rpm
+    yum install -y wget
+    wget -r --no-parent -nd -e robots=off -l 1 -A 'python2-tripleo-repos-*' https://trunk.rdoproject.org/centos7/current/
+    yum install -y python2-tripleo-repos-*
+    tripleo-repos current-tripleo
     yum install -y $required_packages python-crypto python2-novaclient python2-neutronclient
     pip install pyghmi
 fi
