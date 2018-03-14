@@ -19,7 +19,6 @@ import sys
 import time
 import yaml
 
-
 from heatclient.common import template_utils
 import os_client_config
 
