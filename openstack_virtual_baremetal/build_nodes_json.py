@@ -16,12 +16,9 @@
 import argparse
 import json
 import os
-import sys
 import yaml
 
 import os_client_config
-
-import auth
 
 
 def _parse_args():
@@ -93,7 +90,7 @@ def _get_names(args):
         role = e.get('parameter_defaults', {}).get('role')
         if role and baremetal_base.endswith('-' + role):
             baremetal_base = baremetal_base[:-len(role) - 1]
-        undercloud_name = e.get('parameter_defaults', {}).get('undercloud_name')
+        undercloud_name = e.get('parameter_defaults', {}).get('undercloud_name')  # noqa: E501
     return bmc_base, baremetal_base, provision_net, undercloud_name
 
 
@@ -146,9 +143,12 @@ def _build_nodes(nova, glance, bmc_ports, bm_ports, provision_net,
         node = dict(node_template)
         node['pm_addr'] = bmc_port['fixed_ips'][0]['ip_address']
         bmc_bm_pairs.append((node['pm_addr'], baremetal.name))
-        node['mac'] = [baremetal.addresses[provision_net][0]['OS-EXT-IPS-MAC:mac_addr']]
+        node['mac'] = [
+            baremetal.addresses[provision_net][0]['OS-EXT-IPS-MAC:mac_addr']
+        ]
         if not cache.get(baremetal.flavor['id']):
-            cache[baremetal.flavor['id']] = nova.flavors.get(baremetal.flavor['id'])
+            cache[baremetal.flavor['id']] = nova.flavors.get(
+                baremetal.flavor['id'])
         flavor = cache.get(baremetal.flavor['id'])
         node['cpu'] = flavor.vcpus
         node['memory'] = flavor.ram
@@ -163,7 +163,8 @@ def _build_nodes(nova, glance, bmc_ports, bm_ports, provision_net,
         # the instance so we can't do this.
         if baremetal.image:
             if not cache.get(baremetal.image['id']):
-                cache[baremetal.image['id']] = glance.images.get(baremetal.image['id'])
+                cache[baremetal.image['id']] = glance.images.get(
+                    baremetal.image['id'])
             image = cache.get(baremetal.image['id'])
             if image.get('hw_firmware_type') == 'uefi':
                 node['capabilities'] += ",boot_mode:uefi"
@@ -172,7 +173,8 @@ def _build_nodes(nova, glance, bmc_ports, bm_ports, provision_net,
             # need to look up the volume disk size.
             cloud = os.environ.get('OS_CLOUD')
             cinder = os_client_config.make_client('volume', cloud=cloud)
-            vol_id = baremetal.to_dict()['os-extended-volumes:volumes_attached'][0]['id']
+            vol_id = baremetal.to_dict()[
+                'os-extended-volumes:volumes_attached'][0]['id']
             volume = cinder.volumes.get(vol_id)
             node['disk'] = volume.size
 
@@ -195,17 +197,18 @@ def _build_nodes(nova, glance, bmc_ports, bm_ports, provision_net,
             undercloud_instance = nova.servers.list(
                 search_opts={'name': undercloud_name})[0]
         except IndexError:
-            print ('Undercloud %s specified in the environment file is not '
-                   'available in nova. No undercloud details will be '
-                   'included in the output.' % undercloud_name)
+            print('Undercloud %s specified in the environment file is not '
+                  'available in nova. No undercloud details will be '
+                  'included in the output.' % undercloud_name)
         else:
             undercloud_node_template['id'] = undercloud_instance.id
-            undercloud_node_template['ips'] = nova.servers.ips(undercloud_instance)
+            undercloud_node_template['ips'] = nova.servers.ips(
+                undercloud_instance)
 
             extra_nodes.append(undercloud_node_template)
-            network_details[undercloud_name] = {}
-            network_details[undercloud_name]['id'] = undercloud_instance.id
-            network_details[undercloud_name]['ips'] = undercloud_instance.addresses
+            network_details[undercloud_name] = dict(
+                id=undercloud_instance.id,
+                ips=undercloud_instance.addresses)
     return nodes, bmc_bm_pairs, extra_nodes, network_details
 
 
