@@ -1,0 +1,13 @@
+IPXE images and tools
+---------------------
+
+This directory contains IPXE images and tools for building those images.
+If you are an OVB user you are probably most interested in the pre-built
+images, ipxe-boot.qcow2 and ipxe-boot-41.qcow2.  The former is a minimal
+version of an image that only contains the necessary bits to PXE boot a
+cloud instance.  The latter image is the same, except its virtual size has
+been changed to 41 GB so it can be used as the base image for instances whose
+flavor bases the instance root disk size on the image size.
+
+There is also a diskimage-builder element and a makefile that can be used to
+rebuild the ipxe-boot.qcow2 image.  Simply run ``make`` to build the image.
