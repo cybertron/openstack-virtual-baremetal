@@ -200,7 +200,7 @@ class OpenStackBmc(bmc.Bmc):
 
     def power_reset(self):
         """Not implemented"""
-        pass
+        print('WARNING: Received request for unimplemented action power_reset')
 
     def power_shutdown(self):
         """Stop the managed instance"""
