@@ -205,7 +205,7 @@ class OpenStackBmc(bmc.Bmc):
     def power_shutdown(self):
         """Stop the managed instance"""
         # should attempt a clean shutdown
-        self.target_status = 'ACTIVE'
+        self.target_status = 'SHUTOFF'
         self.novaclient.servers.stop(self.instance)
         self.log('Politely shut down %s' % self.instance)
 
