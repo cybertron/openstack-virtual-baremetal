@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Usage: start-env <ID>
+# Example: start-env test
+# This will start the undercloud-test and bmc-test instances
+
+nova start bmc-$1 undercloud-$1

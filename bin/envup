@@ -1,7 +1,1 @@
-#!/bin/bash
-
-# Usage: envup <ID>
-# Example: envup test
-# This will start the undercloud-test and bmc-test instances
-
-nova start bmc-$1 undercloud-$1
+start-env

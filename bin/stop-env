@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Usage: stop-env <ID>
+# Example: stop-env test
+# This will stop the undercloud and bmc, as well as up to 5 baremetal instances
+
+# TODO: Make this smarter so it will handle an arbitrary number of baremetal instances
+nova stop undercloud-$1 bmc-$1 baremetal-$1_0 baremetal-$1_1 baremetal-$1_2 baremetal-$1_3 baremetal-$1_4
