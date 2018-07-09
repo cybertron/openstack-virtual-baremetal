@@ -1,0 +1,415 @@
+heat_template_version: 2014-10-16
+
+description: >
+  Template which creates all networks required for full network isloation with
+  routed networks.
+
+parameters:
+
+  router_port_security_enabled:
+    type: boolean
+    default: False
+    description: Wheater port security should be enabled no router ports
+
+  #----------------------------------------------------------------------------
+  # Internal API Networks
+  #----------------------------------------------------------------------------
+  overcloud_internal_net_leaf1:
+    type: string
+    description: Name of internal API network - leaf1
+    default: overcloud_internal_leaf1
+  overcloud_internal_net_cidr_leaf1:
+    type: string
+    description: |
+      CIDR for internal API network leaf1 subnet.  This is typically irrelevant
+      and does not need to be changed.
+    default: 172.20.1.64/26
+  overcloud_internal_net_router_ipaddr_leaf1:
+    type: string
+    description: Internal API network router ip address - leaf1
+    default: 172.20.1.126
+
+  overcloud_internal_net_leaf2:
+    type: string
+    description: Name of internal API network - leaf2
+    default: overcloud_internal_leaf2
+  overcloud_internal_net_cidr_leaf2:
+    type: string
+    description: |
+      CIDR for internal API network leaf2 subnet.  This is typically irrelevant
+      and does not need to be changed.
+    default: 172.20.1.128/26
+  overcloud_internal_net_router_ipaddr_leaf2:
+    type: string
+    description: Internal API network router ip address - leaf2
+    default: 172.20.1.190
+
+  #----------------------------------------------------------------------------
+  # Storage Networks
+  #----------------------------------------------------------------------------
+  overcloud_storage_net_leaf1:
+    type: string
+    description: Name of storage network - leaf1
+    default: overcloud_storage_leaf1
+  overcloud_storage_net_cidr_leaf1:
+    type: string
+    description: |
+      CIDR for storage network leaf1 subnet.  This is typically irrelevant and
+      does not need to be changed.
+    default: 172.20.2.64/26
+  overcloud_storage_net_router_ipaddr_leaf1:
+    type: string
+    description: Storage network router ip address - leaf2
+    default: 172.20.2.126
+
+  overcloud_storage_net_leaf2:
+    type: string
+    description: Name of storage network - leaf2
+    default: overcloud_storage_leaf2
+  overcloud_storage_net_cidr_leaf2:
+    type: string
+    description: |
+      CIDR for storage network leaf2 subnet.  This is typically irrelevant and
+      does not need to be changed.
+    default: 172.20.2.128/26
+  overcloud_storage_net_router_ipaddr_leaf2:
+    type: string
+    description: Storage network router ip address - leaf2
+    default: 172.20.2.190
+
+  #----------------------------------------------------------------------------
+  # Storage Management Networks
+  #----------------------------------------------------------------------------
+  overcloud_storage_mgmt_net_leaf1:
+    type: string
+    description: Name of storage management network - leaf1
+    default: overcloud_storage_mgmt_leaf1
+  overcloud_storage_mgmt_net_cidr_leaf1:
+    type: string
+    description: |
+      CIDR for storage management network leaf1 subnet.  This is typically
+      irrelevant and does not need to be changed.
+    default: 172.20.3.64/26
+  overcloud_storage_mgmt_net_router_ipaddr_leaf1:
+    type: string
+    description: Storage management network router ip address - leaf1
+    default: 172.20.3.126
+
+  overcloud_storage_mgmt_net_leaf2:
+    type: string
+    description: Name of storage management network - leaf2
+    default: overcloud_storage_mgmt_leaf2
+  overcloud_storage_mgmt_net_cidr_leaf2:
+    type: string
+    description: |
+      CIDR for storage management network leaf2 subnet.  This is typically
+      irrelevant and does not need to be changed.
+    default: 172.20.3.128/26
+  overcloud_storage_mgmt_net_router_ipaddr_leaf2:
+    type: string
+    description: Storage management network router ip address - leaf2
+    default: 172.20.3.190
+
+  #----------------------------------------------------------------------------
+  # Tenant Networks
+  #----------------------------------------------------------------------------
+
+  overcloud_tenant_net_leaf1:
+    type: string
+    description: Name of tenant network - leaf1
+    default: overcloud_tenant_leaf1
+  overcloud_tenant_net_cidr_leaf1:
+    type: string
+    description: |
+      CIDR for tenant network leaf1 subnet.  This is typically irrelevant and
+      does not need to be changed.
+    default: 172.20.4.64/26
+  overcloud_tenant_net_router_ipaddr_leaf1:
+    type: string
+    description: Tenant network router ip address - leaf1
+    default: 172.20.4.126
+
+  overcloud_tenant_net_leaf2:
+    type: string
+    description: Name of tenant network - leaf2
+    default: overcloud_tenant_leaf2
+  overcloud_tenant_net_cidr_leaf2:
+    type: string
+    description: |
+      CIDR for tenant network leaf2 subnet.  This is typically irrelevant and
+      does not need to be changed.
+    default: 172.20.4.128/26
+  overcloud_tenant_net_router_ipaddr_leaf2:
+    type: string
+    description: Tenant network router ip address - leaf2
+    default: 172.20.4.190
+
+resources:
+
+  #----------------------------------------------------------------------------
+  # Internal API Networks
+  #----------------------------------------------------------------------------
+  internal_network_leaf1:
+    type: OS::Neutron::Net
+    properties:
+      name: {get_param: overcloud_internal_net_leaf1}
+  internal_subnet_leaf1:
+    type: OS::Neutron::Subnet
+    properties:
+      network: {get_resource: internal_network_leaf1}
+      name: {get_param: overcloud_internal_net_leaf1}
+      cidr: {get_param: overcloud_internal_net_cidr_leaf1}
+      gateway_ip: null
+      enable_dhcp: false
+  internal_router_port_leaf1:
+    type: OS::Neutron::Port
+    properties:
+      network: {get_resource: internal_network_leaf1}
+      fixed_ips:
+        - ip_address: {get_param: overcloud_internal_net_router_ipaddr_leaf1}
+      port_security_enabled: {get_param: router_port_security_enabled}
+
+  internal_network_leaf2:
+    type: OS::Neutron::Net
+    properties:
+      name: {get_param: overcloud_internal_net_leaf2}
+  internal_subnet_leaf2:
+    type: OS::Neutron::Subnet
+    properties:
+      network: {get_resource: internal_network_leaf2}
+      name: {get_param: overcloud_internal_net_leaf2}
+      cidr: {get_param: overcloud_internal_net_cidr_leaf2}
+      gateway_ip: null
+      enable_dhcp: false
+  internal_router_port_leaf2:
+    type: OS::Neutron::Port
+    properties:
+      network: {get_resource: internal_network_leaf2}
+      fixed_ips:
+        - ip_address: {get_param: overcloud_internal_net_router_ipaddr_leaf2}
+      port_security_enabled: {get_param: router_port_security_enabled}
+
+  internal_router:
+    type: OS::Neutron::Router
+
+  internal_router_leaf1:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: {get_resource: internal_router}
+      port: {get_resource: internal_router_port_leaf1}
+
+  internal_router_leaf2:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: {get_resource: internal_router}
+      port: {get_resource: internal_router_port_leaf2}
+
+  #----------------------------------------------------------------------------
+  # Storage Networks
+  #----------------------------------------------------------------------------
+  storage_network_leaf1:
+    type: OS::Neutron::Net
+    properties:
+      name: {get_param: overcloud_storage_net_leaf1}
+  storage_subnet_leaf1:
+    type: OS::Neutron::Subnet
+    properties:
+      network: {get_resource: storage_network_leaf1}
+      name: {get_param: overcloud_storage_net_leaf1}
+      cidr: {get_param: overcloud_storage_net_cidr_leaf1}
+      gateway_ip: null
+      enable_dhcp: false
+  storage_router_port_leaf1:
+    type: OS::Neutron::Port
+    properties:
+      network: {get_resource: storage_network_leaf1}
+      fixed_ips:
+        - ip_address: {get_param: overcloud_storage_net_router_ipaddr_leaf1}
+      port_security_enabled: {get_param: router_port_security_enabled}
+
+  storage_network_leaf2:
+    type: OS::Neutron::Net
+    properties:
+      name: {get_param: overcloud_storage_net_leaf2}
+  storage_subnet_leaf2:
+    type: OS::Neutron::Subnet
+    properties:
+      network: {get_resource: storage_network_leaf2}
+      name: {get_param: overcloud_storage_net_leaf2}
+      cidr: {get_param: overcloud_storage_net_cidr_leaf2}
+      gateway_ip: null
+      enable_dhcp: false
+  storage_router_port_leaf2:
+    type: OS::Neutron::Port
+    properties:
+      network: {get_resource: storage_network_leaf2}
+      fixed_ips:
+        - ip_address: {get_param: overcloud_storage_net_router_ipaddr_leaf2}
+      port_security_enabled: {get_param: router_port_security_enabled}
+
+  storage_router:
+    type: OS::Neutron::Router
+
+  storage_router_leaf1:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: {get_resource: storage_router}
+      port: {get_resource: storage_router_port_leaf1}
+
+  storage_router_leaf2:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: {get_resource: storage_router}
+      port: {get_resource: storage_router_port_leaf2}
+
+  #----------------------------------------------------------------------------
+  # Storage Management Networks
+  #----------------------------------------------------------------------------
+  storage_mgmt_network_leaf1:
+    type: OS::Neutron::Net
+    properties:
+      name: {get_param: overcloud_storage_mgmt_net_leaf1}
+  storage_mgmt_subnet_leaf1:
+    type: OS::Neutron::Subnet
+    properties:
+      network: {get_resource: storage_mgmt_network_leaf1}
+      name: {get_param: overcloud_storage_mgmt_net_leaf1}
+      cidr: {get_param: overcloud_storage_mgmt_net_cidr_leaf1}
+      gateway_ip: null
+      enable_dhcp: false
+  storage_mgmt_router_port_leaf1:
+    type: OS::Neutron::Port
+    properties:
+      network: {get_resource: storage_mgmt_network_leaf1}
+      fixed_ips:
+        - ip_address: {get_param: overcloud_storage_mgmt_net_router_ipaddr_leaf1}
+      port_security_enabled: {get_param: router_port_security_enabled}
+
+  storage_mgmt_network_leaf2:
+    type: OS::Neutron::Net
+    properties:
+      name: {get_param: overcloud_storage_mgmt_net_leaf2}
+  storage_mgmt_subnet_leaf2:
+    type: OS::Neutron::Subnet
+    properties:
+      network: {get_resource: storage_mgmt_network_leaf2}
+      name: {get_param: overcloud_storage_mgmt_net_leaf2}
+      cidr: {get_param: overcloud_storage_mgmt_net_cidr_leaf2}
+      gateway_ip: null
+      enable_dhcp: false
+  storage_mgmt_router_port_leaf2:
+    type: OS::Neutron::Port
+    properties:
+      network: {get_resource: storage_mgmt_network_leaf2}
+      fixed_ips:
+        - ip_address: {get_param: overcloud_storage_mgmt_net_router_ipaddr_leaf2}
+      port_security_enabled: {get_param: router_port_security_enabled}
+
+  storage_mgmt_router:
+    type: OS::Neutron::Router
+
+  storage_mgmt_router_leaf1:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: {get_resource: storage_mgmt_router}
+      port: {get_resource: storage_mgmt_router_port_leaf1}
+
+  storage_mgmt_router_leaf2:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: {get_resource: storage_mgmt_router}
+      port: {get_resource: storage_mgmt_router_port_leaf2}
+
+  #----------------------------------------------------------------------------
+  # Tenant Networks
+  #----------------------------------------------------------------------------
+  tenant_network_leaf1:
+    type: OS::Neutron::Net
+    properties:
+      name: {get_param: overcloud_tenant_net_leaf1}
+  tenant_subnet_leaf1:
+    type: OS::Neutron::Subnet
+    properties:
+      network: {get_resource: tenant_network_leaf1}
+      name: {get_param: overcloud_tenant_net_leaf1}
+      cidr: {get_param: overcloud_tenant_net_cidr_leaf1}
+      gateway_ip: null
+      enable_dhcp: false
+  tenant_router_port_leaf1:
+    type: OS::Neutron::Port
+    properties:
+      network: {get_resource: tenant_network_leaf1}
+      fixed_ips:
+        - ip_address: {get_param: overcloud_tenant_net_router_ipaddr_leaf1}
+      port_security_enabled: {get_param: router_port_security_enabled}
+
+  tenant_network_leaf2:
+    type: OS::Neutron::Net
+    properties:
+      name: {get_param: overcloud_tenant_net_leaf2}
+  tenant_subnet_leaf2:
+    type: OS::Neutron::Subnet
+    properties:
+      network: {get_resource: tenant_network_leaf2}
+      name: {get_param: overcloud_tenant_net_leaf2}
+      cidr: {get_param: overcloud_tenant_net_cidr_leaf2}
+      gateway_ip: null
+      enable_dhcp: false
+  tenant_router_port_leaf2:
+    type: OS::Neutron::Port
+    properties:
+      network: {get_resource: tenant_network_leaf2}
+      fixed_ips:
+        - ip_address: {get_param: overcloud_tenant_net_router_ipaddr_leaf2}
+      port_security_enabled: {get_param: router_port_security_enabled}
+
+  tenant_router:
+    type: OS::Neutron::Router
+
+  tenant_router_leaf1:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: {get_resource: tenant_router}
+      port: {get_resource: tenant_router_port_leaf1}
+
+  tenant_router_leaf2:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: {get_resource: tenant_router}
+      port: {get_resource: tenant_router_port_leaf2}
+
+outputs:
+  networks:
+    value:
+      internal_net_leaf1: {get_resource: internal_network_leaf1}
+      internal_net_leaf2: {get_resource: internal_network_leaf2}
+
+      storage_net_leaf1: {get_resource: storage_network_leaf1}
+      storage_net_leaf2: {get_resource: storage_network_leaf2}
+
+      storage_mgmt_net_leaf1: {get_resource: storage_mgmt_network_leaf1}
+      storage_mgmt_net_leaf2: {get_resource: storage_mgmt_network_leaf2}
+
+      tenant_net_leaf1: {get_resource: tenant_network_leaf1}
+      tenant_net_leaf2: {get_resource: tenant_network_leaf2}
+  router_ips:
+    value:
+      internal_net_leaf1:
+        get_attr: [internal_router_port_leaf1, fixed_ips, 0, ip_address]
+      internal_net_leaf2:
+        get_attr: [internal_router_port_leaf2, fixed_ips, 0, ip_address]
+
+      storage_net_leaf1:
+        get_attr: [storage_router_port_leaf1, fixed_ips, 0, ip_address]
+      storage_net_leaf2:
+        get_attr: [storage_router_port_leaf2, fixed_ips, 0, ip_address]
+
+      storage_mgmt_net_leaf1:
+        get_attr: [storage_mgmt_router_port_leaf1, fixed_ips, 0, ip_address]
+      storage_mgmt_net_leaf2:
+        get_attr: [storage_mgmt_router_port_leaf2, fixed_ips, 0, ip_address]
+
+      tanant_net_leaf1:
+        get_attr: [tenant_router_port_leaf1, fixed_ips, 0, ip_address]
+      tanant_net_leaf2:
+        get_attr: [tenant_router_port_leaf2, fixed_ips, 0, ip_address]

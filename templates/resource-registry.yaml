@@ -1,10 +1,12 @@
 resource_registry:
+  OS::OVB::DhcpRelay: dhcp-relay.yaml
   OS::OVB::ServerPair: virtual-baremetal-servers.yaml
   OS::OVB::BaremetalEnvironment: virtual-baremetal.yaml
   OS::OVB::UndercloudEnvironment: undercloud.yaml
   OS::OVB::UndercloudFloating: undercloud-floating.yaml
   OS::OVB::PrivateNetwork: private-net-existing.yaml
   OS::OVB::BaremetalNetworks: baremetal-networks-none.yaml
+  OS::OVB::BaremetalNetworksRouted: baremetal-networks-routed.yaml
   OS::OVB::BaremetalPorts: baremetal-ports-default.yaml
   OS::OVB::BMCPort: bmc-port.yaml
   OS::OVB::UndercloudPorts: undercloud-ports.yaml

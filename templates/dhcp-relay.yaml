@@ -1,0 +1,203 @@
+heat_template_version: 2016-10-14
+
+parameters:
+
+  key_name:
+    type: string
+    default: default
+    description: Nova keypair to inject into the undercloud and bmc
+
+  flavor:
+    type: string
+    default: m1.small
+    description: The Nova flavor to use for the dhcrelay instance
+
+  image:
+    type: string
+    default: CentOS-7-x86_64-GenericCloud
+    description: |
+      The base image for the dhcrelay instance.  A CentOS 7 image is currently
+      the only one supported.
+
+  userdata_format:
+    type: string
+    default: RAW
+    description: Format of dhcraly userdata
+
+  inspector_dhcp_ip:
+    type: string
+    default: 172.20.0.1
+    description: |
+      The IP address on the undercloud provisioning network. 'local_ip' in
+      undercloud.conf
+
+  provision_dhcp_ip:
+    type: string
+    default: 172.20.0.10
+    description: |
+      The IP address on the undercloud provisioning network.
+      (The first address in the underclouds local_subnet allocation range.
+      I.e the dhcp_start address)
+
+  private_net:
+    type: string
+    default: private
+    description: Name of a private network which can have floating ips associated with it
+
+  network_leaf0:
+    type: string
+    default: provision_leaf0
+  network_leaf1:
+    type: string
+    default: provision_leaf1
+  network_leaf2:
+    type: string
+    default: provision_leaf1
+
+  ipaddr_leaf0:
+    type: string
+    description: Provisioning network router ip address - leaf0
+    default: 172.20.0.61
+
+  ipaddr_leaf1:
+    type: string
+    description: Provisioning network router ip address - leaf1
+    default: 172.20.0.125
+
+  ipaddr_leaf2:
+    type: string
+    description: Provisioning network router ip address - leaf2
+    default: 172.20.0.189
+
+resources:
+  port_private_net:
+    type: OS::Neutron::Port
+    properties:
+      network: {get_param: private_net}
+
+  port_leaf0:
+    type: OS::Neutron::Port
+    properties:
+      network: {get_param: network_leaf0}
+      fixed_ips:
+        - ip_address: {get_param: ipaddr_leaf0}
+
+  port_leaf1:
+    type: OS::Neutron::Port
+    properties:
+      network: {get_param: network_leaf1}
+      fixed_ips:
+        - ip_address: {get_param: ipaddr_leaf1}
+
+  port_leaf2:
+    type: OS::Neutron::Port
+    properties:
+      network: {get_param: network_leaf2}
+      fixed_ips:
+        - ip_address: {get_param: ipaddr_leaf2}
+
+  init_networks:
+    type: OS::Heat::CloudConfig
+    properties:
+      cloud_config:
+        network:
+          version: 2
+          ethernets:
+            eth0:
+              dhcp4: false
+              addresses:
+                - list_join:
+                    - /
+                    - - {get_attr: [port_leaf0, fixed_ips, 0, ip_address]}
+                      - {str_split: ['/', {get_attr: [port_leaf0, subnets, 0, cidr]}, 1]}
+            eth1:
+              dhcp4: false
+              addresses:
+                - list_join:
+                    - /
+                    - - {get_attr: [port_leaf1, fixed_ips, 0, ip_address]}
+                      - {str_split: ['/', {get_attr: [port_leaf1, subnets, 0, cidr]}, 1]}
+            eth2:
+              dhcp4: false
+              addresses:
+                - list_join:
+                    - /
+                    - - {get_attr: [port_leaf2, fixed_ips, 0, ip_address]}
+                      - {str_split: ['/', {get_attr: [port_leaf2, subnets, 0, cidr]}, 1]}
+            eth3:
+              dhcp4: true
+
+  init_packages:
+    type: OS::Heat::CloudConfig
+    properties:
+      cloud_config:
+        package_upgrade: true
+        packages:
+          - dhcp
+
+  init_files:
+    type: OS::Heat::CloudConfig
+    properties:
+      cloud_config:
+        write_files:
+          - path: /etc/systemd/system/dhcrelay.service
+            content:
+              str_replace:
+                template: |
+                  [Unit]
+                  Description=DHCP Relay Agent Daemon
+                  Documentation=man:dhcrelay(8)
+                  Wants=network-online.target
+                  After=network-online.target
+
+                  [Service]
+                  Type=simple
+                  ExecStart=/usr/sbin/dhcrelay -d --no-pid $provision_dhcp_ip $inspector_dhcp_ip -i eth1 -i eth2 -i eth3
+                  StandardError=null
+
+                  [Install]
+                  WantedBy=multi-user.target
+                params:
+                  $provision_dhcp_ip: {get_param: provision_dhcp_ip}
+                  $inspector_dhcp_ip: {get_param: inspector_dhcp_ip}
+          - path: /etc/sysctl.d/98-rp-filter.conf
+            content: |
+              net.ipv4.conf.eth1.rp_filter = 0
+              net.ipv4.conf.eth2.rp_filter = 0
+              net.ipv4.conf.eth3.rp_filter = 0
+
+  init_runcmd:
+    type: OS::Heat::CloudConfig
+    properties:
+      cloud_config:
+        runcmd:
+          - ['sysctl','--system']
+          - ['systemctl', 'daemon-reload']
+          - ['systemctl', 'enable', 'dhcrelay.service']
+          - ['systemctl', 'start', 'dhcrelay.service']
+          - ['systemctl', 'status', 'dhcrelay.service']
+
+  dhcrelay_init:
+    type: OS::Heat::MultipartMime
+    properties:
+      parts:
+        - config: {get_resource: init_networks}
+        - config: {get_resource: init_packages}
+        - config: {get_resource: init_files}
+        - config: {get_resource: init_runcmd}
+
+  dhcp_relay_server:
+    type: OS::Nova::Server
+    properties:
+      name: dhcrelay
+      flavor: {get_param: flavor}
+      image: {get_param: image}
+      key_name: {get_param: key_name}
+      networks:
+        - {port: {get_resource: port_private_net}}
+        - {port: {get_resource: port_leaf0}}
+        - {port: {get_resource: port_leaf1}}
+        - {port: {get_resource: port_leaf2}}
+      config_drive: true
+      user_data_format: {get_param: userdata_format}
+      user_data: {get_resource: dhcrelay_init}

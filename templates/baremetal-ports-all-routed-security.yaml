@@ -1,0 +1,174 @@
+heat_template_version: 2016-10-14
+
+parameters:
+
+  baremetal_prefix:
+    type: string
+
+  provision_net:
+    type: string
+
+  public_net:
+    type: string
+    description: Name of external network
+    default: public
+
+  suffix:
+    type: string
+
+  overcloud_internal_net_leaf1:
+    type: string
+    description: Name of internal API network - leaf1
+    default: overcloud_internal_leaf1
+  overcloud_internal_net_leaf2:
+    type: string
+    description: Name of internal API network - leaf2
+    default: overcloud_internal_leaf2
+
+  overcloud_storage_net_leaf1:
+    type: string
+    description: Name of storage network - leaf1
+    default: overcloud_storage_leaf1
+  overcloud_storage_net_leaf2:
+    type: string
+    description: Name of storage network - leaf2
+    default: overcloud_storage_leaf2
+
+  overcloud_storage_mgmt_net_leaf1:
+    type: string
+    description: Name of storage management network - leaf1
+    default: overcloud_storage_mgmt_leaf1
+  overcloud_storage_mgmt_net_leaf2:
+    type: string
+    description: Name of storage management network - leaf2
+    default: overcloud_storage_mgmt_leaf2
+
+  overcloud_tenant_net_leaf1:
+    type: string
+    description: Name of tenant network - leaf1
+    default: overcloud_tenant_leaf1
+  overcloud_tenant_net_leaf2:
+    type: string
+    description: Name of tenant network - leaf2
+    default: overcloud_tenant_leaf2
+
+conditions:
+  leaf1:
+    equals:
+      - {get_param: baremetal_prefix}
+      - 'baremetal_leaf1'
+  leaf2:
+    equals:
+      - {get_param: baremetal_prefix}
+      - 'baremetal_leaf2'
+
+resources:
+
+  provision_port:
+    type: OS::Neutron::Port
+    properties:
+      name:
+        list_join:
+        - ''
+        - - {get_param: baremetal_prefix}
+          - {get_param: suffix}
+      network: {get_param: provision_net}
+      port_security_enabled: False
+
+  internal_port:
+    type: OS::Neutron::Port
+    properties:
+      name:
+        list_join:
+        - ''
+        - - internal_
+          - {get_param: baremetal_prefix}
+          - {get_param: suffix}
+      network:
+        if:
+        - leaf1
+        - {get_param: overcloud_internal_net_leaf1}
+        - if:
+          - leaf2
+          - {get_param: overcloud_internal_net_leaf2}
+          - 'This should never be the case'
+      port_security_enabled: False
+
+  storage_port:
+    type: OS::Neutron::Port
+    properties:
+      name:
+        list_join:
+        - ''
+        - - storage_
+          - {get_param: baremetal_prefix}
+          - {get_param: suffix}
+      network:
+        if:
+        - leaf1
+        - {get_param: overcloud_storage_net_leaf1}
+        - if:
+          - leaf2
+          - {get_param: overcloud_storage_net_leaf2}
+          - 'This should never be the case'
+      port_security_enabled: False
+
+  storage_mgmt_port:
+    type: OS::Neutron::Port
+    properties:
+      name:
+        list_join:
+        - ''
+        - - storage_mgmt_
+          - {get_param: baremetal_prefix}
+          - {get_param: suffix}
+      network:
+        if:
+        - leaf1
+        - {get_param: overcloud_storage_mgmt_net_leaf1}
+        - if:
+          - leaf2
+          - {get_param: overcloud_storage_mgmt_net_leaf2}
+          - 'This should never be the case'
+      port_security_enabled: False
+
+  tenant_port:
+    type: OS::Neutron::Port
+    properties:
+      name:
+        list_join:
+        - ''
+        - - tenant_
+          - {get_param: baremetal_prefix}
+          - {get_param: suffix}
+      network:
+        if:
+        - leaf1
+        - {get_param: overcloud_tenant_net_leaf1}
+        - if:
+          - leaf2
+          - {get_param: overcloud_tenant_net_leaf2}
+          - 'This should never be the case'
+      port_security_enabled: False
+
+  public_port:
+    type: OS::Neutron::Port
+    properties:
+      name:
+        list_join:
+        - ''
+        - - public_
+          - {get_param: baremetal_prefix}
+          - {get_param: suffix}
+      network: {get_param: public_net}
+      port_security_enabled: False
+
+outputs:
+  ports:
+    value:
+    - {port: {get_resource: provision_port}}
+    - {port: {get_resource: public_port}}
+    - {port: {get_resource: internal_port}}
+    - {port: {get_resource: storage_port}}
+    - {port: {get_resource: storage_mgmt_port}}
+    - {port: {get_resource: tenant_port}}

@@ -29,6 +29,7 @@ class TestProcessArgs(unittest.TestCase):
         mock_args = mock.Mock()
         mock_args.name = None
         mock_args.quintupleo = False
+        mock_args.quintupleo_routed = False
         mock_args.id = None
         mock_args.env = []
         mock_args.role = []
@@ -385,6 +386,7 @@ class TestDeploy(testtools.TestCase):
                                   role_original_data)
         args = mock.Mock()
         args.id = 'foo'
+        args.quintupleo_routed = None
         role_file, role = deploy._process_role('foo-compute.yaml', 'foo.yaml',
                                                'foo', args)
         mock_load.assert_called_once_with('foo.yaml', 'foo-compute.yaml', args)
@@ -429,6 +431,7 @@ class TestDeploy(testtools.TestCase):
                                   pd_original_data)
         args = mock.Mock()
         args.id = 'foo'
+        args.quintupleo_routed = None
         role_file, role = deploy._process_role('foo-compute.yaml', 'foo.yaml',
                                                'foo', args)
         mock_load.assert_called_once_with('foo.yaml', 'foo-compute.yaml', args)
@@ -452,6 +455,7 @@ class TestDeploy(testtools.TestCase):
                                   role_original_data)
         args = mock.Mock()
         args.id = 'foo'
+        args.quintupleo_routed = None
         self.assertRaises(RuntimeError, deploy._process_role,
                           'foo-foo_bar.yaml', 'foo.yaml', 'foo', args)
 
@@ -483,6 +487,7 @@ class TestDeploy(testtools.TestCase):
         mock_bed.return_value = test_env
         args = mock.Mock()
         args.id = mock_id
+        args.quintupleo_routed = None
         if not mock_id:
             self.assertRaises(RuntimeError, deploy._validate_env,
                               args, ['foo.yaml'])
@@ -507,6 +512,7 @@ class TestDeploy(testtools.TestCase):
         mock_bed.return_value = role_original_data
         args = mock.Mock()
         args.id = None
+        args.quintupleo_routed = None
         deploy._validate_env(args, ['foo.yaml'])
 
 

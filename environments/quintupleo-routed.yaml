@@ -1,0 +1,68 @@
+parameter_defaults:
+  key_name: default
+  private_net: private
+  external_net: external
+  node_count_leaf1: 1
+  node_count_leaf2: 1
+  baremetal_prefix_leaf1: baremetal_leaf1
+  baremetal_prefix_leaf2: baremetal_leaf2
+  baremetal_flavor: m1.large2
+  baremetal_image: ipxe-boot
+  bmc_image: CentOS-7-x86_64-GenericCloud
+  dhcrelay_image: CentOS-7-x86_64-GenericCloud
+  undercloud_image: CentOS-7-x86_64-GenericCloud
+  router_port_security_enabled: false
+
+  provision_net_leaf0: provision_leaf0
+  provision_net_leaf1: provision_leaf1
+  provision_net_leaf2: provision_leaf2
+  provision_net_cidr_leaf0: 172.20.0.0/26
+  provision_net_cidr_leaf1: 172.20.0.64/26
+  provision_net_cidr_leaf2: 172.20.0.128/26
+  provision_net_router_ipaddr_leaf0: 172.20.0.62
+  provision_net_router_ipaddr_leaf1: 172.20.0.126
+  provision_net_router_ipaddr_leaf2: 172.20.0.190
+  provision_net_dhcrelay_ipaddr_leaf0: 172.20.0.61
+  provision_net_dhcrelay_ipaddr_leaf1: 172.20.0.125
+  provision_net_dhcrelay_ipaddr_leaf2: 172.20.0.189
+
+  provision_dhcp_ip: 172.20.0.10
+  inspector_dhcp_ip: 172.20.0.1
+
+  overcloud_internal_net_leaf1: overcloud_internal_leaf1
+  overcloud_internal_net_leaf2: overcloud_internal_leaf2
+  overcloud_storage_net_leaf1: overcloud_storage_leaf1
+  overcloud_storage_net_leaf2: overcloud_storage_leaf2
+  overcloud_storage_mgmt_net_leaf1: overcloud_storage_mgmt_leaf1
+  overcloud_storage_mgmt_net_leaf2: overcloud_storage_mgmt_leaf2
+  overcloud_tenant_net_leaf1: overcloud_tenant_net_leaf1
+  overcloud_tenant_net_leaf2: overcloud_tenant_net_leaf2
+
+  overcloud_internal_net_cidr_leaf1: 172.20.1.64/26
+  overcloud_internal_net_cidr_leaf2: 172.20.1.128/26
+  overcloud_storage_net_cidr_leaf1: 172.20.2.64/26
+  overcloud_storage_net_cidr_leaf2: 172.20.2.128/26
+  overcloud_storage_mgmt_net_cidr_leaf1: 172.20.3.64/26
+  overcloud_storage_mgmt_net_cidr_leaf2: 172.20.3.128/26
+  overcloud_tenant_net_cidr_leaf2: 172.20.4.64/26
+  overcloud_tenant_net_cidr_leaf2: 172.20.4.128/26
+
+  overcloud_internal_net_router_ipaddr_leaf1: 172.20.1.126
+  overcloud_internal_net_router_ipaddr_leaf2: 172.20.1.190
+  overcloud_storage_net_router_ipaddr_leaf1: 172.20.2.126
+  overcloud_storage_net_router_ipaddr_leaf2: 172.20.2.190
+  overcloud_storage_mgmt_net_router_ipaddr_leaf1: 172.20.3.126
+  overcloud_storage_mgmt_net_router_ipaddr_leaf2: 172.20.3.190
+  overcloud_tenant_net_router_ipaddr_leaf1: 172.20.4.126
+  overcloud_tenant_net_router_ipaddr_leaf2: 172.20.4.190
+
+
+resource_registry:
+  OS::OVB::DhcpRelay: ../templates/dhcp-relay-port-security.yaml
+  OS::OVB::BMCPort: ../templates/bmc-port-port-security.yaml
+  OS::OVB::ServerPair: ../templates/virtual-baremetal-servers.yaml
+  OS::OVB::BaremetalPorts: ../templates/baremetal-ports-all-routed-security.yaml
+  OS::OVB::BaremetalNetworks: OS::Heat::None
+  OS::OVB::BaremetalNetworksRouted: ../templates/baremetal-networks-routed.yaml
+  OS::OVB::UndercloudPorts: ../templates/undercloud-ports-port-security.yaml
+

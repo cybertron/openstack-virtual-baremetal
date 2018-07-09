@@ -53,6 +53,12 @@ def _parse_args():
         action='store_true',
         default=False)
     parser.add_argument(
+        '--quintupleo_routed',
+        help='Deploy a full environment suitable for TripleO '
+             'development with routed networks.',
+        action='store_true',
+        default=False)
+    parser.add_argument(
         '--role',
         help='Additional environment file describing a '
              'secondary role to be deployed alongside the '
@@ -71,15 +77,17 @@ def _parse_args():
 
 def _process_args(args):
     if args.id:
-        if not args.quintupleo:
-            raise RuntimeError('--id requires --quintupleo')
+        if not args.quintupleo or args.quintupleo_routed:
+            raise RuntimeError('--id requires --quintupleo or '
+                               '--quintupleo_routed')
         id_env = 'env-%s.yaml' % args.id
         if id_env in args.env:
             raise ValueError('Input env file "%s" would be overwritten by ID '
                              'env file.  Either rename the input file or '
                              'change the deploy ID.' % id_env)
-    if args.role and not args.quintupleo:
-        raise RuntimeError('--role requires --quintupleo')
+    if args.role and not (args.quintupleo or args.quintupleo_routed):
+        raise RuntimeError('--role requires --quintupleo or '
+                           '--quintupleo_routed')
 
     # NOTE(bnemec): We changed the way the --env parameter works such that the
     # default is no longer 'env.yaml' but instead an empty list.  However, for
@@ -93,10 +101,15 @@ def _process_args(args):
         stack_name = 'baremetal'
         if args.quintupleo:
             stack_name = 'quintupleo'
-    if not args.quintupleo:
-        stack_template = 'templates/virtual-baremetal.yaml'
-    else:
+        if args.quintupleo_routed:
+            stack_name = 'quintupleo_routed'
+
+    if args.quintupleo:
         stack_template = 'templates/quintupleo.yaml'
+    elif args.quintupleo_routed:
+        stack_template = 'templates/quintupleo_routed.yaml'
+    else:
+        stack_template = 'templates/virtual-baremetal.yaml'
     return stack_name, stack_template
 
 
@@ -173,6 +186,51 @@ def _generate_id_env(args):
     return args.env + [env_path]
 
 
+def _generate_id_env_routed(args):
+    env_data = _build_env_data(args.env)
+    _add_identifier(env_data, 'provision_net_leaf0', args.id,
+                    default='provision_leaf0')
+    _add_identifier(env_data, 'provision_net_leaf1', args.id,
+                    default='provision_leaf1')
+    _add_identifier(env_data, 'provision_net_leaf2', args.id,
+                    default='provision_leaf2')
+    _add_identifier(env_data, 'public_net', args.id, default='public')
+    _add_identifier(env_data, 'baremetal_prefix_leaf1', args.id,
+                    default='baremetal_leaf1')
+    _add_identifier(env_data, 'baremetal_prefix_leaf2', args.id,
+                    default='baremetal_leaf2')
+    role = env_data['parameter_defaults'].get('role')
+    if role:
+        _add_identifier(env_data, 'baremetal_prefix_leaf1', role)
+        _add_identifier(env_data, 'baremetal_prefix_leaf2', role)
+    _add_identifier(env_data, 'bmc_prefix', args.id, default='bmc')
+    _add_identifier(env_data, 'undercloud_name', args.id, default='undercloud')
+    _add_identifier(env_data, 'overcloud_internal_net_leaf1', args.id,
+                    default='internal_leaf1')
+    _add_identifier(env_data, 'overcloud_internal_net_leaf2', args.id,
+                    default='internal_leaf2')
+    _add_identifier(env_data, 'overcloud_storage_net_leaf1', args.id,
+                    default='storage_leaf1')
+    _add_identifier(env_data, 'overcloud_storage_net_leaf2', args.id,
+                    default='storage_leaf2')
+    _add_identifier(env_data, 'overcloud_storage_mgmt_net_leaf1', args.id,
+                    default='storage_mgmt_leaf1')
+    _add_identifier(env_data, 'overcloud_storage_mgmt_net_leaf2', args.id,
+                    default='storage_mgmt_leaf2')
+    _add_identifier(env_data, 'overcloud_tenant_net_leaf1', args.id,
+                    default='tenant_leaf1')
+    _add_identifier(env_data, 'overcloud_tenant_net_leaf2', args.id,
+                    default='tenant_leaf2')
+    # We don't modify any resource_registry entries, and because we may be
+    # writing the new env file to a different path it can break relative paths
+    # in the resource_registry.
+    env_data.pop('resource_registry', None)
+    env_path = 'env-%s.yaml' % args.id
+    with open(env_path, 'w') as f:
+        yaml.safe_dump(env_data, f, default_flow_style=False)
+    return args.env + [env_path]
+
+
 def _validate_env(args, env_paths):
     """Check for invalid environment configurations
 
@@ -180,16 +238,35 @@ def _validate_env(args, env_paths):
     :param env_paths: Path(s) of the environment file(s) to validate.
     """
     if not args.id:
-        env_data = _build_env_data(env_paths)
-        role = env_data.get('parameter_defaults', {}).get('role')
-        try:
-            prefix = env_data['parameters']['baremetal_prefix']
-        except KeyError:
-            prefix = env_data['parameter_defaults']['baremetal_prefix']
-        if role and prefix.endswith('-' + role):
-            raise RuntimeError('baremetal_prefix ends with role name.  This '
-                               'will break build-nodes-json.  Please choose '
-                               'a different baremetal_prefix or role name.')
+        if args.quintupleo_routed:
+            env_data = _build_env_data(env_paths)
+            role = env_data.get('parameter_defaults', {}).get('role')
+            try:
+                prefix_leaf1 = env_data['parameters']['baremetal_prefix_leaf1']
+                prefix_leaf2 = env_data['parameters']['baremetal_prefix_leaf2']
+            except KeyError:
+                prefix_leaf1 = env_data['parameter_defaults'][
+                    'baremetal_prefix_leaf1']
+                prefix_leaf2 = env_data['parameter_defaults'][
+                    'baremetal_prefix_leaf2']
+            if role and (prefix_leaf1.endswith('-' + role) or
+                         prefix_leaf2.endswith('-' + role)):
+                raise RuntimeError(
+                    'baremetal_prefix_leafX ends with role name.  This will '
+                    'break build-nodes-json.  Please choose a different '
+                    'baremetal_prefix_leafX or role name.')
+        else:
+            env_data = _build_env_data(env_paths)
+            role = env_data.get('parameter_defaults', {}).get('role')
+            try:
+                prefix = env_data['parameters']['baremetal_prefix']
+            except KeyError:
+                prefix = env_data['parameter_defaults']['baremetal_prefix']
+            if role and prefix.endswith('-' + role):
+                raise RuntimeError(
+                    'baremetal_prefix ends with role name.  This will break '
+                    'build-nodes-json.  Please choose a different '
+                    'baremetal_prefix or role name.')
 
 
 def _get_heat_client():
@@ -276,13 +353,30 @@ def _process_role(role_file, base_envs, stack_name, args):
     """
     base_data, role_data, orig_data = _load_role_data(base_envs, role_file,
                                                       args)
-    inherited_keys = ['baremetal_image', 'bmc_flavor', 'bmc_image',
-                      'external_net', 'key_name', 'os_auth_url',
-                      'os_password', 'os_tenant', 'os_user',
-                      'private_net', 'provision_net', 'public_net',
-                      'overcloud_internal_net', 'overcloud_storage_mgmt_net',
-                      'overcloud_storage_net', 'overcloud_tenant_net',
+    inherited_keys = ['baremetal_image', 'bmc_flavor', 'bmc_image', 'key_name',
+                      'os_auth_url', 'os_password', 'os_tenant', 'os_user',
+                      'private_net', 'public_net', 'external_net',
                       ]
+
+    if args.quintupleo_routed:
+        inherited_keys.extend(['provision_net_leaf0',
+                               'provision_net_leaf1',
+                               'provision_net_leaf2',
+                               'overcloud_internal_net_leaf1',
+                               'overcloud_internal_net_leaf2',
+                               'overcloud_storage_mgmt_net_leaf1',
+                               'overcloud_storage_mgmt_net_leaf2',
+                               'overcloud_storage_net_leaf1',
+                               'overcloud_storage_net_leaf2',
+                               'overcloud_tenant_net_leaf1',
+                               'overcloud_tenant_net_leaf2',
+                               ])
+    else:
+        inherited_keys.extend(['provision_net', 'overcloud_internal_net',
+                               'overcloud_storage_mgmt_net',
+                               'overcloud_storage_net', 'overcloud_tenant_net',
+                               ])
+
     # Parameters that are inherited but can be overridden by the role
     allowed_parameter_keys = ['baremetal_image', 'bmc_flavor', 'key_name']
     allowed_registry_keys = ['OS::OVB::BaremetalPorts', 'OS::OVB::BMCPort']
@@ -306,22 +400,47 @@ def _process_role(role_file, base_envs, stack_name, args):
     for k in allowed_registry_keys:
         if k not in role_reg and k in base_reg:
             role_reg[k] = base_reg[k]
-    # We need to start with the unmodified prefix
-    try:
-        base_prefix = orig_data['parameters']['baremetal_prefix']
-    except KeyError:
-        base_prefix = orig_data['parameter_defaults']['baremetal_prefix']
-    # But we do need to add the id if one is in use
-    if args.id:
-        base_prefix += '-%s' % args.id
+
+    if args.quintupleo_routed:
+        # We need to start with the unmodified prefix
+        try:
+            base_pfix_leaf1 = orig_data['parameters']['baremetal_prefix_leaf1']
+            base_pfix_leaf2 = orig_data['parameters']['baremetal_prefix_leaf2']
+        except KeyError:
+            base_pfix_leaf1 = orig_data['parameter_defaults'][
+                'baremetal_prefix_leaf1']
+            base_pfix_leaf2 = orig_data['parameter_defaults'][
+                'baremetal_prefix_leaf2']
+        # But we do need to add the id if one is in use
+        if args.id:
+            base_pfix_leaf1 += '-%s' % args.id
+            base_pfix_leaf2 += '-%s' % args.id
+    else:
+        # We need to start with the unmodified prefix
+        try:
+            base_prefix = orig_data['parameters']['baremetal_prefix']
+        except KeyError:
+            base_prefix = orig_data['parameter_defaults']['baremetal_prefix']
+        # But we do need to add the id if one is in use
+        if args.id:
+            base_prefix += '-%s' % args.id
+
     try:
         bmc_prefix = base_data['parameters']['bmc_prefix']
     except KeyError:
         bmc_prefix = base_data['parameter_defaults']['bmc_prefix']
+
     role = role_data['parameter_defaults']['role']
     if '_' in role:
         raise RuntimeError('_ character not allowed in role name "%s".' % role)
-    role_env['parameters']['baremetal_prefix'] = '%s-%s' % (base_prefix, role)
+    if args.quintupleo_routed:
+        role_env['parameters']['baremetal_prefix_leaf1'] = (
+            '%s-%s' % (base_prefix, role))
+        role_env['parameters']['baremetal_prefix_leaf2'] = (
+            '%s-%s' % (base_prefix, role))
+    else:
+        role_env['parameters']['baremetal_prefix'] = '%s-%s' % (
+            base_prefix, role)
     role_env['parameters']['bmc_prefix'] = '%s-%s' % (bmc_prefix, role)
     role_file = 'env-%s-%s.yaml' % (stack_name, role)
     _write_role_file(role_env, role_file)
@@ -341,7 +460,10 @@ if __name__ == '__main__':
     stack_name, stack_template = _process_args(args)
     env_paths = args.env
     if args.id:
-        env_paths = _generate_id_env(args)
+        if args.quintupleo_routed:
+            env_paths = _generate_id_env_routed(args)
+        else:
+            env_paths = _generate_id_env(args)
     _validate_env(args, env_paths)
     poll = args.poll
     if args.role:
