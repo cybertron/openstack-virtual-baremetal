@@ -52,7 +52,8 @@ class TestBuildNodesJson(testtools.TestCase):
         mock_argv = ['build-nodes-json', '--env', 'foo.yaml', '--bmc_prefix',
                      'bmc-foo', '--baremetal_prefix', 'baremetal-foo',
                      '--provision_net', 'provision-foo', '--nodes_json',
-                     'nodes-foo.json', '--driver', 'ipmi'
+                     'nodes-foo.json', '--driver', 'ipmi',
+                     '--physical_network',
                      ]
         with mock.patch.object(sys, 'argv', mock_argv):
             args = build_nodes_json._parse_args()
@@ -62,6 +63,7 @@ class TestBuildNodesJson(testtools.TestCase):
             self.assertEqual('provision-foo', args.provision_net)
             self.assertEqual('nodes-foo.json', args.nodes_json)
             self.assertEqual('ipmi', args.driver)
+            self.assertTrue(args.physical_network)
 
     def test_get_names_no_env(self):
         args = mock.Mock()
@@ -274,6 +276,7 @@ class TestBuildNodesJson(testtools.TestCase):
                      {'fixed_ips': [{'ip_address': '1.1.1.2'}]}
                      ]
         bm_ports = [{'device_id': '1'}, {'device_id': '2'}]
+        physical_network = False
         nova = mock.Mock()
         servers = [mock.Mock(), mock.Mock(), mock.Mock()]
         self._create_build_nodes_mocks(nova, servers)
@@ -302,7 +305,7 @@ class TestBuildNodesJson(testtools.TestCase):
          extra_nodes,
          network_details) = build_nodes_json._build_nodes(
             nova, glance, bmc_ports, bm_ports, 'provision', 'bm', 'undercloud',
-            'pxe_ipmitool')
+            'pxe_ipmitool', physical_network)
         expected_nodes = copy.deepcopy(TEST_NODES)
         expected_nodes[1]['disk'] = 100
         self.assertEqual(expected_nodes, nodes)
@@ -321,6 +324,7 @@ class TestBuildNodesJson(testtools.TestCase):
                      {'fixed_ips': [{'ip_address': '1.1.1.2'}]}
                      ]
         bm_ports = [{'device_id': '1'}, {'device_id': '2'}]
+        physical_network = False
         nova = mock.Mock()
         servers = [mock.Mock(), mock.Mock(), mock.Mock()]
         self._create_build_nodes_mocks(nova, servers)
@@ -349,7 +353,7 @@ class TestBuildNodesJson(testtools.TestCase):
          extra_nodes,
          network_details) = build_nodes_json._build_nodes(
             nova, glance, bmc_ports, bm_ports, 'provision', 'bm', 'undercloud',
-            'ipmi')
+            'ipmi', physical_network)
         expected_nodes = copy.deepcopy(TEST_NODES)
         expected_nodes[1]['disk'] = 100
         for node in expected_nodes:
@@ -369,6 +373,7 @@ class TestBuildNodesJson(testtools.TestCase):
                      {'fixed_ips': [{'ip_address': '1.1.1.2'}]}
                      ]
         bm_ports = [{'device_id': '1'}, {'device_id': '2'}]
+        physical_network = False
         nova = mock.Mock()
         servers = [mock.Mock(), mock.Mock(), mock.Mock()]
         self._create_build_nodes_mocks(nova, servers)
@@ -384,7 +389,7 @@ class TestBuildNodesJson(testtools.TestCase):
 
         nodes, bmc_bm_pairs, extra_nodes, _ = build_nodes_json._build_nodes(
             nova, glance, bmc_ports, bm_ports, 'provision', 'bm-foo', None,
-            'pxe_ipmitool')
+            'pxe_ipmitool', physical_network)
         expected_nodes = copy.deepcopy(TEST_NODES)
         expected_nodes[0]['name'] = 'bm-foo-control-0'
         expected_nodes[0]['capabilities'] = ('boot_option:local,'
@@ -519,7 +524,8 @@ class TestBuildNodesJson(testtools.TestCase):
                                                  bm_ports, provision_net,
                                                  baremetal_base,
                                                  undercloud_name,
-                                                 args.driver)
+                                                 args.driver,
+                                                 args.physical_network)
         mock_write_nodes.assert_called_once_with(nodes, extra_nodes,
                                                  network_details, args)
         mock_write_role_nodes.assert_called_once_with(nodes, args)

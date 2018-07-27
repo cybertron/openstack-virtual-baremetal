@@ -63,6 +63,10 @@ def _parse_args():
     # TODO(dtantsur): change the default to ipmi when Ocata is not supported
     parser.add_argument('--driver', default='pxe_ipmitool',
                         help='Bare metal driver to use')
+    parser.add_argument('--physical_network',
+                        action='store_true',
+                        help='Set the physical network attribute of baremetal '
+                             'ports. (Requires Rocky or later Ironic)')
     args = parser.parse_args()
     return args
 
@@ -116,7 +120,7 @@ def _get_ports(neutron, bmc_base, baremetal_base):
 
 
 def _build_nodes(nova, glance, bmc_ports, bm_ports, provision_net,
-                 baremetal_base, undercloud_name, driver):
+                 baremetal_base, undercloud_name, driver, physical_network):
     node_template = {
         'pm_type': driver,
         'mac': '',
@@ -130,6 +134,10 @@ def _build_nodes(nova, glance, bmc_ports, bm_ports, provision_net,
         'capabilities': 'boot_option:local',
         'name': '',
     }
+    if physical_network:
+        node_template.pop('mac')
+        node_template.update(
+            {'ports': [{'address': '', 'physical_network': provision_net}]})
 
     nodes = []
     bmc_bm_pairs = []
@@ -143,9 +151,11 @@ def _build_nodes(nova, glance, bmc_ports, bm_ports, provision_net,
         node = dict(node_template)
         node['pm_addr'] = bmc_port['fixed_ips'][0]['ip_address']
         bmc_bm_pairs.append((node['pm_addr'], baremetal.name))
-        node['mac'] = [
-            baremetal.addresses[provision_net][0]['OS-EXT-IPS-MAC:mac_addr']
-        ]
+        mac = baremetal.addresses[provision_net][0]['OS-EXT-IPS-MAC:mac_addr']
+        if physical_network:
+            node['ports'][0]['address'] = mac
+        else:
+            node['mac'] = [mac]
         if not cache.get(baremetal.flavor['id']):
             cache[baremetal.flavor['id']] = nova.flavors.get(
                 baremetal.flavor['id'])
@@ -280,7 +290,8 @@ def main():
      extra_nodes,
      network_details) = _build_nodes(nova, glance, bmc_ports, bm_ports,
                                      provision_net, baremetal_base,
-                                     undercloud_name, args.driver)
+                                     undercloud_name, args.driver,
+                                     args.physical_network)
     _write_nodes(nodes, extra_nodes, network_details, args)
     _write_role_nodes(nodes, args)
     _write_pairs(bmc_bm_pairs)
