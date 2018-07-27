@@ -45,22 +45,15 @@ parameters:
     default: 1
     description: Number of baremetal nodes to deploy
 
-  public_net:
-    type: string
-    description: |
-      An additional network that will be attached to the baremetal instances,
-      intended to be used for non-provisioning traffic
-    default: public
-
   private_net:
     type: string
     default: private
     description: Name of a private network which can have floating ips associated with it
 
-  provision_net:
-    type: string
-    default: provision
-    description: Name of a network that will be used for provisioning traffic
+  networks:
+    type: json
+    default: '{"private": "private", "provision": "provision"}'
+    description: A map of networks to their names.
 
   bmc_prefix:
     type: string
@@ -206,7 +199,6 @@ resources:
           baremetal_flavor: {get_param: baremetal_flavor}
           baremetal_image: {get_param: baremetal_image}
           key_name: {get_param: key_name}
-          provision_net: {get_param: provision_net}
-          public_net: {get_param: public_net}
+          networks: {get_param: networks}
           suffix: _%index%
           baremetal_prefix: {get_param: baremetal_prefix}

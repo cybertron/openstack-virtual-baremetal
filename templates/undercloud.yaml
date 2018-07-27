@@ -15,10 +15,8 @@ parameters:
     type: string
   private_net:
     type: string
-  provision_net:
-    type: string
-  public_net:
-    type: string
+  networks:
+    type: json
   external_net:
     type: string
 
@@ -28,8 +26,7 @@ resources:
     properties:
       undercloud_name: {get_param: undercloud_name}
       private_net: {get_param: private_net}
-      provision_net: {get_param: provision_net}
-      public_net: {get_param: public_net}
+      networks: {get_param: networks}
 
   undercloud_server:
     type: OS::Nova::Server

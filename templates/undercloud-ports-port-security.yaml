@@ -8,11 +8,8 @@ parameters:
   private_net:
     type: string
 
-  provision_net:
-    type: string
-
-  public_net:
-    type: string
+  networks:
+    type: json
 
 resources:
   undercloud_sg:
@@ -53,7 +50,7 @@ resources:
         - '_'
         - - {get_param: undercloud_name}
           - 'provision'
-      network: {get_param: provision_net}
+      network: {get_param: [networks, provision]}
       port_security_enabled: False
 
   public_undercloud_port:
@@ -64,7 +61,7 @@ resources:
         - '_'
         - - {get_param: undercloud_name}
           - 'public'
-      network: {get_param: public_net}
+      network: {get_param: [networks, public]}
       port_security_enabled: False
 
 outputs:

@@ -19,10 +19,8 @@ parameters:
     description: The size of the volume for the undercloud instance
   private_net:
     type: string
-  provision_net:
-    type: string
-  public_net:
-    type: string
+  networks:
+    type: json
   external_net:
     type: string
 
@@ -32,8 +30,7 @@ resources:
     properties:
       undercloud_name: {get_param: undercloud_name}
       private_net: {get_param: private_net}
-      provision_net: {get_param: provision_net}
-      public_net: {get_param: public_net}
+      networks: {get_param: networks}
 
   undercloud_volume:
     type: OS::Cinder::Volume

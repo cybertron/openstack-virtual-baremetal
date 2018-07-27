@@ -5,13 +5,8 @@ parameters:
   baremetal_prefix:
     type: string
 
-  provision_net:
-    type: string
-
-  public_net:
-    type: string
-    description: Name of external network
-    default: public
+  networks:
+    type: json
 
   suffix:
     type: string
@@ -46,7 +41,7 @@ resources:
         - ''
         - - {get_param: baremetal_prefix}
           - {get_param: suffix}
-      network: {get_param: provision_net}
+      network: {get_param: [networks, provision]}
       port_security_enabled: False
 
   internal_port:
@@ -106,7 +101,7 @@ resources:
         - - public_
           - {get_param: baremetal_prefix}
           - {get_param: suffix}
-      network: {get_param: public_net}
+      network: {get_param: [networks, public]}
       port_security_enabled: False
 
 outputs:

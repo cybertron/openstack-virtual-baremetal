@@ -1,0 +1,69 @@
+heat_template_version: 2015-04-30
+
+parameters:
+  provision_net:
+    type: string
+    default: provision
+    description: Name of a network that will be used for provisioning traffic
+
+  provision_net_cidr:
+    type: string
+    description: CIDR for provision network subnet
+    default: 192.0.2.0/24
+
+  provision_net_shared:
+    type: boolean
+    description: Whether this network should be shared across all tenants
+    default: false
+
+  public_net:
+    type: string
+    description: Name of the overcloud external network
+    default: public
+
+  public_net_cidr:
+    type: string
+    description: CIDR for external network subnet
+    default: 10.0.0.0/24
+
+  public_net_shared:
+    type: boolean
+    description: Whether this network should be shared across all tenants
+    default: false
+
+resources:
+  provision_network:
+    type: OS::Neutron::Net
+    properties:
+        name: {get_param: provision_net}
+        shared: {get_param: provision_net_shared}
+
+  provision_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      network: {get_resource: provision_network}
+      name: {get_param: provision_net}
+      cidr: {get_param: provision_net_cidr}
+      gateway_ip: null
+      enable_dhcp: false
+
+  public_network:
+    type: OS::Neutron::Net
+    properties:
+      name: {get_param: public_net}
+      shared: {get_param: public_net_shared}
+
+  public_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      network: {get_resource: public_network}
+      name: {get_param: public_net}
+      cidr: {get_param: public_net_cidr}
+      gateway_ip: null
+      enable_dhcp: false
+
+outputs:
+  networks:
+    value:
+      provision: {get_resource: provision_network}
+      public: {get_resource: public_network}

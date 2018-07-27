@@ -8,3 +8,4 @@ resource_registry:
   OS::OVB::BaremetalPorts: baremetal-ports-default.yaml
   OS::OVB::BMCPort: bmc-port.yaml
   OS::OVB::UndercloudPorts: undercloud-ports.yaml
+  OS::OVB::UndercloudNetworks: undercloud-networks.yaml
