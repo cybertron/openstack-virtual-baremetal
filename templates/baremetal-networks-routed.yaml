@@ -1,0 +1,342 @@
+heat_template_version: 2014-10-16
+
+# Template which creates all networks required for full network isloation.
+
+parameters:
+
+  overcloud_internal_net:
+    type: string
+    description: Name of internal API network
+    default: overcloud_internal
+
+  overcloud_internal_net_cidr:
+    type: string
+    description: |
+      CIDR for internal API network subnet.  This is typically irrelevant and
+      does not need to be changed.
+    default: 172.17.0.0/24
+
+  overcloud_internal_net2:
+    type: string
+    description: Name of internal API network
+    default: overcloud_internal2
+
+  overcloud_internal_net2_cidr:
+    type: string
+    description: |
+      CIDR for internal API network subnet.  This is typically irrelevant and
+      does not need to be changed.
+    default: 172.17.1.0/24
+
+  overcloud_storage_net:
+    type: string
+    description: Name of storage network
+    default: overcloud_storage
+
+  overcloud_storage_net_cidr:
+    type: string
+    description: |
+      CIDR for storage network subnet.  This is typically irrelevant and
+      does not need to be changed.
+    default: 172.18.0.0/24
+
+  overcloud_storage_net2:
+    type: string
+    description: Name of storage network
+    default: overcloud_storage2
+
+  overcloud_storage_net2_cidr:
+    type: string
+    description: |
+      CIDR for storage network subnet.  This is typically irrelevant and
+      does not need to be changed.
+    default: 172.18.1.0/24
+
+  overcloud_storage_mgmt_net:
+    type: string
+    description: Name of storage management network
+    default: overcloud_storage_mgmt
+
+  overcloud_storage_mgmt_net_cidr:
+    type: string
+    description: |
+      CIDR for storage management network subnet.  This is typically irrelevant
+      and does not need to be changed.
+    default: 172.19.0.0/24
+
+  overcloud_storage_mgmt_net2:
+    type: string
+    description: Name of storage management network
+    default: overcloud_storage_mgmt2
+
+  overcloud_storage_mgmt_net2_cidr:
+    type: string
+    description: |
+      CIDR for storage management network subnet.  This is typically irrelevant
+      and does not need to be changed.
+    default: 172.19.1.0/24
+
+  overcloud_tenant_net:
+    type: string
+    description: Name of tenant network
+    default: overcloud_tenant
+
+  overcloud_tenant_net_cidr:
+    type: string
+    description: |
+      CIDR for tenant network subnet.  This is typically irrelevant and
+      does not need to be changed.
+    default: 172.16.0.0/24
+
+  overcloud_tenant_net2:
+    type: string
+    description: Name of tenant network
+    default: overcloud_tenant2
+
+  overcloud_tenant_net2_cidr:
+    type: string
+    description: |
+      CIDR for tenant network subnet.  This is typically irrelevant and
+      does not need to be changed.
+    default: 172.16.1.0/24
+
+resources:
+  internal_router:
+    type: OS::Neutron::Router
+    properties:
+      name: internal-router
+
+  internal_network:
+    type: OS::Neutron::Net
+    properties:
+      name: {get_param: overcloud_internal_net}
+
+  internal_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      network: {get_resource: internal_network}
+      name: {get_param: overcloud_internal_net}
+      cidr: {get_param: overcloud_internal_net_cidr}
+      gateway_ip: null
+      enable_dhcp: false
+
+  internal_subnet_port:
+    type: OS::Neutron::Port
+    properties:
+      network: {get_resource: internal_network}
+      port_security_enabled: false
+
+  internal_subnet_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: {get_resource: internal_router}
+      port: {get_resource: internal_subnet_port}
+
+  internal_network2:
+    type: OS::Neutron::Net
+    properties:
+      name: {get_param: overcloud_internal_net2}
+
+  internal_subnet2:
+    type: OS::Neutron::Subnet
+    properties:
+      network: {get_resource: internal_network2}
+      name: {get_param: overcloud_internal_net2}
+      cidr: {get_param: overcloud_internal_net2_cidr}
+      gateway_ip: null
+      enable_dhcp: false
+
+  internal_subnet2_port:
+    type: OS::Neutron::Port
+    properties:
+      network: {get_resource: internal_network2}
+      port_security_enabled: false
+
+  internal_subnet2_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: {get_resource: internal_router}
+      port: {get_resource: internal_subnet2_port}
+
+  storage_router:
+    type: OS::Neutron::Router
+    properties:
+      name: storage-router
+
+  storage_network:
+    type: OS::Neutron::Net
+    properties:
+      name: {get_param: overcloud_storage_net}
+
+  storage_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      network: {get_resource: storage_network}
+      name: {get_param: overcloud_storage_net}
+      cidr: {get_param: overcloud_storage_net_cidr}
+      gateway_ip: null
+      enable_dhcp: false
+
+  storage_subnet_port:
+    type: OS::Neutron::Port
+    properties:
+      network: {get_resource: storage_network}
+      port_security_enabled: false
+
+  storage_subnet_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: {get_resource: storage_router}
+      port: {get_resource: storage_subnet_port}
+
+  storage_network2:
+    type: OS::Neutron::Net
+    properties:
+      name: {get_param: overcloud_storage_net2}
+
+  storage_subnet2:
+    type: OS::Neutron::Subnet
+    properties:
+      network: {get_resource: storage_network2}
+      name: {get_param: overcloud_storage_net2}
+      cidr: {get_param: overcloud_storage_net2_cidr}
+      gateway_ip: null
+      enable_dhcp: false
+
+  storage_subnet2_port:
+    type: OS::Neutron::Port
+    properties:
+      network: {get_resource: storage_network2}
+      port_security_enabled: false
+
+  storage_subnet2_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: {get_resource: storage_router}
+      port: {get_resource: storage_subnet2_port}
+
+  storage_mgmt_router:
+    type: OS::Neutron::Router
+    properties:
+      name: storage-mgmt-router
+
+  storage_mgmt_network:
+    type: OS::Neutron::Net
+    properties:
+      name: {get_param: overcloud_storage_mgmt_net}
+
+  storage_mgmt_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      network: {get_resource: storage_mgmt_network}
+      name: {get_param: overcloud_storage_mgmt_net}
+      cidr: {get_param: overcloud_storage_mgmt_net_cidr}
+      gateway_ip: null
+      enable_dhcp: false
+
+  storage_mgmt_subnet_port:
+    type: OS::Neutron::Port
+    properties:
+      network: {get_resource: storage_mgmt_network}
+      port_security_enabled: false
+
+  storage_mgmt_subnet_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: {get_resource: storage_mgmt_router}
+      port: {get_resource: storage_mgmt_subnet_port}
+
+  storage_mgmt_network2:
+    type: OS::Neutron::Net
+    properties:
+      name: {get_param: overcloud_storage_mgmt_net2}
+
+  storage_mgmt_subnet2:
+    type: OS::Neutron::Subnet
+    properties:
+      network: {get_resource: storage_mgmt_network2}
+      name: {get_param: overcloud_storage_mgmt_net2}
+      cidr: {get_param: overcloud_storage_mgmt_net2_cidr}
+      gateway_ip: null
+      enable_dhcp: false
+
+  storage_mgmt_subnet2_port:
+    type: OS::Neutron::Port
+    properties:
+      network: {get_resource: storage_mgmt_network2}
+      port_security_enabled: false
+
+  storage_mgmt_subnet2_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: {get_resource: storage_mgmt_router}
+      port: {get_resource: storage_mgmt_subnet2_port}
+
+  tenant_router:
+    type: OS::Neutron::Router
+    properties:
+      name: tenant-router
+
+  tenant_network:
+    type: OS::Neutron::Net
+    properties:
+      name: {get_param: overcloud_tenant_net}
+
+  tenant_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      network: {get_resource: tenant_network}
+      name: {get_param: overcloud_tenant_net}
+      cidr: {get_param: overcloud_tenant_net_cidr}
+      gateway_ip: null
+      enable_dhcp: false
+
+  tenant_subnet_port:
+    type: OS::Neutron::Port
+    properties:
+      network: {get_resource: tenant_network}
+      port_security_enabled: false
+
+  tenant_subnet_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: {get_resource: tenant_router}
+      port: {get_resource: tenant_subnet_port}
+
+  tenant_network2:
+    type: OS::Neutron::Net
+    properties:
+      name: {get_param: overcloud_tenant_net2}
+
+  tenant_subnet2:
+    type: OS::Neutron::Subnet
+    properties:
+      network: {get_resource: tenant_network2}
+      name: {get_param: overcloud_tenant_net2}
+      cidr: {get_param: overcloud_tenant_net2_cidr}
+      gateway_ip: null
+      enable_dhcp: false
+
+  tenant_subnet2_port:
+    type: OS::Neutron::Port
+    properties:
+      network: {get_resource: tenant_network2}
+      port_security_enabled: false
+
+  tenant_subnet2_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: {get_resource: tenant_router}
+      port: {get_resource: tenant_subnet2_port}
+
+outputs:
+  networks:
+    value:
+      internal_net: {get_resource: internal_network}
+      internal_net2: {get_resource: internal_network2}
+      storage_net: {get_resource: storage_network}
+      storage_net2: {get_resource: storage_network2}
+      storage_mgmt_net: {get_resource: storage_mgmt_network}
+      storage_mgmt_net2: {get_resource: storage_mgmt_network2}
+      tenant_net: {get_resource: tenant_network}
+      tenant_net2: {get_resource: tenant_network2}
