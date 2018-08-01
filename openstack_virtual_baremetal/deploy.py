@@ -284,8 +284,15 @@ def _process_role(role_file, base_envs, stack_name, args):
                       'overcloud_storage_net', 'overcloud_tenant_net',
                       ]
     # Parameters that are inherited but can be overridden by the role
-    allowed_parameter_keys = ['baremetal_image', 'bmc_flavor', 'key_name']
-    allowed_registry_keys = ['OS::OVB::BaremetalPorts', 'OS::OVB::BMCPort']
+    allowed_parameter_keys = ['baremetal_image', 'bmc_flavor', 'key_name',
+                              'provision_net', 'overcloud_internal_net',
+                              'overcloud_storage_net',
+                              'overcloud_storage_mgmt_net',
+                              'overcloud_tenant_net',
+                              ]
+    allowed_registry_keys = ['OS::OVB::BaremetalPorts', 'OS::OVB::BMCPort',
+                             'OS::OVB::UndercloudNetworks',
+                             ]
     role_env = role_data
     # resource_registry is intentionally omitted as it should not be inherited
     for section in ['parameters', 'parameter_defaults']:
@@ -323,6 +330,11 @@ def _process_role(role_file, base_envs, stack_name, args):
         raise RuntimeError('_ character not allowed in role name "%s".' % role)
     role_env['parameters']['baremetal_prefix'] = '%s-%s' % (base_prefix, role)
     role_env['parameters']['bmc_prefix'] = '%s-%s' % (bmc_prefix, role)
+    role_env['parameter_defaults']['networks'] = {
+        'private': role_env['parameter_defaults']['private_net'],
+        'provision': role_env['parameter_defaults']['provision_net'],
+        'public': role_env['parameter_defaults']['public_net'],
+        }
     role_file = 'env-%s-%s.yaml' % (stack_name, role)
     _write_role_file(role_env, role_file)
     return role_file, role
