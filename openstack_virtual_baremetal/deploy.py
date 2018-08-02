@@ -101,6 +101,11 @@ def _process_args(args):
 
 
 def _add_identifier(env_data, name, identifier, default=None):
+    """Append identifier to the end of parameter name in env_data
+
+    Look for ``name`` in either the ``parameters`` or ``parameter_defaults``
+    key of ``env_data`` and append '-``identifier``' to it.
+    """
     # We require both sections for id environments
     if not env_data.get('parameters'):
         env_data['parameters'] = {}
@@ -142,6 +147,8 @@ def _build_env_data(env_paths):
 def _generate_id_env(args):
     env_data = _build_env_data(args.env)
     _add_identifier(env_data, 'provision_net', args.id, default='provision')
+    _add_identifier(env_data, 'provision_net2', args.id, default='provision2')
+    _add_identifier(env_data, 'provision_net3', args.id, default='provision3')
     _add_identifier(env_data, 'public_net', args.id, default='public')
     _add_identifier(env_data,
                     'baremetal_prefix',
@@ -163,6 +170,16 @@ def _generate_id_env(args):
                     default='storage_mgmt')
     _add_identifier(env_data, 'overcloud_tenant_net', args.id,
                     default='tenant')
+    # TODO(bnemec): Network names should be parameterized so we don't have to
+    # hardcode them into deploy.py like this.
+    _add_identifier(env_data, 'overcloud_internal_net2', args.id,
+                    default='overcloud_internal2')
+    _add_identifier(env_data, 'overcloud_storage_net2', args.id,
+                    default='overcloud_storage2')
+    _add_identifier(env_data, 'overcloud_storage_mgmt_net2', args.id,
+                    default='overcloud_storage_mgmt2')
+    _add_identifier(env_data, 'overcloud_tenant_net2', args.id,
+                    default='overcloud_tenant2')
     # We don't modify any resource_registry entries, and because we may be
     # writing the new env file to a different path it can break relative paths
     # in the resource_registry.
@@ -330,6 +347,13 @@ def _process_role(role_file, base_envs, stack_name, args):
         raise RuntimeError('_ character not allowed in role name "%s".' % role)
     role_env['parameters']['baremetal_prefix'] = '%s-%s' % (base_prefix, role)
     role_env['parameters']['bmc_prefix'] = '%s-%s' % (bmc_prefix, role)
+    # At this time roles are only attached to a single set of networks, so
+    # we use just the primary network parameters.
+    _add_identifier(role_env, 'provision_net', args.id)
+    _add_identifier(role_env, 'overcloud_internal_net', args.id)
+    _add_identifier(role_env, 'overcloud_storage_net', args.id)
+    _add_identifier(role_env, 'overcloud_storage_mgmt_net', args.id)
+    _add_identifier(role_env, 'overcloud_tenant_net', args.id)
     role_env['parameter_defaults']['networks'] = {
         'private': role_env['parameter_defaults']['private_net'],
         'provision': role_env['parameter_defaults']['provision_net'],
