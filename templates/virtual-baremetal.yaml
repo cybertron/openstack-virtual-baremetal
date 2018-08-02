@@ -202,3 +202,8 @@ resources:
           networks: {get_param: networks}
           suffix: _%index%
           baremetal_prefix: {get_param: baremetal_prefix}
+
+  dhcp_relay:
+    type: OS::OVB::DHCPRelay
+    properties:
+      networks: {get_param: networks}
