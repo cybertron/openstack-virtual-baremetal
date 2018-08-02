@@ -1,0 +1,176 @@
+heat_template_version: 2016-10-14
+
+parameters:
+
+  key_name:
+    type: string
+    default: default
+    description: Nova keypair to inject into the undercloud and bmc
+
+  dhcp_relay_flavor:
+    type: string
+    default: m1.small
+    description: The Nova flavor to use for the dhcrelay instance
+
+  dhcp_relay_image:
+    type: string
+    default: CentOS-7-x86_64-GenericCloud
+    description: |
+      The base image for the dhcrelay instance.  A CentOS 7 image is currently
+      the only one supported.
+
+  inspector_dhcp_ip:
+    type: string
+    default: 172.20.0.1
+    description: |
+      The IP address on the undercloud provisioning network. 'local_ip' in
+      undercloud.conf
+
+  provision_dhcp_ip:
+    type: string
+    default: 172.20.0.10
+    description: |
+      The IP address on the undercloud provisioning network.
+      (The first address in the underclouds local_subnet allocation range.
+      I.e the dhcp_start address)
+
+  networks:
+    type: json
+
+  private_net:
+    type: string
+
+
+resources:
+  dhcp_relay_port_private:
+    type: OS::Neutron::Port
+    properties:
+      name: dhcp_relay_port_private
+      network: {get_param: private_net}
+
+  dhcp_relay_port_provision:
+    type: OS::Neutron::Port
+    properties:
+      name: dhcp_relay_port_provision
+      network: {get_param: [networks, provision]}
+      port_security_enabled: False
+
+  dhcp_relay_port_provision2:
+    type: OS::Neutron::Port
+    properties:
+      name: dhcp_relay_port_provision2
+      network: {get_param: [networks, provision2]}
+      port_security_enabled: False
+
+  dhcp_relay_port_provision3:
+    type: OS::Neutron::Port
+    properties:
+      name: dhcp_relay_port_provision3
+      network: {get_param: [networks, provision3]}
+      port_security_enabled: False
+
+  init_networks:
+    type: OS::Heat::CloudConfig
+    properties:
+      cloud_config:
+        network:
+          version: 2
+          ethernets:
+            eth0:
+              dhcp4: false
+              addresses:
+                - list_join:
+                    - /
+                    - - {get_attr: [dhcp_relay_port_provision, fixed_ips, 0, ip_address]}
+                      - {str_split: ['/', {get_attr: [dhcp_relay_port_provision, subnets, 0, cidr]}, 1]}
+            eth1:
+              dhcp4: false
+              addresses:
+                - list_join:
+                    - /
+                    - - {get_attr: [dhcp_relay_port_provision2, fixed_ips, 0, ip_address]}
+                      - {str_split: ['/', {get_attr: [dhcp_relay_port_provision2, subnets, 0, cidr]}, 1]}
+            eth2:
+              dhcp4: false
+              addresses:
+                - list_join:
+                    - /
+                    - - {get_attr: [dhcp_relay_port_provision3, fixed_ips, 0, ip_address]}
+                      - {str_split: ['/', {get_attr: [dhcp_relay_port_provision3, subnets, 0, cidr]}, 1]}
+            eth3:
+              dhcp4: true
+
+  init_packages:
+    type: OS::Heat::CloudConfig
+    properties:
+      cloud_config:
+        package_upgrade: true
+        packages:
+          - dhcp
+
+  init_files:
+    type: OS::Heat::CloudConfig
+    properties:
+      cloud_config:
+        write_files:
+          - path: /etc/systemd/system/dhcrelay.service
+            content:
+              str_replace:
+                template: |
+                  [Unit]
+                  Description=DHCP Relay Agent Daemon
+                  Documentation=man:dhcrelay(8)
+                  Wants=network-online.target
+                  After=network-online.target
+
+                  [Service]
+                  Type=simple
+                  ExecStart=/usr/sbin/dhcrelay -d --no-pid $provision_dhcp_ip $inspector_dhcp_ip -i eth1 -i eth2 -i eth3
+                  StandardError=null
+
+                  [Install]
+                  WantedBy=multi-user.target
+                params:
+                  $provision_dhcp_ip: {get_param: provision_dhcp_ip}
+                  $inspector_dhcp_ip: {get_param: inspector_dhcp_ip}
+          - path: /etc/sysctl.d/98-rp-filter.conf
+            content: |
+              net.ipv4.conf.eth1.rp_filter = 0
+              net.ipv4.conf.eth2.rp_filter = 0
+              net.ipv4.conf.eth3.rp_filter = 0
+
+  init_runcmd:
+    type: OS::Heat::CloudConfig
+    properties:
+      cloud_config:
+        runcmd:
+          - ['sysctl','--system']
+          - ['systemctl', 'daemon-reload']
+          - ['systemctl', 'enable', 'dhcrelay.service']
+          - ['systemctl', 'start', 'dhcrelay.service']
+          - ['systemctl', 'status', 'dhcrelay.service']
+
+  dhcrelay_init:
+    type: OS::Heat::MultipartMime
+    properties:
+      parts:
+        - config: {get_resource: init_networks}
+        - config: {get_resource: init_packages}
+        - config: {get_resource: init_files}
+        - config: {get_resource: init_runcmd}
+
+  dhcp_relay_server:
+    type: OS::Nova::Server
+    properties:
+      name: dhcrelay
+      flavor: {get_param: dhcp_relay_flavor}
+      image: {get_param: dhcp_relay_image}
+      key_name: {get_param: key_name}
+      networks:
+        - {port: {get_resource: dhcp_relay_port_private}}
+        - {port: {get_resource: dhcp_relay_port_provision}}
+        - {port: {get_resource: dhcp_relay_port_provision2}}
+        - {port: {get_resource: dhcp_relay_port_provision3}}
+      config_drive: true
+      user_data_format: RAW
+      user_data: {get_resource: dhcrelay_init}
