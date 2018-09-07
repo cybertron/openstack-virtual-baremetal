@@ -46,10 +46,12 @@ number of drawbacks:
   resources, test environments can be easily tailored to their intended use
   case.
 
-One drawback to OVB at this time is that it is generally not compatible with
-current public clouds.  While it is possible to do an OVB deployment on a
-completely stock OpenStack cloud, most public clouds have restrictions (older
-OpenStack releases, inability to upload new images, no Heat, etc.) that make
-it problematic.  At this time, OVB is primarily used with semi-private clouds
-configured for ideal compatibility.  This situation should improve as more
-public clouds move to newer OpenStack releases, however.
+One drawback to OVB at this time is that it does have hard requirements on a
+few OpenStack features (Heat, Neutron port-security, private image uploads,
+for example) that are not all widely available in public clouds. Fortunately,
+as they move to newer and newer versions of OpenStack that situation should
+improve.
+
+It should also be noted that without the Nova PXE boot patch, OVB is not
+compatible with any workflows that write to the root disk before deployment.
+This includes Ironic node cleaning.
