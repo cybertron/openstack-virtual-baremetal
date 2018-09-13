@@ -21,23 +21,6 @@ parameters:
 
 resources:
 
-  extra_node_sg:
-    type: OS::Neutron::SecurityGroup
-    properties:
-      name:
-        list_join:
-        - '_'
-        - - 'extranode'
-        - - {get_param: baremetal_prefix}
-          - {get_param: suffix}
-          - 'sg'
-      description: Ping, SSH
-      rules:
-      - protocol: icmp
-      - protocol: tcp
-        port_range_min: 22
-        port_range_max: 22
-
   private_port:
     type: OS::Neutron::Port
     properties:
@@ -48,8 +31,6 @@ resources:
           - {get_param: baremetal_prefix}
           - {get_param: suffix}
       network: {get_param: private_net}
-      security_groups:
-      - {get_resource: extra_node_sg}
 
   provision_port:
     type: OS::Neutron::Port
