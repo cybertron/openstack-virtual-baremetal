@@ -121,7 +121,10 @@ def _add_identifier(env_data, name, identifier, default=None):
         original = default
     if original is None:
         raise RuntimeError('No base value found when adding id')
-    value = '%s-%s' % (original, identifier)
+    if identifier:
+        value = '%s-%s' % (original, identifier)
+    else:
+        value = '%s' % (original)
     # If it was passed in as a parameter we need to set it in the parameters
     # section or it will be overridden by the original value.  We can't always
     # do that though because some parameters are not exposed at the top-level.
