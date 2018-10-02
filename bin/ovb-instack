@@ -42,7 +42,7 @@ export TRIPLEOSH=/home/centos/tripleo.sh
 # Repo setup
 wget -r --no-parent -nd -e robots=off -l 1 -A 'python2-tripleo-repos-*' https://trunk.rdoproject.org/centos7/current/
 sudo yum install -y python2-tripleo-repos-*
-sudo tripleo-repos current-tripleo-dev --rdo-mirror http://mirror.regionone.tripleo-test-cloud-rh1.openstack.org:8080/rdo --centos-mirror http://mirror.regionone.tripleo-test-cloud-rh1.openstack.org
+sudo tripleo-repos current-tripleo-dev --rdo-mirror http://mirror.regionone.rdo-cloud.rdoproject.org:8080/rdo --centos-mirror http://mirror.regionone.rdo-cloud.rdoproject.org
 
 timer 'system setup'
 timer
