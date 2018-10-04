@@ -14,15 +14,17 @@ environments:
           - bmc_prefix
           - baremetal_prefix
           - node_count
-          - public_net
-          - public_net_shared
-          - provision_net
-          - provision_net_shared
           - undercloud_name
           - undercloud_image
           - undercloud_flavor
           - external_net
           - role
+      templates/undercloud-networks.yaml:
+        parameters:
+          - public_net
+          - public_net_shared
+          - provision_net
+          - provision_net_shared
     sample_values:
       baremetal_image: ipxe-boot
   -
@@ -220,3 +222,50 @@ environments:
           - bmc_use_cache
     sample_values:
       bmc_use_cache: True
+  -
+    name: routed-networks
+    title: Enable Routed Networks
+    description: |
+      Enable use of routed networks, where there may be multiple separate
+      networks connected with a router and DHCP relay. Do not pass any other
+      network configuration environments after this one or they may override
+      the changes made by this environment.
+    files:
+      templates/dhcp-relay.yaml:
+        parameters:
+          - dhcp_relay_flavor
+          - dhcp_relay_image
+    resource_registry:
+      OS::OVB::UndercloudNetworks: templates/undercloud-networks-routed.yaml
+      OS::OVB::BaremetalNetworks: templates/baremetal-networks-routed.yaml
+      OS::OVB::DHCPRelay: templates/dhcp-relay.yaml
+  -
+    name: routed-networks-role
+    title: Base Role Configuration for Routed Networks
+    description: |
+      A base role environment that contains the necessary parameters for
+      deploying with routed networks.
+    files:
+      templates/quintupleo.yaml:
+        parameters:
+          - baremetal_flavor
+          - key_name
+          - node_count
+          - role
+      templates/undercloud-networks.yaml:
+        parameters:
+          - provision_net
+      templates/baremetal-networks-all.yaml:
+        parameters:
+          - overcloud_internal_net
+          - overcloud_storage_net
+          - overcloud_storage_mgmt_net
+          - overcloud_tenant_net
+    sample_values:
+      role: leaf1
+      provision_net: provision2
+      overcloud_internal_net: overcloud_internal2
+      overcloud_storage_net: overcloud_storage2
+      overcloud_storage_mgmt_net: overcloud_storage_mgmt2
+      overcloud_tenant_net: overcloud_tenant2
+

@@ -136,6 +136,26 @@ Disable the Undercloud in a QuintupleO Stack
 instance.
 
 
+Base Role Configuration for Routed Networks
+-------------------------------------------
+
+**File:** environments/routed-networks-role.yaml
+
+**Description:** A base role environment that contains the necessary parameters for
+deploying with routed networks.
+
+
+Enable Routed Networks
+----------------------
+
+**File:** environments/routed-networks.yaml
+
+**Description:** Enable use of routed networks, where there may be multiple separate
+networks connected with a router and DHCP relay. Do not pass any other
+network configuration environments after this one or they may override
+the changes made by this environment.
+
+
 Assign the Undercloud an Existing Floating IP
 ---------------------------------------------
 
