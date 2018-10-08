@@ -16,6 +16,11 @@ parameters:
       does not need to be changed.
     default: 172.17.0.0/24
 
+  overcloud_internal_net_allocation_pools:
+    type: json
+    description: Allocation pool for third overcloud_internal_net subnet
+    default: [{"start": "172.17.0.200", "end": "172.17.0.254"}]
+
   overcloud_internal_net2:
     type: string
     description: Name of internal API network
@@ -27,6 +32,11 @@ parameters:
       CIDR for internal API network subnet.  This is typically irrelevant and
       does not need to be changed.
     default: 172.17.1.0/24
+
+  overcloud_internal_net2_allocation_pools:
+    type: json
+    description: Allocation pool for third overcloud_internal_net2 subnet
+    default: [{"start": "172.17.1.200", "end": "172.17.1.254"}]
 
   overcloud_storage_net:
     type: string
@@ -40,6 +50,11 @@ parameters:
       does not need to be changed.
     default: 172.18.0.0/24
 
+  overcloud_storage_net_allocation_pools:
+    type: json
+    description: Allocation pool for third overcloud_storage_net subnet
+    default: [{"start": "172.18.0.200", "end": "172.18.0.254"}]
+
   overcloud_storage_net2:
     type: string
     description: Name of storage network
@@ -51,6 +66,11 @@ parameters:
       CIDR for storage network subnet.  This is typically irrelevant and
       does not need to be changed.
     default: 172.18.1.0/24
+
+  overcloud_storage_net2_allocation_pools:
+    type: json
+    description: Allocation pool for third overcloud_storage_net2 subnet
+    default: [{"start": "172.18.1.200", "end": "172.18.1.254"}]
 
   overcloud_storage_mgmt_net:
     type: string
@@ -64,6 +84,11 @@ parameters:
       and does not need to be changed.
     default: 172.19.0.0/24
 
+  overcloud_storage_mgmt_net_allocation_pools:
+    type: json
+    description: Allocation pool for third overcloud_storage_mgmt_net subnet
+    default: [{"start": "172.19.0.200", "end": "172.19.0.254"}]
+
   overcloud_storage_mgmt_net2:
     type: string
     description: Name of storage management network
@@ -75,6 +100,11 @@ parameters:
       CIDR for storage management network subnet.  This is typically irrelevant
       and does not need to be changed.
     default: 172.19.1.0/24
+
+  overcloud_storage_mgmt_net2_allocation_pools:
+    type: json
+    description: Allocation pool for third overcloud_storage_mgmt_net2 subnet
+    default: [{"start": "172.19.1.200", "end": "172.19.1.254"}]
 
   overcloud_tenant_net:
     type: string
@@ -88,6 +118,11 @@ parameters:
       does not need to be changed.
     default: 172.16.0.0/24
 
+  overcloud_tenant_net_allocation_pools:
+    type: json
+    description: Allocation pool for third overcloud_tenant_net subnet
+    default: [{"start": "172.16.0.200", "end": "172.16.0.254"}]
+
   overcloud_tenant_net2:
     type: string
     description: Name of tenant network
@@ -99,6 +134,11 @@ parameters:
       CIDR for tenant network subnet.  This is typically irrelevant and
       does not need to be changed.
     default: 172.16.1.0/24
+
+  overcloud_tenant_net2_allocation_pools:
+    type: json
+    description: Allocation pool for third overcloud_tenant_net2 subnet
+    default: [{"start": "172.16.1.200", "end": "172.16.1.254"}]
 
 resources:
   internal_router:
@@ -117,6 +157,7 @@ resources:
       network: {get_resource: internal_network}
       name: {get_param: overcloud_internal_net}
       cidr: {get_param: overcloud_internal_net_cidr}
+      allocation_pools: {get_param: overcloud_internal_net_allocation_pools}
       gateway_ip: null
       enable_dhcp: false
 
@@ -143,6 +184,7 @@ resources:
       network: {get_resource: internal_network2}
       name: {get_param: overcloud_internal_net2}
       cidr: {get_param: overcloud_internal_net2_cidr}
+      allocation_pools: {get_param: overcloud_internal_net2_allocation_pools}
       gateway_ip: null
       enable_dhcp: false
 
@@ -174,6 +216,7 @@ resources:
       network: {get_resource: storage_network}
       name: {get_param: overcloud_storage_net}
       cidr: {get_param: overcloud_storage_net_cidr}
+      allocation_pools: {get_param: overcloud_storage_net_allocation_pools}
       gateway_ip: null
       enable_dhcp: false
 
@@ -200,6 +243,7 @@ resources:
       network: {get_resource: storage_network2}
       name: {get_param: overcloud_storage_net2}
       cidr: {get_param: overcloud_storage_net2_cidr}
+      allocation_pools: {get_param: overcloud_storage_net2_allocation_pools}
       gateway_ip: null
       enable_dhcp: false
 
@@ -231,6 +275,7 @@ resources:
       network: {get_resource: storage_mgmt_network}
       name: {get_param: overcloud_storage_mgmt_net}
       cidr: {get_param: overcloud_storage_mgmt_net_cidr}
+      allocation_pools: {get_param: overcloud_storage_mgmt_net_allocation_pools}
       gateway_ip: null
       enable_dhcp: false
 
@@ -257,6 +302,7 @@ resources:
       network: {get_resource: storage_mgmt_network2}
       name: {get_param: overcloud_storage_mgmt_net2}
       cidr: {get_param: overcloud_storage_mgmt_net2_cidr}
+      allocation_pools: {get_param: overcloud_storage_mgmt_net2_allocation_pools}
       gateway_ip: null
       enable_dhcp: false
 
@@ -288,6 +334,7 @@ resources:
       network: {get_resource: tenant_network}
       name: {get_param: overcloud_tenant_net}
       cidr: {get_param: overcloud_tenant_net_cidr}
+      allocation_pools: {get_param: overcloud_tenant_net_allocation_pools}
       gateway_ip: null
       enable_dhcp: false
 
@@ -314,6 +361,7 @@ resources:
       network: {get_resource: tenant_network2}
       name: {get_param: overcloud_tenant_net2}
       cidr: {get_param: overcloud_tenant_net2_cidr}
+      allocation_pools: {get_param: overcloud_tenant_net2_allocation_pools}
       gateway_ip: null
       enable_dhcp: false
 
@@ -340,3 +388,13 @@ outputs:
       storage_mgmt_net2: {get_resource: storage_mgmt_network2}
       tenant_net: {get_resource: tenant_network}
       tenant_net2: {get_resource: tenant_network2}
+  routers_addresses:
+    value:
+      internal_router_address: {get_attr: [internal_subnet_port, fixed_ips, 0, ip_address]}
+      internal2_router: {get_attr: [internal_subnet2_port, fixed_ips, 0, ip_address]}
+      storage_router_address: {get_attr: [storage_subnet_port, fixed_ips, 0, ip_address]}
+      storage2_router_address: {get_attr: [storage_subnet2_port, fixed_ips, 0, ip_address]}
+      storage_mgmt_router_address: {get_attr: [storage_mgmt_subnet_port, fixed_ips, 0, ip_address]}
+      storage_mgmt2_router_address: {get_attr: [storage_mgmt_subnet2_port, fixed_ips, 0, ip_address]}
+      tenant_router_address: {get_attr: [tenant_subnet_port, fixed_ips, 0, ip_address]}
+      tenant2_router_address: {get_attr: [tenant_subnet2_port, fixed_ips, 0, ip_address]}
