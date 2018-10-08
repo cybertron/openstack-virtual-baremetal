@@ -19,20 +19,13 @@ parameters:
       The base image for the dhcrelay instance.  A CentOS 7 image is currently
       the only one supported.
 
-  inspector_dhcp_ip:
-    type: string
-    default: 172.20.0.1
+  dhcp_ips:
+    type: json
+    default:
+    - 192.0.2.50
+    - 192.0.2.51
     description: |
-      The IP address on the undercloud provisioning network. 'local_ip' in
-      undercloud.conf
-
-  provision_dhcp_ip:
-    type: string
-    default: 172.20.0.10
-    description: |
-      The IP address on the undercloud provisioning network.
-      (The first address in the underclouds local_subnet allocation range.
-      I.e the dhcp_start address)
+      The IP addresses of DHCP servers to relay DHCP requests to.
 
   networks:
     type: json
@@ -125,14 +118,16 @@ resources:
 
                   [Service]
                   Type=simple
-                  ExecStart=/usr/sbin/dhcrelay -d --no-pid $provision_dhcp_ip $inspector_dhcp_ip -i eth1 -i eth2 -i eth3
+                  ExecStart=/usr/sbin/dhcrelay -d --no-pid $dhcp_ips -i eth1 -i eth2 -i eth3
                   StandardError=null
 
                   [Install]
                   WantedBy=multi-user.target
                 params:
-                  $provision_dhcp_ip: {get_param: provision_dhcp_ip}
-                  $inspector_dhcp_ip: {get_param: inspector_dhcp_ip}
+                  $dhcp_ips:
+                     list_join:
+                      - ' '
+                      - {get_param: dhcp_ips}
           - path: /etc/sysctl.d/98-rp-filter.conf
             content: |
               net.ipv4.conf.eth1.rp_filter = 0
