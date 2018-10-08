@@ -361,7 +361,7 @@ def _process_role(role_file, base_envs, stack_name, args):
         'private': role_env['parameter_defaults']['private_net'],
         'provision': role_env['parameter_defaults']['provision_net'],
         'public': role_env['parameter_defaults']['public_net'],
-        }
+    }
     role_file = 'env-%s-%s.yaml' % (stack_name, role)
     _write_role_file(role_env, role_file)
     return role_file, role
