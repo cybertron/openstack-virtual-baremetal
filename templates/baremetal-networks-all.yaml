@@ -117,3 +117,5 @@ outputs:
       storage_net: {get_resource: storage_network}
       storage_mgmt_net: {get_resource: storage_mgmt_network}
       tenant_net: {get_resource: tenant_network}
+  routers_addresses:
+    value: {}

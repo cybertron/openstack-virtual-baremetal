@@ -114,6 +114,14 @@ parameters:
     default: '{}'
     hidden: true
 
+  dhcp_ips:
+    type: json
+    default:
+    - 192.0.2.1
+    - 192.0.2.10
+    description: |
+      The IP addresses of DHCP servers to relay DHCP requests to.
+
   # Ignored parameters for compatibility with QuintupleO env files
   undercloud_image:
     type: string
@@ -207,3 +215,8 @@ resources:
     type: OS::OVB::DHCPRelay
     properties:
       networks: {get_param: networks}
+      dhcp_ips: {get_param: dhcp_ips}
+
+outputs:
+  baremetal_networks_routers_addresses:
+    value: {get_attr: [baremetal_networks, routers_addresses]}
