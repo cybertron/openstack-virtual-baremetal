@@ -354,11 +354,18 @@ def _process_role(role_file, base_envs, stack_name, args):
     _add_identifier(role_env, 'overcloud_storage_net', args.id)
     _add_identifier(role_env, 'overcloud_storage_mgmt_net', args.id)
     _add_identifier(role_env, 'overcloud_tenant_net', args.id)
-    role_env['parameter_defaults']['networks'] = {
-        'private': role_env['parameter_defaults']['private_net'],
-        'provision': role_env['parameter_defaults']['provision_net'],
-        'public': role_env['parameter_defaults']['public_net'],
-        }
+    if role_env['parameter_defaults'].get('private_net'):
+        role_env['parameter_defaults'].update(
+            {'networks': {
+                'private': role_env['parameter_defaults']['private_net']}})
+    if role_env['parameter_defaults'].get('provision_net'):
+        role_env['parameter_defaults'].update(
+            {'networks': {
+                'provision': role_env['parameter_defaults']['provision_net']}})
+    if role_env['parameter_defaults'].get('public_net'):
+        role_env['parameter_defaults'].update(
+            {'networks': {
+                'public': role_env['parameter_defaults']['public_net']}})
     role_file = 'env-%s-%s.yaml' % (stack_name, role)
     _write_role_file(role_env, role_file)
     return role_file, role
