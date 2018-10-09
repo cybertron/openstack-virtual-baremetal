@@ -192,4 +192,4 @@ outputs:
     value:
       provision_router: {get_attr: [provision_router_port, fixed_ips, 0, ip_address]}
       provision2_router: {get_attr: [provision_router_port2, fixed_ips, 0, ip_address]}
-      provision3_router: {get_attr: [provision_router_port2, fixed_ips, 0, ip_address]}
+      provision3_router: {get_attr: [provision_router_port3, fixed_ips, 0, ip_address]}
