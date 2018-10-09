@@ -52,7 +52,7 @@ parameters:
 
   networks:
     type: json
-    default: '{"private": "private", "provision": "provision"}'
+    default: {"private": "private", "provision": "provision"}
     description: A map of networks to their names.
 
   bmc_prefix:
