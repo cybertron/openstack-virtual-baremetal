@@ -9,6 +9,24 @@ parameters:
     type: string
 
 resources:
+  bmc_sg:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name:
+        list_join:
+        - '_'
+        - - {get_param: bmc_prefix}
+          - 'sg'
+      description: SSH, ping, IPMI from the same net
+      rules:
+      - protocol: icmp
+      - protocol: tcp
+        port_range_min: 22
+        port_range_max: 22
+      - protocol: udp
+        port_range_min: 623
+        port_range_max: 623
+        remote_ip_prefix: {get_param: private_net}
 
   private_bmc_port:
     type: OS::Neutron::Port
@@ -19,6 +37,8 @@ resources:
         - - 'utility'
           - {get_param: bmc_prefix}
       network: {get_param: private_net}
+      security_groups:
+      - {get_resource: bmc_sg}
 
 outputs:
   port:
