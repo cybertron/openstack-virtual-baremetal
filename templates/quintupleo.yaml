@@ -141,6 +141,13 @@ parameters:
       ignored by Heat, but used by build-nodes-json.
     default: ''
 
+  dhcp_ips:
+    type: json
+    default:
+    - 192.0.2.1
+    - 192.0.2.10
+    description: |
+      The IP addresses of DHCP servers to relay DHCP requests to.
 
 resources:
   undercloud_networks:
@@ -188,9 +195,8 @@ resources:
       os_user_domain: {get_param: os_user_domain}
       os_project_domain: {get_param: os_project_domain}
       cloud_data: {get_param: cloud_data}
-      dhcp_ips:
-      - {get_attr: [undercloud_networks, undercloud_config_data, undercloud_local_ip]}
-      - {get_attr: [undercloud_networks, undercloud_config_data, provision_undercloud_dhcp_start]}
+      dhcp_ips: {get_param: dhcp_ips}
+
 
   network_environment_data:
     type: OS::Heat::Value
