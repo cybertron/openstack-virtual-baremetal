@@ -156,3 +156,217 @@ it has only been successfully tested with OVB on Newton and above.
 The port-security environments can be recognized by the presence of
 `port-security` somewhere in the filename.  Network environments without that
 substring are the standard ones that require the noop Neutron firewall driver.
+
+QuintupleO and routed networks
+------------------------------
+
+TripleO supports deploying OpenStack with nodes on multiple network segments
+which is connected via L3 routing. OVB can set up a full development
+environment with routers and DHCP-relay service.  This environment is targeted
+for TripleO development, however it should be useful for non-TripleO users of
+OVB as well.
+
+#. Create environment file's ``env-routed.yaml``, ``env-role-leaf1.yaml`` and
+   ``env-role-leaf1.yaml``.
+
+   Example ``env-routed.yaml``::
+
+     parameter_defaults:
+       baremetal_flavor: m1.large
+       baremetal_image: ipxe-boot
+       baremetal_prefix: baremetal
+       bmc_flavor: m1.small
+       bmc_image: CentOS-7-x86_64-GenericCloud
+       bmc_prefix: bmc
+       external_net: external_net
+       key_name: default
+       node_count: 1
+       private_net: private
+       provision_net: ctlplane
+       provision_net2: ctlplane-leaf1
+       provision_net3: ctlplane-leaf2
+       provision_net_shared: False
+       public_net: public
+       public_net_shared: False
+
+       # The default role for nodes in this environment.  This parameter is
+       # ignored by Heat, but used by build-nodes-json.
+       # Type: string
+       role: ''
+
+       undercloud_flavor: m1.large
+       undercloud_image: CentOS-7-x86_64-GenericCloud
+       undercloud_name: undercloud
+
+       dhcp_relay_image: CentOS-7-x86_64-GenericCloud
+       dhcp_relay_flavor: m1.small
+
+   Example ``env-role-leaf1.yaml``::
+
+     parameter_defaults:
+       baremetal_flavor: m1.large
+       key_name: default
+       node_count: 1
+       role: leaf1
+       provision_net: ctlplane-leaf1
+       overcloud_internal_net: overcloud_internal
+       overcloud_storage_net: overcloud_storage
+       overcloud_storage_mgmt_net: overcloud_storage_mgmt
+       overcloud_tenant_net: overcloud_tenant
+
+   Example ``env-role-leaf2.yaml``::
+
+     parameter_defaults:
+       baremetal_flavor: m1.large2
+       key_name: default
+       node_count: 1
+       role: leaf2
+       provision_net: ctlplane-leaf2
+       overcloud_internal_net: overcloud_internal2
+       overcloud_storage_net: overcloud_storage2
+       overcloud_storage_mgmt_net: overcloud_storage_mgmt2
+       overcloud_tenant_net: overcloud_tenant2
+
+#. To enable routed networks and the DHCP-relay service the following registry
+   overrides are required.
+
+   -  ``OS::OVB::UndercloudNetworks:``
+        Use the ``templates/undercloud-networks-routed.yaml`` template. This
+        template will create three provisioning networks and a router. The
+        router is wired up to each provision network to enable L3 connectivity
+        between endpoints in each network.
+   -  ``OS::OVB::DHCPRelay:``
+        Use the ``templates/dhcp-relay.yaml`` template. This template deploys
+        the DHCP-relay instance, connects it to the three provisioning networks
+        and configures the ``dhcrelay`` service to relay DHCP request to the
+        dhcp server provided in the ``dhcp_ips`` parameter.
+   -  ``OS::OVB::BaremetalNetworks:``
+        Use the ``templates/baremetal-networks-routed.yaml`` template. This
+        template deploys a 8 different networks and 4 routers. The routers is
+        wired to networks in pairs, enabling L3 connectivity between endpoints
+        on each network pair.
+
+   Example custom registry - ``env-custom-registry.yaml``::
+
+     resource_registry:
+       OS::OVB::UndercloudNetworks: templates/undercloud-networks-routed.yaml
+       OS::OVB::DHCPRelay: templates/dhcp-relay.yaml
+       OS::OVB::BaremetalNetworks: templates/baremetal-networks-routed.yaml
+
+#. Deploy the QuintupleO routed networks environment by running the deploy.py
+   command. For example::
+
+     ./bin/deploy.py --env env-routed-lab.yaml \
+                     --quintupleo \
+                     --env environments/all-networks-port-security.yaml \
+                     --env env-custom-registry.yaml \
+                     --role env-role-leaf1.yaml \
+                     --role env-role-leaf2.yaml
+
+#. When generateomg the ``nodes.json`` file for TripleO undercloud node import
+   the environment ``env-routed.yaml`` should be specified. Also to include
+   physical network attributes of the node ports in ``nodes.json`` specify the
+   ``--physical_network`` option when running ``build-nodes-json``. For
+   example::
+
+     bin/build-nodes-json --env env-routed-lab.yaml --physical_network
+
+   The following is an example node definition produced when using the
+   ``--physical-network`` options. (Notice that ports are defined with both
+   ``address`` and ``physical_network`` attributes.
+
+   ::
+
+     {
+       "pm_password": "password",
+       "name": "baremetal-leaf1-0",
+       "memory": 8192,
+       "pm_addr": "10.0.1.13",
+       "ports": [
+         {
+           "physical_network": "ctlplane-leaf1",
+           "address": "fa:16:3e:2f:a1:cf"
+         }
+       ],
+       "capabilities": "boot_option:local,profile:leaf1",
+       "pm_type": "pxe_ipmitool",
+       "disk": 80,
+       "arch": "x86_64",
+       "cpu": 4,
+       "pm_user": "admin"
+     }
+
+#. The router addresses in the environment is dynamically allocated. For
+   convinience these are made available via the ``network_environment_data``
+   key in the stack output of the quintupleo heat stack. To retrive this data
+   run the ``openstack stack show`` command. For example::
+
+     $ openstack stack show quintupleo -c outputs -f yaml
+
+     outputs:
+     - description: floating ip of the undercloud instance
+       output_key: undercloud_host_floating_ip
+       output_value: 38.145.35.98
+     - description: Network environment data, router addresses etc.
+       output_key: network_environment_data
+       output_value:
+         internal2_router: 172.17.1.204
+         internal_router_address: 172.17.0.201
+         provision2_router: 192.0.3.206
+         provision3_router: 192.0.4.204
+         provision_router: 192.0.2.203
+         storage2_router_address: 172.18.1.209
+         storage_mgmt2_router_address: 172.19.1.206
+         storage_mgmt_router_address: 172.19.0.209
+         storage_router_address: 172.18.0.208
+         tenant2_router_address: 172.16.1.200
+         tenant_router_address: 172.16.0.201
+     - description: ip of the undercloud instance on the private network
+       output_key: undercloud_host_private_ip
+       output_value: 10.0.1.14
+
+#. Below is an example TripleO Undercloud configuration (``undercloud.conf``)
+   with routed networks support enabled and the three provisioning networks
+   defined.
+
+   ::
+
+     [DEFAULT]
+     enable_routed_networks = true
+     enable_ui = false
+     overcloud_domain_name = localdomain
+     scheduler_max_attempts = 2
+     undercloud_ntp_servers = pool.ntp.org
+     undercloud_hostname = undercloud.rdocloud
+     local_interface = eth1
+     local_mtu = 1450
+     local_ip = 192.0.2.1/24
+     undercloud_public_host = 192.0.2.2
+     undercloud_admin_host = 192.0.2.3
+     undercloud_nameservers = 8.8.8.8,8.8.4.4
+     local_subnet = ctlplane-subnet
+     subnets = ctlplane-subnet,ctlplane-leaf1,ctlplane-leaf2
+
+     [ctlplane-subnet]
+     cidr = 192.0.2.0/24
+     dhcp_start = 192.0.2.10
+     dhcp_end = 192.0.2.30
+     gateway = 192.0.2.203
+     inspection_iprange = 192.0.2.100,192.0.2.120
+     masquerade = true
+
+     [ctlplane-leaf1]
+     cidr = 192.0.3.0/24
+     dhcp_start = 192.0.3.10
+     dhcp_end = 192.0.3.30
+     gateway = 192.0.3.206
+     inspection_iprange = 192.0.3.100,192.0.3.120
+     masquerade = true
+
+     [ctlplane-leaf2]
+     cidr = 192.0.4.0/24
+     dhcp_start = 192.0.4.10
+     dhcp_end = 192.0.4.30
+     gateway = 192.0.4.204
+     inspection_iprange = 192.0.4.100,192.0.4.120
+     masquerade = true
