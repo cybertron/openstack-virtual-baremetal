@@ -18,7 +18,7 @@ parameters:
 
   overcloud_internal_net_allocation_pools:
     type: json
-    description: Allocation pool for third overcloud_internal_net subnet
+    description: Allocation pool for the overcloud_internal_net subnet
     default: [{"start": "172.17.0.200", "end": "172.17.0.254"}]
 
   overcloud_internal_net2:
@@ -35,7 +35,7 @@ parameters:
 
   overcloud_internal_net2_allocation_pools:
     type: json
-    description: Allocation pool for third overcloud_internal_net2 subnet
+    description: Allocation pool for the overcloud_internal_net2 subnet
     default: [{"start": "172.17.1.200", "end": "172.17.1.254"}]
 
   overcloud_storage_net:
@@ -52,7 +52,7 @@ parameters:
 
   overcloud_storage_net_allocation_pools:
     type: json
-    description: Allocation pool for third overcloud_storage_net subnet
+    description: Allocation pool for the overcloud_storage_net subnet
     default: [{"start": "172.18.0.200", "end": "172.18.0.254"}]
 
   overcloud_storage_net2:
@@ -69,7 +69,7 @@ parameters:
 
   overcloud_storage_net2_allocation_pools:
     type: json
-    description: Allocation pool for third overcloud_storage_net2 subnet
+    description: Allocation pool for the overcloud_storage_net2 subnet
     default: [{"start": "172.18.1.200", "end": "172.18.1.254"}]
 
   overcloud_storage_mgmt_net:
@@ -86,7 +86,7 @@ parameters:
 
   overcloud_storage_mgmt_net_allocation_pools:
     type: json
-    description: Allocation pool for third overcloud_storage_mgmt_net subnet
+    description: Allocation pool for the overcloud_storage_mgmt_net subnet
     default: [{"start": "172.19.0.200", "end": "172.19.0.254"}]
 
   overcloud_storage_mgmt_net2:
@@ -103,7 +103,7 @@ parameters:
 
   overcloud_storage_mgmt_net2_allocation_pools:
     type: json
-    description: Allocation pool for third overcloud_storage_mgmt_net2 subnet
+    description: Allocation pool for the overcloud_storage_mgmt_net2 subnet
     default: [{"start": "172.19.1.200", "end": "172.19.1.254"}]
 
   overcloud_tenant_net:
@@ -120,7 +120,7 @@ parameters:
 
   overcloud_tenant_net_allocation_pools:
     type: json
-    description: Allocation pool for third overcloud_tenant_net subnet
+    description: Allocation pool for the overcloud_tenant_net subnet
     default: [{"start": "172.16.0.200", "end": "172.16.0.254"}]
 
   overcloud_tenant_net2:
@@ -137,7 +137,7 @@ parameters:
 
   overcloud_tenant_net2_allocation_pools:
     type: json
-    description: Allocation pool for third overcloud_tenant_net2 subnet
+    description: Allocation pool for the overcloud_tenant_net2 subnet
     default: [{"start": "172.16.1.200", "end": "172.16.1.254"}]
 
 resources:
