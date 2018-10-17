@@ -21,6 +21,6 @@ parameter_defaults:
   dhcp_relay_image: CentOS-7-x86_64-GenericCloud
 
 resource_registry:
-  OS::OVB::BaremetalNetworks: templates/baremetal-networks-routed.yaml
-  OS::OVB::DHCPRelay: templates/dhcp-relay.yaml
-  OS::OVB::UndercloudNetworks: templates/undercloud-networks-routed.yaml
+  OS::OVB::BaremetalNetworks: ../templates/baremetal-networks-routed.yaml
+  OS::OVB::DHCPRelay: ../templates/dhcp-relay.yaml
+  OS::OVB::UndercloudNetworks: ../templates/undercloud-networks-routed.yaml
