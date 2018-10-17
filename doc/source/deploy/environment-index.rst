@@ -1,3 +1,5 @@
+.. _env-index:
+
 Sample Environment Index
 ========================
 
@@ -136,6 +138,8 @@ Disable the Undercloud in a QuintupleO Stack
 instance.
 
 
+.. _env-routed-networks-role:
+
 Base Role Configuration for Routed Networks
 -------------------------------------------
 
@@ -144,6 +148,8 @@ Base Role Configuration for Routed Networks
 **Description:** A base role environment that contains the necessary parameters for
 deploying with routed networks.
 
+
+.. _env-enable-routed-networks:
 
 Enable Routed Networks
 ----------------------

@@ -166,110 +166,32 @@ environment with routers and DHCP-relay service.  This environment is targeted
 for TripleO development, however it should be useful for non-TripleO users of
 OVB as well.
 
-#. Create environment file's ``env-routed.yaml``, ``env-role-leaf1.yaml`` and
-   ``env-role-leaf1.yaml``.
+#. When deploying QuintupleO with routed networks environment files to enable
+   routed networks must be included, as well as one or more role environment
+   files. See :ref:`env-enable-routed-networks` and
+   :ref:`env-routed-networks-role` in the :ref:`env-index` for details.
 
-   Example ``env-routed.yaml``::
+#. Copy the example env file and edit it to reflect the host environment::
 
-     parameter_defaults:
-       baremetal_flavor: m1.large
-       baremetal_image: ipxe-boot
-       baremetal_prefix: baremetal
-       bmc_flavor: m1.small
-       bmc_image: CentOS-7-x86_64-GenericCloud
-       bmc_prefix: bmc
-       external_net: external_net
-       key_name: default
-       node_count: 1
-       private_net: private
-       provision_net: ctlplane
-       provision_net2: ctlplane-leaf1
-       provision_net3: ctlplane-leaf2
-       provision_net_shared: False
-       public_net: public
-       public_net_shared: False
-
-       # The default role for nodes in this environment.  This parameter is
-       # ignored by Heat, but used by build-nodes-json.
-       # Type: string
-       role: ''
-
-       undercloud_flavor: m1.large
-       undercloud_image: CentOS-7-x86_64-GenericCloud
-       undercloud_name: undercloud
-
-       dhcp_relay_image: CentOS-7-x86_64-GenericCloud
-       dhcp_relay_flavor: m1.small
-
-   Example ``env-role-leaf1.yaml``::
-
-     parameter_defaults:
-       baremetal_flavor: m1.large
-       key_name: default
-       node_count: 1
-       role: leaf1
-       provision_net: ctlplane-leaf1
-       overcloud_internal_net: overcloud_internal
-       overcloud_storage_net: overcloud_storage
-       overcloud_storage_mgmt_net: overcloud_storage_mgmt
-       overcloud_tenant_net: overcloud_tenant
-
-   Example ``env-role-leaf2.yaml``::
-
-     parameter_defaults:
-       baremetal_flavor: m1.large2
-       key_name: default
-       node_count: 1
-       role: leaf2
-       provision_net: ctlplane-leaf2
-       overcloud_internal_net: overcloud_internal2
-       overcloud_storage_net: overcloud_storage2
-       overcloud_storage_mgmt_net: overcloud_storage_mgmt2
-       overcloud_tenant_net: overcloud_tenant2
-
-#. To enable routed networks and the DHCP-relay service the following registry
-   overrides are required.
-
-   -  ``OS::OVB::UndercloudNetworks:``
-        Use the ``templates/undercloud-networks-routed.yaml`` template. This
-        template will create three provisioning networks and a router. The
-        router is wired up to each provision network to enable L3 connectivity
-        between endpoints in each network.
-   -  ``OS::OVB::DHCPRelay:``
-        Use the ``templates/dhcp-relay.yaml`` template. This template deploys
-        the DHCP-relay instance, connects it to the three provisioning networks
-        and configures the ``dhcrelay`` service to relay DHCP request to the
-        dhcp server provided in the ``dhcp_ips`` parameter.
-   -  ``OS::OVB::BaremetalNetworks:``
-        Use the ``templates/baremetal-networks-routed.yaml`` template. This
-        template deploys a 8 different networks and 4 routers. The routers is
-        wired to networks in pairs, enabling L3 connectivity between endpoints
-        on each network pair.
-
-   Example custom registry - ``env-custom-registry.yaml``::
-
-     resource_registry:
-       OS::OVB::UndercloudNetworks: templates/undercloud-networks-routed.yaml
-       OS::OVB::DHCPRelay: templates/dhcp-relay.yaml
-       OS::OVB::BaremetalNetworks: templates/baremetal-networks-routed.yaml
+      cp environments/base.yaml env.yaml
+      vi env.yaml
 
 #. Deploy the QuintupleO routed networks environment by running the deploy.py
    command. For example::
 
-     ./bin/deploy.py --env env-routed-lab.yaml \
+     ./bin/deploy.py --env env.yaml \
                      --quintupleo \
                      --env environments/all-networks-port-security.yaml \
-                     --env env-custom-registry.yaml \
-                     --role env-role-leaf1.yaml \
-                     --role env-role-leaf2.yaml
+                     --env environments/routed-networks.yaml \
+                     --role environments/routed-networks-role.yaml
 
-#. When generateomg the ``nodes.json`` file for TripleO undercloud node import
+#. When generateing the ``nodes.json`` file for TripleO undercloud node import
    the environment ``env-routed.yaml`` should be specified. Also to include
    physical network attributes of the node ports in ``nodes.json`` specify the
    ``--physical_network`` option when running ``build-nodes-json``. For
    example::
 
-     bin/build-nodes-json --env env-routed-lab.yaml --physical_network
+     bin/build-nodes-json --physical_network
 
    The following is an example node definition produced when using the
    ``--physical-network`` options. (Notice that ports are defined with both
@@ -284,7 +206,7 @@ OVB as well.
        "pm_addr": "10.0.1.13",
        "ports": [
          {
-           "physical_network": "ctlplane-leaf1",
+           "physical_network": "provision2",
            "address": "fa:16:3e:2f:a1:cf"
          }
        ],
@@ -296,7 +218,17 @@ OVB as well.
        "pm_user": "admin"
      }
 
-#. The router addresses in the environment is dynamically allocated. For
+    .. NOTE:: Due to technical debet (backward compatibility) the TripleO
+              Undercloud uses ``ctlplane`` as the physical network name for the
+              subnet that is local to the Undercloud itself. Either override
+              the name of the provision network in the ovb environment by
+              setting: ``provision_net: ctlplane`` in the
+              ``parameters_defaults`` section or edit the generated nodes.json
+              file, replacing:
+              ``"physical_network": "<name-used-for-provision_net>"`` with
+              ``"physical_network": "ctlplane"``.
+
+#. The router addresses in the environment are dynamically allocated. For
    convinience these are made available via the ``network_environment_data``
    key in the stack output of the quintupleo heat stack. To retrive this data
    run the ``openstack stack show`` command. For example::
@@ -344,10 +276,10 @@ OVB as well.
      undercloud_public_host = 192.0.2.2
      undercloud_admin_host = 192.0.2.3
      undercloud_nameservers = 8.8.8.8,8.8.4.4
-     local_subnet = ctlplane-subnet
-     subnets = ctlplane-subnet,ctlplane-leaf1,ctlplane-leaf2
+     local_subnet = provision
+     subnets = provision,provision2,provision3
 
-     [ctlplane-subnet]
+     [provision]
      cidr = 192.0.2.0/24
      dhcp_start = 192.0.2.10
      dhcp_end = 192.0.2.30
@@ -355,7 +287,7 @@ OVB as well.
      inspection_iprange = 192.0.2.100,192.0.2.120
      masquerade = true
 
-     [ctlplane-leaf1]
+     [provision2]
      cidr = 192.0.3.0/24
      dhcp_start = 192.0.3.10
      dhcp_end = 192.0.3.30
@@ -363,7 +295,7 @@ OVB as well.
      inspection_iprange = 192.0.3.100,192.0.3.120
      masquerade = true
 
-     [ctlplane-leaf2]
+     [provision3]
      cidr = 192.0.4.0/24
      dhcp_start = 192.0.4.10
      dhcp_end = 192.0.4.30
