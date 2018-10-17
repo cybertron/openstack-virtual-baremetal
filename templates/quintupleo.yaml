@@ -197,12 +197,6 @@ resources:
       cloud_data: {get_param: cloud_data}
       dhcp_ips: {get_param: dhcp_ips}
 
-
-  network_environment_data:
-    type: OS::Heat::Value
-    properties:
-      value:
-
 outputs:
   undercloud_host_floating_ip:
     description: "floating ip of the undercloud instance"
