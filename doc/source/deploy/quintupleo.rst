@@ -229,8 +229,8 @@ OVB as well.
               ``"physical_network": "ctlplane"``.
 
 #. The router addresses in the environment are dynamically allocated. For
-   convinience these are made available via the ``network_environment_data``
-   key in the stack output of the quintupleo heat stack. To retrive this data
+   convenience these are made available via the ``network_environment_data``
+   key in the stack output of the quintupleo heat stack. To retrieve this data
    run the ``openstack stack show`` command. For example::
 
      $ openstack stack show quintupleo -c outputs -f yaml
