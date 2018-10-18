@@ -176,14 +176,26 @@ OVB as well.
       cp environments/base.yaml env.yaml
       vi env.yaml
 
+#. Copy the ``routed-networks.yaml`` sample environment file and edit it to
+   reflect the host environment::
+
+     cp environments/routed-networks.yaml env-routed-networks.yaml
+     vi env-routed-networks.yaml
+
+#. For each desired role, copy the ``routed-networks-role.yaml`` sample
+   environment file and edit it to reflect the host environment::
+
+     cp environments/routed-networks-role.yaml env-leaf1.yaml
+     vi env-leaf1.yaml
+
 #. Deploy the QuintupleO routed networks environment by running the deploy.py
    command. For example::
 
      ./bin/deploy.py --env env.yaml \
                      --quintupleo \
                      --env environments/all-networks-port-security.yaml \
-                     --env environments/routed-networks.yaml \
-                     --role environments/routed-networks-role.yaml
+                     --env env-routed-networks.yaml \
+                     --role env-leaf1.yaml
 
 #. When generateing the ``nodes.json`` file for TripleO undercloud node import
    the environment ``env-routed.yaml`` should be specified. Also to include
