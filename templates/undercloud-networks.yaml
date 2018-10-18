@@ -9,7 +9,7 @@ parameters:
   provision_net_cidr:
     type: string
     description: CIDR for provision network subnet
-    default: 192.0.2.0/24
+    default: 192.168.24.0/24
 
   provision_net_shared:
     type: boolean
@@ -67,3 +67,6 @@ outputs:
     value:
       provision: {get_resource: provision_network}
       public: {get_resource: public_network}
+  # The provision_network_routers is here for compatibility only
+  provision_network_routers:
+    value: {}

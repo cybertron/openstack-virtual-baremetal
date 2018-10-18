@@ -52,7 +52,7 @@ parameters:
 
   networks:
     type: json
-    default: '{"private": "private", "provision": "provision"}'
+    default: {"private": "private", "provision": "provision"}
     description: A map of networks to their names.
 
   bmc_prefix:
@@ -113,6 +113,14 @@ parameters:
     type: string
     default: '{}'
     hidden: true
+
+  dhcp_ips:
+    type: json
+    default:
+    - 192.168.24.1
+    - 192.168.24.10
+    description: |
+      The IP addresses of DHCP servers to relay DHCP requests to.
 
   # Ignored parameters for compatibility with QuintupleO env files
   undercloud_image:
@@ -207,3 +215,8 @@ resources:
     type: OS::OVB::DHCPRelay
     properties:
       networks: {get_param: networks}
+      dhcp_ips: {get_param: dhcp_ips}
+
+outputs:
+  baremetal_networks_routers_addresses:
+    value: {get_attr: [baremetal_networks, routers_addresses]}

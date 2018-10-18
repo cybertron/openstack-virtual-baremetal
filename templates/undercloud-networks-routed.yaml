@@ -9,7 +9,12 @@ parameters:
   provision_net_cidr:
     type: string
     description: CIDR for provision network subnet
-    default: 192.0.2.0/24
+    default: 192.168.24.0/24
+
+  provision_net_router_address:
+    type: string
+    description: Router address for the provision network subnet
+    default: 192.168.24.254
 
   provision_net_shared:
     type: boolean
@@ -24,7 +29,12 @@ parameters:
   provision_net2_cidr:
     type: string
     description: CIDR for second provision network subnet
-    default: 192.0.3.0/24
+    default: 192.168.25.0/24
+
+  provision_net2_router_address:
+    type: string
+    description: Router address for the provision network subnet
+    default: 192.168.25.254
 
   provision_net2_shared:
     type: boolean
@@ -39,7 +49,12 @@ parameters:
   provision_net3_cidr:
     type: string
     description: CIDR for third provision network subnet
-    default: 192.0.4.0/24
+    default: 192.168.26.0/24
+
+  provision_net3_router_address:
+    type: string
+    description: Router address for the provision network subnet
+    default: 192.168.26.254
 
   provision_net3_shared:
     type: boolean
@@ -87,6 +102,8 @@ resources:
     properties:
       network: {get_resource: provision_network}
       port_security_enabled: false
+      fixed_ips:
+       - ip_address: {get_param: provision_net_router_address}
 
   provision_router_interface:
     type: OS::Neutron::RouterInterface
@@ -114,6 +131,8 @@ resources:
     properties:
       network: {get_resource: provision_network2}
       port_security_enabled: false
+      fixed_ips:
+       - ip_address: {get_param: provision_net2_router_address}
 
   provision_router_interface2:
     type: OS::Neutron::RouterInterface
@@ -141,6 +160,8 @@ resources:
     properties:
       network: {get_resource: provision_network3}
       port_security_enabled: false
+      fixed_ips:
+       - ip_address: {get_param: provision_net3_router_address}
 
   provision_router_interface3:
     type: OS::Neutron::RouterInterface
@@ -170,3 +191,8 @@ outputs:
       provision2: {get_resource: provision_network2}
       provision3: {get_resource: provision_network3}
       public: {get_resource: public_network}
+  provision_network_routers:
+    value:
+      provision_router: {get_attr: [provision_router_port, fixed_ips, 0, ip_address]}
+      provision2_router: {get_attr: [provision_router_port2, fixed_ips, 0, ip_address]}
+      provision3_router: {get_attr: [provision_router_port3, fixed_ips, 0, ip_address]}

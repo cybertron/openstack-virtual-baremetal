@@ -1,4 +1,4 @@
-heat_template_version: 2015-04-30
+heat_template_version: 2016-04-08
 
 # Template that wraps virtual-baremetal.yaml and does some additional environment
 # setup automatically:
@@ -141,6 +141,13 @@ parameters:
       ignored by Heat, but used by build-nodes-json.
     default: ''
 
+  dhcp_ips:
+    type: json
+    default:
+    - 192.168.24.1
+    - 192.168.24.10
+    description: |
+      The IP addresses of DHCP servers to relay DHCP requests to.
 
 resources:
   undercloud_networks:
@@ -188,6 +195,7 @@ resources:
       os_user_domain: {get_param: os_user_domain}
       os_project_domain: {get_param: os_project_domain}
       cloud_data: {get_param: cloud_data}
+      dhcp_ips: {get_param: dhcp_ips}
 
 outputs:
   undercloud_host_floating_ip:
@@ -198,3 +206,9 @@ outputs:
     description: "ip of the undercloud instance on the private network"
     value:
       get_attr: [undercloud_env, undercloud_host_private_ip]
+  network_environment_data:
+    description: "Network environment data, router addresses etc."
+    value:
+      map_merge:
+      - get_attr: [undercloud_networks, provision_network_routers]
+      - get_attr: [baremetal_env, baremetal_networks_routers_addresses]

@@ -192,11 +192,11 @@ class TestIdEnv(unittest.TestCase):
 # _process_role test data
 role_base_data = {
     'parameter_defaults': {
-        'overcloud_storage_mgmt_net': 'storage_mgmt-foo',
-        'overcloud_internal_net': 'internal-foo',
-        'overcloud_storage_net': 'storage-foo',
+        'overcloud_storage_mgmt_net': 'storage_mgmt',
+        'overcloud_internal_net': 'internal',
+        'overcloud_storage_net': 'storage',
+        'overcloud_tenant_net': 'tenant',
         'role': 'control',
-        'overcloud_tenant_net': 'tenant-foo'
     },
     'parameters': {
         'os_user': 'admin',
@@ -213,7 +213,6 @@ role_base_data = {
         'undercloud_image': 'centos7-base',
         'baremetal_image': 'ipxe-boot',
         'external_net': 'external',
-        'private_net': 'private',
         'baremetal_prefix': 'baremetal-foo-control',
         'undercloud_flavor': 'undercloud-16',
         'node_count': 3,
@@ -229,6 +228,9 @@ role_base_data = {
 role_specific_data = {
     'parameter_defaults': {
         'role': 'compute',
+        'public_net': 'public',
+        'private_net': 'private',
+        'provision_net': 'provision',
     },
     'parameters': {
         'key_name': 'default',
@@ -254,16 +256,13 @@ role_original_data = {
         'undercloud_name': 'undercloud',
         'baremetal_flavor': 'baremetal',
         'os_auth_url': 'http://1.1.1.1:5000/v2.0',
-        'provision_net': 'provision',
         'bmc_image': 'bmc-base',
         'os_tenant': 'admin',
         'bmc_prefix': 'bmc',
-        'public_net': 'public',
         'undercloud_image': 'centos7-base',
         'baremetal_image': 'ipxe-boot',
         'external_net': 'external',
         'os_password': 'password',
-        'private_net': 'private',
         'undercloud_flavor': 'undercloud-16',
         'node_count': 3,
         'bmc_flavor': 'bmc'
@@ -398,8 +397,16 @@ class TestDeploy(testtools.TestCase):
                          output['parameters']['bmc_prefix'])
         # These should be inherited
         self.assertEqual('ipxe-boot', output['parameters']['baremetal_image'])
-        self.assertEqual('tenant-foo',
+        self.assertEqual('tenant-' + args.id,
                          output['parameter_defaults']['overcloud_tenant_net'])
+        self.assertEqual('internal-' + args.id,
+                         output['parameter_defaults']['overcloud_internal_net']
+                         )
+        self.assertEqual('storage-' + args.id,
+                         output['parameter_defaults']['overcloud_storage_net'])
+        self.assertEqual('storage_mgmt-' + args.id,
+                         output['parameter_defaults'][
+                             'overcloud_storage_mgmt_net'])
         # This should not be present in a role env, even if set in the file
         self.assertNotIn('OS::OVB::BaremetalNetworks',
                          output['resource_registry'])
