@@ -213,7 +213,6 @@ role_base_data = {
         'undercloud_image': 'centos7-base',
         'baremetal_image': 'ipxe-boot',
         'external_net': 'external',
-        'private_net': 'private',
         'baremetal_prefix': 'baremetal-foo-control',
         'undercloud_flavor': 'undercloud-16',
         'node_count': 3,
@@ -229,6 +228,9 @@ role_base_data = {
 role_specific_data = {
     'parameter_defaults': {
         'role': 'compute',
+        'public_net': 'public',
+        'private_net': 'private',
+        'provision_net': 'provision',
     },
     'parameters': {
         'key_name': 'default',
@@ -254,16 +256,13 @@ role_original_data = {
         'undercloud_name': 'undercloud',
         'baremetal_flavor': 'baremetal',
         'os_auth_url': 'http://1.1.1.1:5000/v2.0',
-        'provision_net': 'provision',
         'bmc_image': 'bmc-base',
         'os_tenant': 'admin',
         'bmc_prefix': 'bmc',
-        'public_net': 'public',
         'undercloud_image': 'centos7-base',
         'baremetal_image': 'ipxe-boot',
         'external_net': 'external',
         'os_password': 'password',
-        'private_net': 'private',
         'undercloud_flavor': 'undercloud-16',
         'node_count': 3,
         'bmc_flavor': 'bmc'
