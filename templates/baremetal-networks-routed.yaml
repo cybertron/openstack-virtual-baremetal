@@ -16,10 +16,10 @@ parameters:
       does not need to be changed.
     default: 172.17.0.0/24
 
-  overcloud_internal_net_allocation_pools:
-    type: json
-    description: Allocation pool for the overcloud_internal_net subnet
-    default: [{"start": "172.17.0.200", "end": "172.17.0.254"}]
+  overcloud_internal_net_router_address:
+    type: string
+    description: Router address for the overcloud_internal_net
+    default: 172.17.0.254
 
   overcloud_internal_net2:
     type: string
@@ -33,10 +33,10 @@ parameters:
       does not need to be changed.
     default: 172.17.1.0/24
 
-  overcloud_internal_net2_allocation_pools:
-    type: json
-    description: Allocation pool for the overcloud_internal_net2 subnet
-    default: [{"start": "172.17.1.200", "end": "172.17.1.254"}]
+  overcloud_internal_net2_router_address:
+    type: string
+    description: Router address for the overcloud_internal_net2 subnet
+    default: 172.17.1.254
 
   overcloud_storage_net:
     type: string
@@ -50,10 +50,10 @@ parameters:
       does not need to be changed.
     default: 172.18.0.0/24
 
-  overcloud_storage_net_allocation_pools:
-    type: json
-    description: Allocation pool for the overcloud_storage_net subnet
-    default: [{"start": "172.18.0.200", "end": "172.18.0.254"}]
+  overcloud_storage_net_router_address:
+    type: string
+    description: Router address for the overcloud_storage_net subnet
+    default: 172.18.0.254
 
   overcloud_storage_net2:
     type: string
@@ -67,10 +67,10 @@ parameters:
       does not need to be changed.
     default: 172.18.1.0/24
 
-  overcloud_storage_net2_allocation_pools:
-    type: json
-    description: Allocation pool for the overcloud_storage_net2 subnet
-    default: [{"start": "172.18.1.200", "end": "172.18.1.254"}]
+  overcloud_storage_net2_router_address:
+    type: string
+    description: Router address for the overcloud_storage_net2 subnet
+    default: 172.18.1.254
 
   overcloud_storage_mgmt_net:
     type: string
@@ -84,10 +84,10 @@ parameters:
       and does not need to be changed.
     default: 172.19.0.0/24
 
-  overcloud_storage_mgmt_net_allocation_pools:
-    type: json
-    description: Allocation pool for the overcloud_storage_mgmt_net subnet
-    default: [{"start": "172.19.0.200", "end": "172.19.0.254"}]
+  overcloud_storage_mgmt_net_router_address:
+    type: string
+    description: Router address for the overcloud_storage_mgmt_net subnet
+    default: 172.19.0.254
 
   overcloud_storage_mgmt_net2:
     type: string
@@ -101,10 +101,10 @@ parameters:
       and does not need to be changed.
     default: 172.19.1.0/24
 
-  overcloud_storage_mgmt_net2_allocation_pools:
-    type: json
-    description: Allocation pool for the overcloud_storage_mgmt_net2 subnet
-    default: [{"start": "172.19.1.200", "end": "172.19.1.254"}]
+  overcloud_storage_mgmt_net2_router_address:
+    type: string
+    description: Router address for the overcloud_storage_mgmt_net2 subnet
+    default: 172.19.1.254
 
   overcloud_tenant_net:
     type: string
@@ -118,10 +118,10 @@ parameters:
       does not need to be changed.
     default: 172.16.0.0/24
 
-  overcloud_tenant_net_allocation_pools:
-    type: json
-    description: Allocation pool for the overcloud_tenant_net subnet
-    default: [{"start": "172.16.0.200", "end": "172.16.0.254"}]
+  overcloud_tenant_net_router_address:
+    type: string
+    description: Router address for the overcloud_tenant_net subnet
+    default: 172.16.0.254
 
   overcloud_tenant_net2:
     type: string
@@ -135,10 +135,10 @@ parameters:
       does not need to be changed.
     default: 172.16.1.0/24
 
-  overcloud_tenant_net2_allocation_pools:
-    type: json
-    description: Allocation pool for the overcloud_tenant_net2 subnet
-    default: [{"start": "172.16.1.200", "end": "172.16.1.254"}]
+  overcloud_tenant_net2_router_address:
+    type: string
+    description: Router address for the overcloud_tenant_net2 subnet
+    default: 172.16.1.254
 
 resources:
   internal_router:
@@ -157,7 +157,6 @@ resources:
       network: {get_resource: internal_network}
       name: {get_param: overcloud_internal_net}
       cidr: {get_param: overcloud_internal_net_cidr}
-      allocation_pools: {get_param: overcloud_internal_net_allocation_pools}
       gateway_ip: null
       enable_dhcp: false
 
@@ -166,6 +165,8 @@ resources:
     properties:
       network: {get_resource: internal_network}
       port_security_enabled: false
+      fixed_ips:
+       - ip_address: {get_param: overcloud_internal_net_router_address}
 
   internal_subnet_interface:
     type: OS::Neutron::RouterInterface
@@ -184,7 +185,6 @@ resources:
       network: {get_resource: internal_network2}
       name: {get_param: overcloud_internal_net2}
       cidr: {get_param: overcloud_internal_net2_cidr}
-      allocation_pools: {get_param: overcloud_internal_net2_allocation_pools}
       gateway_ip: null
       enable_dhcp: false
 
@@ -193,6 +193,8 @@ resources:
     properties:
       network: {get_resource: internal_network2}
       port_security_enabled: false
+      fixed_ips:
+       - ip_address: {get_param: overcloud_internal_net2_router_address}
 
   internal_subnet2_interface:
     type: OS::Neutron::RouterInterface
@@ -216,7 +218,6 @@ resources:
       network: {get_resource: storage_network}
       name: {get_param: overcloud_storage_net}
       cidr: {get_param: overcloud_storage_net_cidr}
-      allocation_pools: {get_param: overcloud_storage_net_allocation_pools}
       gateway_ip: null
       enable_dhcp: false
 
@@ -225,6 +226,8 @@ resources:
     properties:
       network: {get_resource: storage_network}
       port_security_enabled: false
+      fixed_ips:
+       - ip_address: {get_param: overcloud_storage_net_router_address}
 
   storage_subnet_interface:
     type: OS::Neutron::RouterInterface
@@ -243,7 +246,6 @@ resources:
       network: {get_resource: storage_network2}
       name: {get_param: overcloud_storage_net2}
       cidr: {get_param: overcloud_storage_net2_cidr}
-      allocation_pools: {get_param: overcloud_storage_net2_allocation_pools}
       gateway_ip: null
       enable_dhcp: false
 
@@ -252,6 +254,8 @@ resources:
     properties:
       network: {get_resource: storage_network2}
       port_security_enabled: false
+      fixed_ips:
+       - ip_address: {get_param: overcloud_storage_net2_router_address}
 
   storage_subnet2_interface:
     type: OS::Neutron::RouterInterface
@@ -275,7 +279,6 @@ resources:
       network: {get_resource: storage_mgmt_network}
       name: {get_param: overcloud_storage_mgmt_net}
       cidr: {get_param: overcloud_storage_mgmt_net_cidr}
-      allocation_pools: {get_param: overcloud_storage_mgmt_net_allocation_pools}
       gateway_ip: null
       enable_dhcp: false
 
@@ -284,6 +287,8 @@ resources:
     properties:
       network: {get_resource: storage_mgmt_network}
       port_security_enabled: false
+      fixed_ips:
+       - ip_address: {get_param: overcloud_storage_mgmt_net_router_address}
 
   storage_mgmt_subnet_interface:
     type: OS::Neutron::RouterInterface
@@ -302,7 +307,6 @@ resources:
       network: {get_resource: storage_mgmt_network2}
       name: {get_param: overcloud_storage_mgmt_net2}
       cidr: {get_param: overcloud_storage_mgmt_net2_cidr}
-      allocation_pools: {get_param: overcloud_storage_mgmt_net2_allocation_pools}
       gateway_ip: null
       enable_dhcp: false
 
@@ -311,6 +315,8 @@ resources:
     properties:
       network: {get_resource: storage_mgmt_network2}
       port_security_enabled: false
+      fixed_ips:
+       - ip_address: {get_param: overcloud_storage_mgmt_net2_router_address}
 
   storage_mgmt_subnet2_interface:
     type: OS::Neutron::RouterInterface
@@ -334,7 +340,6 @@ resources:
       network: {get_resource: tenant_network}
       name: {get_param: overcloud_tenant_net}
       cidr: {get_param: overcloud_tenant_net_cidr}
-      allocation_pools: {get_param: overcloud_tenant_net_allocation_pools}
       gateway_ip: null
       enable_dhcp: false
 
@@ -343,6 +348,8 @@ resources:
     properties:
       network: {get_resource: tenant_network}
       port_security_enabled: false
+      fixed_ips:
+       - ip_address: {get_param: overcloud_tenant_net_router_address}
 
   tenant_subnet_interface:
     type: OS::Neutron::RouterInterface
@@ -361,7 +368,6 @@ resources:
       network: {get_resource: tenant_network2}
       name: {get_param: overcloud_tenant_net2}
       cidr: {get_param: overcloud_tenant_net2_cidr}
-      allocation_pools: {get_param: overcloud_tenant_net2_allocation_pools}
       gateway_ip: null
       enable_dhcp: false
 
@@ -370,6 +376,8 @@ resources:
     properties:
       network: {get_resource: tenant_network2}
       port_security_enabled: false
+      fixed_ips:
+       - ip_address: {get_param: overcloud_tenant_net2_router_address}
 
   tenant_subnet2_interface:
     type: OS::Neutron::RouterInterface

@@ -11,10 +11,10 @@ parameters:
     description: CIDR for provision network subnet
     default: 192.0.2.0/24
 
-  provision_net_allocation_pools:
-    type: json
-    description: Allocation pool for third provision network subnet
-    default: [{"start": "192.0.2.200", "end": "192.0.2.254"}]
+  provision_net_router_address:
+    type: string
+    description: Router address for the provision network subnet
+    default: 192.0.2.254
 
   provision_net_shared:
     type: boolean
@@ -31,10 +31,10 @@ parameters:
     description: CIDR for second provision network subnet
     default: 192.0.3.0/24
 
-  provision_net2_allocation_pools:
-    type: json
-    description: Allocation pool for third provision network subnet
-    default: [{"start": "192.0.3.200", "end": "192.0.3.254"}]
+  provision_net2_router_address:
+    type: string
+    description: Router address for the provision network subnet
+    default: 192.0.3.254
 
   provision_net2_shared:
     type: boolean
@@ -51,10 +51,10 @@ parameters:
     description: CIDR for third provision network subnet
     default: 192.0.4.0/24
 
-  provision_net3_allocation_pools:
-    type: json
-    description: Allocation pool for third provision network subnet
-    default: [{"start": "192.0.4.200", "end": "192.0.4.254"}]
+  provision_net3_router_address:
+    type: string
+    description: Router address for the provision network subnet
+    default: 192.0.4.254
 
   provision_net3_shared:
     type: boolean
@@ -94,7 +94,6 @@ resources:
       network: {get_resource: provision_network}
       name: {get_param: provision_net}
       cidr: {get_param: provision_net_cidr}
-      allocation_pools: {get_param: provision_net_allocation_pools}
       gateway_ip: null
       enable_dhcp: false
 
@@ -103,6 +102,8 @@ resources:
     properties:
       network: {get_resource: provision_network}
       port_security_enabled: false
+      fixed_ips:
+       - ip_address: {get_param: provision_net_router_address}
 
   provision_router_interface:
     type: OS::Neutron::RouterInterface
@@ -122,7 +123,6 @@ resources:
       network: {get_resource: provision_network2}
       name: {get_param: provision_net2}
       cidr: {get_param: provision_net2_cidr}
-      allocation_pools: {get_param: provision_net2_allocation_pools}
       gateway_ip: null
       enable_dhcp: false
 
@@ -131,6 +131,8 @@ resources:
     properties:
       network: {get_resource: provision_network2}
       port_security_enabled: false
+      fixed_ips:
+       - ip_address: {get_param: provision_net2_router_address}
 
   provision_router_interface2:
     type: OS::Neutron::RouterInterface
@@ -150,7 +152,6 @@ resources:
       network: {get_resource: provision_network3}
       name: {get_param: provision_net3}
       cidr: {get_param: provision_net3_cidr}
-      allocation_pools: {get_param: provision_net3_allocation_pools}
       gateway_ip: null
       enable_dhcp: false
 
@@ -159,6 +160,8 @@ resources:
     properties:
       network: {get_resource: provision_network3}
       port_security_enabled: false
+      fixed_ips:
+       - ip_address: {get_param: provision_net3_router_address}
 
   provision_router_interface3:
     type: OS::Neutron::RouterInterface
