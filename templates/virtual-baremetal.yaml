@@ -117,8 +117,8 @@ parameters:
   dhcp_ips:
     type: json
     default:
-    - 192.0.2.1
-    - 192.0.2.10
+    - 192.168.24.1
+    - 192.168.24.10
     description: |
       The IP addresses of DHCP servers to relay DHCP requests to.
 

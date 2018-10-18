@@ -228,10 +228,10 @@ OVB as well.
               ``"physical_network": "<name-used-for-provision_net>"`` with
               ``"physical_network": "ctlplane"``.
 
-#. The router addresses in the environment are dynamically allocated. For
-   convenience these are made available via the ``network_environment_data``
-   key in the stack output of the quintupleo heat stack. To retrieve this data
-   run the ``openstack stack show`` command. For example::
+#. For convenience router addresses are made available via the
+   ``network_environment_data`` key in the stack output of the quintupleo heat
+   stack. To retrieve this data run the ``openstack stack show`` command. For
+   example::
 
      $ openstack stack show quintupleo -c outputs -f yaml
 
@@ -244,15 +244,15 @@ OVB as well.
        output_value:
          internal2_router: 172.17.1.204
          internal_router_address: 172.17.0.201
-         provision2_router: 192.0.3.206
-         provision3_router: 192.0.4.204
-         provision_router: 192.0.2.203
-         storage2_router_address: 172.18.1.209
-         storage_mgmt2_router_address: 172.19.1.206
-         storage_mgmt_router_address: 172.19.0.209
-         storage_router_address: 172.18.0.208
-         tenant2_router_address: 172.16.1.200
-         tenant_router_address: 172.16.0.201
+         provision2_router: 192.168.25.254
+         provision3_router: 192.168.26.254
+         provision_router: 192.168.24.254
+         storage2_router_address: 172.18.1.254
+         storage_mgmt2_router_address: 172.19.1.254
+         storage_mgmt_router_address: 172.19.0.254
+         storage_router_address: 172.18.0.254
+         tenant2_router_address: 172.16.1.254
+         tenant_router_address: 172.16.0.254
      - description: ip of the undercloud instance on the private network
        output_key: undercloud_host_private_ip
        output_value: 10.0.1.14
@@ -272,33 +272,33 @@ OVB as well.
      undercloud_hostname = undercloud.rdocloud
      local_interface = eth1
      local_mtu = 1450
-     local_ip = 192.0.2.1/24
-     undercloud_public_host = 192.0.2.2
-     undercloud_admin_host = 192.0.2.3
+     local_ip = 192.168.24.1/24
+     undercloud_public_host = 192.168.24.2
+     undercloud_admin_host = 192.168.24.3
      undercloud_nameservers = 8.8.8.8,8.8.4.4
      local_subnet = provision
      subnets = provision,provision2,provision3
 
      [provision]
-     cidr = 192.0.2.0/24
-     dhcp_start = 192.0.2.10
-     dhcp_end = 192.0.2.30
-     gateway = 192.0.2.203
-     inspection_iprange = 192.0.2.100,192.0.2.120
+     cidr = 192.168.24.0/24
+     dhcp_start = 192.168.24.10
+     dhcp_end = 192.168.24.30
+     gateway = 192.168.24.254
+     inspection_iprange = 192.168.24.100,192.168.24.120
      masquerade = true
 
      [provision2]
-     cidr = 192.0.3.0/24
-     dhcp_start = 192.0.3.10
-     dhcp_end = 192.0.3.30
-     gateway = 192.0.3.206
-     inspection_iprange = 192.0.3.100,192.0.3.120
+     cidr = 192.168.25.0/24
+     dhcp_start = 192.168.25.10
+     dhcp_end = 192.168.25.30
+     gateway = 192.168.25.254
+     inspection_iprange = 192.168.25.100,192.168.25.120
      masquerade = true
 
      [provision3]
-     cidr = 192.0.4.0/24
-     dhcp_start = 192.0.4.10
-     dhcp_end = 192.0.4.30
-     gateway = 192.0.4.204
-     inspection_iprange = 192.0.4.100,192.0.4.120
+     cidr = 192.168.26.0/24
+     dhcp_start = 192.168.26.10
+     dhcp_end = 192.168.26.30
+     gateway = 192.168.26.254
+     inspection_iprange = 192.168.26.100,192.168.26.120
      masquerade = true

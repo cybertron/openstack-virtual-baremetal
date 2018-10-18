@@ -37,7 +37,7 @@ method, which creates most of the resources needed automatically.
    ::
 
       neutron net-create provision
-      neutron subnet-create --name provision --no-gateway --disable-dhcp provision 192.0.2.0/24
+      neutron subnet-create --name provision --no-gateway --disable-dhcp provision 192.168.24.0/24
 
 #. Create "public" network.
 

@@ -9,12 +9,12 @@ parameters:
   provision_net_cidr:
     type: string
     description: CIDR for provision network subnet
-    default: 192.0.2.0/24
+    default: 192.168.24.0/24
 
   provision_net_router_address:
     type: string
     description: Router address for the provision network subnet
-    default: 192.0.2.254
+    default: 192.168.24.254
 
   provision_net_shared:
     type: boolean
@@ -29,12 +29,12 @@ parameters:
   provision_net2_cidr:
     type: string
     description: CIDR for second provision network subnet
-    default: 192.0.3.0/24
+    default: 192.168.25.0/24
 
   provision_net2_router_address:
     type: string
     description: Router address for the provision network subnet
-    default: 192.0.3.254
+    default: 192.168.25.254
 
   provision_net2_shared:
     type: boolean
@@ -49,12 +49,12 @@ parameters:
   provision_net3_cidr:
     type: string
     description: CIDR for third provision network subnet
-    default: 192.0.4.0/24
+    default: 192.168.26.0/24
 
   provision_net3_router_address:
     type: string
     description: Router address for the provision network subnet
-    default: 192.0.4.254
+    default: 192.168.26.254
 
   provision_net3_shared:
     type: boolean
