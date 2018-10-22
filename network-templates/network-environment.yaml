@@ -12,7 +12,7 @@ parameter_defaults:
   EC2MetadataIp: 192.168.24.1
   ExternalNetCidr: 10.0.0.0/24
   ExternalAllocationPools: [{"start": "10.0.0.10", "end": "10.0.0.50"}]
-  ExternalInterfaceDefaultRoute: 10.0.0.1
+  ExternalInterfaceDefaultRoute: 10.0.0.254
   NeutronExternalNetworkBridge: "''"
   InternalApiNetCidr: 172.17.0.0/24
   InternalApiAllocationPools: [{"start": "172.17.0.10", "end": "172.17.0.250"}]

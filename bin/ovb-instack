@@ -113,7 +113,7 @@ then
     export FLOATING_IP_CIDR=10.0.0.0/24
     export FLOATING_IP_START=10.0.0.50
     export FLOATING_IP_END=10.0.0.70
-    export EXTERNAL_NETWORK_GATEWAY=10.0.0.1
+    export EXTERNAL_NETWORK_GATEWAY=10.0.0.254
 fi
 $TRIPLEOSH --overcloud-pingtest --skip-pingtest-cleanup
 
