@@ -90,6 +90,8 @@ resources:
     type: OS::Neutron::Router
     properties:
       name: provision-router
+      external_gateway_info:
+        network: {get_param: external_net}
 
   provision_network:
     type: OS::Neutron::Net
