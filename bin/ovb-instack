@@ -57,6 +57,8 @@ enable_ui = false
 enable_validations = false
 enable_tempest = false
 local_mtu = 1450
+[ctlplane-subnet]
+masquerade = true
 EOF
 
 sudo yum install -y python-tripleoclient
