@@ -192,10 +192,13 @@ class TestIdEnv(unittest.TestCase):
 # _process_role test data
 role_base_data = {
     'parameter_defaults': {
-        'overcloud_storage_mgmt_net': 'storage_mgmt',
-        'overcloud_internal_net': 'internal',
-        'overcloud_storage_net': 'storage',
-        'overcloud_tenant_net': 'tenant',
+        'overcloud_storage_mgmt_net': 'storage_mgmt-foo',
+        'overcloud_internal_net': 'internal-foo',
+        'overcloud_storage_net': 'storage-foo',
+        'overcloud_tenant_net': 'tenant-foo',
+        'provision_net': 'provision-foo',
+        'public_net': 'public-foo',
+        'private_net': 'private',
         'role': 'control',
     },
     'parameters': {
@@ -205,11 +208,9 @@ role_base_data = {
         'bmc_image': 'bmc-base',
         'baremetal_flavor': 'baremetal',
         'os_auth_url': 'http://1.1.1.1:5000/v2.0',
-        'provision_net': 'provision-foo',
         'os_password': 'password',
         'os_tenant': 'admin',
         'bmc_prefix': 'bmc-foo',
-        'public_net': 'public-foo',
         'undercloud_image': 'centos7-base',
         'baremetal_image': 'ipxe-boot',
         'external_net': 'external',
@@ -228,9 +229,6 @@ role_base_data = {
 role_specific_data = {
     'parameter_defaults': {
         'role': 'compute',
-        'public_net': 'public',
-        'private_net': 'private',
-        'provision_net': 'provision',
     },
     'parameters': {
         'key_name': 'default',
@@ -249,6 +247,9 @@ role_original_data = {
     'parameter_defaults': {
         'role': 'control',
         'baremetal_prefix': 'baremetal',
+        'public_net': 'public',
+        'private_net': 'private',
+        'provision_net': 'provision',
     },
     'parameters': {
         'os_user': 'admin',

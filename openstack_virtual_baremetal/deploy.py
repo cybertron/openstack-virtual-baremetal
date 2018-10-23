@@ -351,11 +351,24 @@ def _process_role(role_file, base_envs, stack_name, args):
     role_env['parameters']['bmc_prefix'] = '%s-%s' % (bmc_prefix, role)
     # At this time roles are only attached to a single set of networks, so
     # we use just the primary network parameters.
-    _add_identifier(role_env, 'provision_net', args.id)
-    _add_identifier(role_env, 'overcloud_internal_net', args.id)
-    _add_identifier(role_env, 'overcloud_storage_net', args.id)
-    _add_identifier(role_env, 'overcloud_storage_mgmt_net', args.id)
-    _add_identifier(role_env, 'overcloud_tenant_net', args.id)
+    def maybe_add_id(role_env, name, args):
+        """Add id only if one is not already present
+
+        When we inherit network names, they will already have the id present.
+        However, if the user overrides the network name (for example, when
+        using multiple routed networks) then it should not have the id.
+        We can detect which is the case by looking at whether the name already
+        ends with -id.
+        """
+        if (args.id and
+                not role_env['parameter_defaults'].get(name, '')
+                                                  .endswith('-' + args.id)):
+            _add_identifier(role_env, name, args.id)
+    maybe_add_id(role_env, 'provision_net', args)
+    maybe_add_id(role_env, 'overcloud_internal_net', args)
+    maybe_add_id(role_env, 'overcloud_storage_net', args)
+    maybe_add_id(role_env, 'overcloud_storage_mgmt_net', args)
+    maybe_add_id(role_env, 'overcloud_tenant_net', args)
     role_env['parameter_defaults']['networks'] = {
         'private': role_env['parameter_defaults']['private_net'],
         'provision': role_env['parameter_defaults']['provision_net'],
