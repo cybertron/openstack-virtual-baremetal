@@ -33,7 +33,11 @@ git clone https://git.openstack.org/openstack-infra/tripleo-ci git-tripleo-ci
 echo '#!/bin/bash' > tripleo.sh
 echo 'git-tripleo-ci/scripts/tripleo.sh $@' >> tripleo.sh
 chmod +x tripleo.sh
-git clone https://github.com/cybertron/openstack-virtual-baremetal
+if [ ! -d overcloud-templates ]
+then
+    git clone https://github.com/cybertron/openstack-virtual-baremetal
+    cp -r openstack-virtual-baremetal/overcloud-templates .
+fi
 
 export OVERCLOUD_PINGTEST_OLD_HEATCLIENT=0
 export TRIPLEOSH=/home/centos/tripleo.sh
@@ -102,7 +106,7 @@ timer
 export OVERCLOUD_DEPLOY_ARGS="--libvirt-type qemu -e /usr/share/openstack-tripleo-heat-templates/environments/disable-telemetry.yaml"
 if [ ${VERSION:-1} -eq 2 ]
 then
-    OVERCLOUD_DEPLOY_ARGS="$OVERCLOUD_DEPLOY_ARGS -e /home/centos/openstack-virtual-baremetal/overcloud-templates/network-templates-v2/network-isolation-absolute.yaml -e /home/centos/openstack-virtual-baremetal/overcloud-templates/network-templates-v2/network-environment.yaml"
+    OVERCLOUD_DEPLOY_ARGS="$OVERCLOUD_DEPLOY_ARGS -e /home/centos/overcloud-templates/network-templates-v2/network-isolation-absolute.yaml -e /home/centos/overcloud-templates/network-templates-v2/network-environment.yaml"
 fi
 openstack overcloud deploy --templates $OVERCLOUD_DEPLOY_ARGS
 

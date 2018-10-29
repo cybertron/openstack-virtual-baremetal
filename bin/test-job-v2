@@ -34,6 +34,7 @@ cd $TEMPDIR
 
 cp -r $BIN_DIR/../templates .
 cp -r $BIN_DIR/../environments .
+cp -r $BIN_DIR/../overcloud-templates .
 cp environments/base.yaml ./env.yaml
 sed -i "s/bmc_image: .*/bmc_image: $BMC_IMAGE/" env.yaml
 sed -i "s/bmc_flavor: .*/bmc_flavor: $BMC_FLAVOR/" env.yaml
@@ -59,6 +60,7 @@ SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLeve
 until ssh -t -t $SSH_OPTS centos@$UNDERCLOUD_IP ls; do sleep 1; done
 scp $SSH_OPTS bin/ovb-instack centos@$UNDERCLOUD_IP:/tmp
 scp $SSH_OPTS nodes.json centos@$UNDERCLOUD_IP:~/instackenv.json
+scp $SSH_OPTS -r overcloud-templates centos@$UNDERCLOUD_IP:~
 ssh -t -t $SSH_OPTS centos@$UNDERCLOUD_IP LOCAL=$LOCAL VERSION=2 /tmp/ovb-instack
 heat stack-delete -y $STACK_NAME
 
