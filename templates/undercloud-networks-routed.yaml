@@ -71,16 +71,27 @@ parameters:
     description: CIDR for external network subnet
     default: 10.0.0.0/24
 
+  public_net_router_address:
+    type: string
+    description: Router address for the public network subnet
+    default: 10.0.0.254
+
   public_net_shared:
     type: boolean
     description: Whether this network should be shared across all tenants
     default: false
+
+  external_net:
+    type: string
+    description: An external network for the networks to route to
 
 resources:
   provision_router:
     type: OS::Neutron::Router
     properties:
       name: provision-router
+      external_gateway_info:
+        network: {get_param: external_net}
 
   provision_network:
     type: OS::Neutron::Net
@@ -184,6 +195,27 @@ resources:
       gateway_ip: null
       enable_dhcp: false
 
+  public_router:
+    type: OS::Neutron::Router
+    properties:
+      name: public-router
+      external_gateway_info:
+        network: {get_param: external_net}
+
+  public_router_port:
+    type: OS::Neutron::Port
+    properties:
+      network: {get_resource: public_network}
+      port_security_enabled: false
+      fixed_ips:
+       - ip_address: {get_param: public_net_router_address}
+
+  public_router_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: {get_resource: public_router}
+      port: {get_resource: public_router_port}
+
 outputs:
   networks:
     value:
@@ -196,3 +228,6 @@ outputs:
       provision_router: {get_attr: [provision_router_port, fixed_ips, 0, ip_address]}
       provision2_router: {get_attr: [provision_router_port2, fixed_ips, 0, ip_address]}
       provision3_router: {get_attr: [provision_router_port3, fixed_ips, 0, ip_address]}
+  public_network_router:
+    value:
+      public_router: {get_attr: [public_router_port,  fixed_ips, 0, ip_address]}

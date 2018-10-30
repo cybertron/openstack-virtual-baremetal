@@ -212,3 +212,4 @@ outputs:
       map_merge:
       - get_attr: [undercloud_networks, provision_network_routers]
       - get_attr: [baremetal_env, baremetal_networks_routers_addresses]
+      - get_attr: [undercloud_networks, public_network_router]

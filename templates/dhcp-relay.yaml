@@ -19,6 +19,21 @@ parameters:
       The base image for the dhcrelay instance.  A CentOS 7 image is currently
       the only one supported.
 
+  dhcp_relay_provision_address:
+    type: string
+    description: DHCP relay address on the provision network subnet
+    default: 192.168.24.253
+
+  dhcp_relay_provision2_address:
+    type: string
+    description: DHCP relay address on the provision2 network subnet
+    default: 192.168.25.253
+
+  dhcp_relay_provision3_address:
+    type: string
+    description: DHCP relay address on the provision3 network subnet
+    default: 192.168.26.253
+
   dhcp_ips:
     type: json
     description: |
@@ -44,6 +59,8 @@ resources:
       name: dhcp_relay_port_provision
       network: {get_param: [networks, provision]}
       port_security_enabled: False
+      fixed_ips:
+       - ip_address: {get_param: dhcp_relay_provision_address}
 
   dhcp_relay_port_provision2:
     type: OS::Neutron::Port
@@ -51,6 +68,8 @@ resources:
       name: dhcp_relay_port_provision2
       network: {get_param: [networks, provision2]}
       port_security_enabled: False
+      fixed_ips:
+       - ip_address: {get_param: dhcp_relay_provision2_address}
 
   dhcp_relay_port_provision3:
     type: OS::Neutron::Port
@@ -58,6 +77,8 @@ resources:
       name: dhcp_relay_port_provision3
       network: {get_param: [networks, provision3]}
       port_security_enabled: False
+      fixed_ips:
+       - ip_address: {get_param: dhcp_relay_provision3_address}
 
   init_networks:
     type: OS::Heat::CloudConfig
