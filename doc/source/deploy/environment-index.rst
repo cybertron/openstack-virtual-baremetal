@@ -1,5 +1,3 @@
-.. _env-index:
-
 Sample Environment Index
 ========================
 
@@ -138,7 +136,15 @@ Disable the Undercloud in a QuintupleO Stack
 instance.
 
 
-.. _env-routed-networks-role:
+Configuration for Routed Networks
+---------------------------------
+
+**File:** environments/routed-networks-configuration.yaml
+
+**Description:** Contains the available parameters that need to be configured when using
+a routed networks environment. Requires the routed-networks.yaml
+environment.
+
 
 Base Role Configuration for Routed Networks
 -------------------------------------------
@@ -149,8 +155,6 @@ Base Role Configuration for Routed Networks
 deploying with routed networks.
 
 
-.. _env-enable-routed-networks:
-
 Enable Routed Networks
 ----------------------
 
@@ -159,7 +163,9 @@ Enable Routed Networks
 **Description:** Enable use of routed networks, where there may be multiple separate
 networks connected with a router and DHCP relay. Do not pass any other
 network configuration environments after this one or they may override
-the changes made by this environment.
+the changes made by this environment. When this environment is in use,
+the routed-networks-configuration environment should usually be
+included as well.
 
 
 Assign the Undercloud an Existing Floating IP

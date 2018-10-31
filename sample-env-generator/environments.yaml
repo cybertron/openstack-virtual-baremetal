@@ -223,22 +223,31 @@ environments:
     sample_values:
       bmc_use_cache: True
   -
+    name: routed-networks-configuration
+    title: Configuration for Routed Networks
+    description: |
+      Contains the available parameters that need to be configured when using
+      a routed networks environment. Requires the routed-networks.yaml
+      environment.
+    files:
+      templates/dhcp-relay.yaml:
+        parameters:
+          - dhcp_relay_flavor
+          - dhcp_relay_image
+  -
     name: routed-networks
     title: Enable Routed Networks
     description: |
       Enable use of routed networks, where there may be multiple separate
       networks connected with a router and DHCP relay. Do not pass any other
       network configuration environments after this one or they may override
-      the changes made by this environment.
-    files:
-      templates/dhcp-relay.yaml:
-        parameters:
-          - dhcp_relay_flavor
-          - dhcp_relay_image
+      the changes made by this environment. When this environment is in use,
+      the routed-networks-configuration environment should usually be
+      included as well.
     resource_registry:
-      OS::OVB::UndercloudNetworks: templates/undercloud-networks-routed.yaml
-      OS::OVB::BaremetalNetworks: templates/baremetal-networks-routed.yaml
-      OS::OVB::DHCPRelay: templates/dhcp-relay.yaml
+      OS::OVB::UndercloudNetworks: ../templates/undercloud-networks-routed.yaml
+      OS::OVB::BaremetalNetworks: ../templates/baremetal-networks-routed.yaml
+      OS::OVB::DHCPRelay: ../templates/dhcp-relay.yaml
   -
     name: routed-networks-role
     title: Base Role Configuration for Routed Networks

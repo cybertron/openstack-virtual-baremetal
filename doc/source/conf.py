@@ -28,6 +28,7 @@ sys.path.insert(0, os.path.abspath('../../openstack_virtual_baremetal'))
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
+    'sphinx.ext.autosectionlabel',
 ]
 
 
@@ -95,6 +96,7 @@ pygments_style = 'sphinx'
 
 # -- Options for HTML output ---------------------------------------------------
 
+html_theme = 'sphinx_rtd_theme'
 html_static_path = []
 # html_style = 'custom.css'
 templates_path = []

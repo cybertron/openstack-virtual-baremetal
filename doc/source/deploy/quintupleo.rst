@@ -168,18 +168,20 @@ OVB as well.
 
 #. When deploying QuintupleO with routed networks environment files to enable
    routed networks must be included, as well as one or more role environment
-   files. See :ref:`env-enable-routed-networks` and
-   :ref:`env-routed-networks-role` in the :ref:`env-index` for details.
+   files. See :ref:`Enable Routed Networks`,
+   :ref:`Configuration for Routed Networks`, and
+   :ref:`Base Role Configuration for Routed Networks` in the
+   :doc:`environment-index` for details.
 
 #. Copy the example env file and edit it to reflect the host environment::
 
       cp environments/base.yaml env.yaml
       vi env.yaml
 
-#. Copy the ``routed-networks.yaml`` sample environment file and edit it to
-   reflect the host environment::
+#. Copy the ``routed-networks-configuration.yaml`` sample environment file and
+   edit it to reflect the host environment::
 
-     cp environments/routed-networks.yaml env-routed-networks.yaml
+     cp environments/routed-networks-configuration.yaml env-routed-networks.yaml
      vi env-routed-networks.yaml
 
 #. For each desired role, copy the ``routed-networks-role.yaml`` sample
@@ -194,11 +196,12 @@ OVB as well.
      ./bin/deploy.py --env env.yaml \
                      --quintupleo \
                      --env environments/all-networks-port-security.yaml \
+                     --env environments/routed-networks.yaml \
                      --env env-routed-networks.yaml \
                      --role env-leaf1.yaml
 
-#. When generateing the ``nodes.json`` file for TripleO undercloud node import
-   the environment ``env-routed.yaml`` should be specified. Also to include
+#. When generating the ``nodes.json`` file for TripleO undercloud node import,
+   the environment ``env-routed.yaml`` should be specified. Also, to include
    physical network attributes of the node ports in ``nodes.json`` specify the
    ``--physical_network`` option when running ``build-nodes-json``. For
    example::
@@ -206,7 +209,7 @@ OVB as well.
      bin/build-nodes-json --physical_network
 
    The following is an example node definition produced when using the
-   ``--physical-network`` options. (Notice that ports are defined with both
+   ``--physical_network`` options. Notice that ports are defined with both
    ``address`` and ``physical_network`` attributes.
 
    ::

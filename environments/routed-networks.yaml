@@ -9,18 +9,10 @@
 #   Enable use of routed networks, where there may be multiple separate
 #   networks connected with a router and DHCP relay. Do not pass any other
 #   network configuration environments after this one or they may override
-#   the changes made by this environment.
-parameter_defaults:
-  # The Nova flavor to use for the dhcrelay instance
-  # Type: string
-  dhcp_relay_flavor: m1.small
-
-  # The base image for the dhcrelay instance.  A CentOS 7 image is currently
-  # the only one supported.
-  # Type: string
-  dhcp_relay_image: CentOS-7-x86_64-GenericCloud
-
+#   the changes made by this environment. When this environment is in use,
+#   the routed-networks-configuration environment should usually be
+#   included as well.
 resource_registry:
-  OS::OVB::BaremetalNetworks: templates/baremetal-networks-routed.yaml
-  OS::OVB::DHCPRelay: templates/dhcp-relay.yaml
-  OS::OVB::UndercloudNetworks: templates/undercloud-networks-routed.yaml
+  OS::OVB::BaremetalNetworks: ../templates/baremetal-networks-routed.yaml
+  OS::OVB::DHCPRelay: ../templates/dhcp-relay.yaml
+  OS::OVB::UndercloudNetworks: ../templates/undercloud-networks-routed.yaml
