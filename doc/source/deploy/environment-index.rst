@@ -127,6 +127,16 @@ Deploy a Basic OVB Environment Using Neutron port-security
 allow OVB functionality in clouds with security groups enabled.
 
 
+Public Network External Router
+------------------------------
+
+**File:** environments/public-router.yaml
+
+**Description:** Deploy a router that connects the public and external networks. This
+allows the public network to be used as a gateway instead of routing all
+traffic through the undercloud.
+
+
 Disable the Undercloud in a QuintupleO Stack
 --------------------------------------------
 

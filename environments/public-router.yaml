@@ -1,0 +1,13 @@
+# *******************************************************************
+# This file was created automatically by the sample environment
+# generator. Developers should use `tox -e genconfig` to update it.
+# Users are recommended to make changes to a copy of the file instead
+# of the original, if any customizations are needed.
+# *******************************************************************
+# title: Public Network External Router
+# description: |
+#   Deploy a router that connects the public and external networks. This
+#   allows the public network to be used as a gateway instead of routing all
+#   traffic through the undercloud.
+resource_registry:
+  OS::OVB::UndercloudNetworks: ../templates/undercloud-networks-public-router.yaml

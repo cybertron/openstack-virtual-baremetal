@@ -277,4 +277,13 @@ environments:
       overcloud_storage_net: overcloud_storage2
       overcloud_storage_mgmt_net: overcloud_storage_mgmt2
       overcloud_tenant_net: overcloud_tenant2
+  -
+    name: public-router
+    title: Public Network External Router
+    description: |
+      Deploy a router that connects the public and external networks. This
+      allows the public network to be used as a gateway instead of routing all
+      traffic through the undercloud.
+    resource_registry:
+      OS::OVB::UndercloudNetworks: ../templates/undercloud-networks-public-router.yaml
 
