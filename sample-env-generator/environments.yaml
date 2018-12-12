@@ -63,7 +63,7 @@ environments:
       baremetal_image: CentOS-7-x86_64-GenericCloud
       node_count: 1
     resource_registry:
-      OS::OVB::BaremetalPorts: ../templates/baremetal-ports-extra-node-port-security.yaml
+      OS::OVB::BaremetalPorts: ../templates/baremetal-ports-extra-node.yaml
   -
     name: all-networks
     title: Deploy with All Networks Enabled
@@ -78,18 +78,6 @@ environments:
       OS::OVB::BaremetalPorts: ../templates/baremetal-ports-all.yaml
     children:
       -
-        name: all-networks-port-security
-        description: |
-          Deploy an OVB stack that adds interfaces for all the standard TripleO
-          network isolation networks.  This version uses the port-security
-          Neutron extension to allow OVB to be run on clouds with security
-          groups enabled.
-        resource_registry:
-          OS::OVB::BaremetalNetworks: ../templates/baremetal-networks-all.yaml
-          OS::OVB::BaremetalPorts: ../templates/baremetal-ports-all-port-security.yaml
-          OS::OVB::BMCPort: ../templates/bmc-port-port-security.yaml
-          OS::OVB::UndercloudPorts: ../templates/undercloud-ports-port-security.yaml
-      -
         name: all-networks-public-bond
         title: Deploy with All Networks Enabled and Two Public Interfaces
         description: |
@@ -100,32 +88,6 @@ environments:
         resource_registry:
           OS::OVB::BaremetalNetworks: ../templates/baremetal-networks-all.yaml
           OS::OVB::BaremetalPorts: ../templates/baremetal-ports-public-bond.yaml
-      -
-        name: all-networks-public-bond-port-security
-        title: Deploy with All Networks Enabled and Two Public Interfaces
-        description: |
-          Deploy an OVB stack that adds interfaces for all the standard TripleO
-          network isolation networks.  This version will deploy duplicate
-          public network interfaces on the baremetal instances so that the
-          public network can be configured as a bond.  It will also use the
-          port-security Neutron extension to allow OVB to be run on clouds with
-          security groups enabled.
-        resource_registry:
-          OS::OVB::BaremetalNetworks: ../templates/baremetal-networks-all.yaml
-          OS::OVB::BaremetalPorts: ../templates/baremetal-ports-public-bond-port-security.yaml
-          OS::OVB::BMCPort: ../templates/bmc-port-port-security.yaml
-          OS::OVB::UndercloudPorts: ../templates/undercloud-ports-port-security.yaml
-  -
-    name: port-security
-    title: Deploy a Basic OVB Environment Using Neutron port-security
-    description: |
-      Deploy an OVB stack that uses the Neutron port-security extension to
-      allow OVB functionality in clouds with security groups enabled.
-    files: {}
-    resource_registry:
-      OS::OVB::BaremetalPorts: ../templates/baremetal-ports-default-port-security.yaml
-      OS::OVB::BMCPort: ../templates/bmc-port-port-security.yaml
-      OS::OVB::UndercloudPorts: ../templates/undercloud-ports-port-security.yaml
   -
     name: create-private-network
     title: Create a Private Network

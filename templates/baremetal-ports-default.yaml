@@ -1,4 +1,4 @@
-heat_template_version: 2014-10-16
+heat_template_version: 2015-10-15
 
 parameters:
 
@@ -22,6 +22,7 @@ resources:
         - - {get_param: baremetal_prefix}
           - {get_param: suffix}
       network: {get_param: [networks, provision]}
+      port_security_enabled: False
 
 outputs:
   ports:

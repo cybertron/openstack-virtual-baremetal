@@ -94,8 +94,7 @@ method, which creates most of the resources needed automatically.
     neutron port-list
     neutron floatingip-associate [floatingip uuid] [undercloud instance port id]
 
-#. (Optional) If not using the Noop firewall driver, turn off port-security on
-   the undercloud provisioning port::
+#. Turn off port-security on the undercloud provisioning port::
 
     neutron port-update [UUID of undercloud port on the provision network] --no-security-groups --port-security-enabled=False
 

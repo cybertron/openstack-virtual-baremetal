@@ -1,30 +1,6 @@
 Sample Environment Index
 ========================
 
-Deploy with All Networks Enabled
---------------------------------
-
-**File:** environments/all-networks-port-security.yaml
-
-**Description:** Deploy an OVB stack that adds interfaces for all the standard TripleO
-network isolation networks.  This version uses the port-security
-Neutron extension to allow OVB to be run on clouds with security
-groups enabled.
-
-
-Deploy with All Networks Enabled and Two Public Interfaces
-----------------------------------------------------------
-
-**File:** environments/all-networks-public-bond-port-security.yaml
-
-**Description:** Deploy an OVB stack that adds interfaces for all the standard TripleO
-network isolation networks.  This version will deploy duplicate
-public network interfaces on the baremetal instances so that the
-public network can be configured as a bond.  It will also use the
-port-security Neutron extension to allow OVB to be run on clouds with
-security groups enabled.
-
-
 Deploy with All Networks Enabled and Two Public Interfaces
 ----------------------------------------------------------
 
@@ -116,15 +92,6 @@ Create a Private Network
 
 **Description:** Create the private network as part of the OVB stack instead of using an
 existing one.
-
-
-Deploy a Basic OVB Environment Using Neutron port-security
-----------------------------------------------------------
-
-**File:** environments/port-security.yaml
-
-**Description:** Deploy an OVB stack that uses the Neutron port-security extension to
-allow OVB functionality in clouds with security groups enabled.
 
 
 Public Network External Router

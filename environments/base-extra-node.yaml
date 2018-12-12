@@ -33,4 +33,4 @@ parameter_defaults:
   role: extra
 
 resource_registry:
-  OS::OVB::BaremetalPorts: ../templates/baremetal-ports-extra-node-port-security.yaml
+  OS::OVB::BaremetalPorts: ../templates/baremetal-ports-extra-node.yaml

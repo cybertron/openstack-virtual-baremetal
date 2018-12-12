@@ -1,4 +1,4 @@
-heat_template_version: 2014-10-16
+heat_template_version: 2015-10-15
 
 parameters:
 
@@ -42,6 +42,7 @@ resources:
         - - {get_param: baremetal_prefix}
           - {get_param: suffix}
       network: {get_param: [networks, provision]}
+      port_security_enabled: False
 
   internal_port:
     type: OS::Neutron::Port
@@ -53,6 +54,7 @@ resources:
           - {get_param: baremetal_prefix}
           - {get_param: suffix}
       network: {get_param: overcloud_internal_net}
+      port_security_enabled: False
 
   storage_port:
     type: OS::Neutron::Port
@@ -64,6 +66,7 @@ resources:
           - {get_param: baremetal_prefix}
           - {get_param: suffix}
       network: {get_param: overcloud_storage_net}
+      port_security_enabled: False
 
   storage_mgmt_port:
     type: OS::Neutron::Port
@@ -75,6 +78,7 @@ resources:
           - {get_param: baremetal_prefix}
           - {get_param: suffix}
       network: {get_param: overcloud_storage_mgmt_net}
+      port_security_enabled: False
 
   tenant_port:
     type: OS::Neutron::Port
@@ -86,6 +90,7 @@ resources:
           - {get_param: baremetal_prefix}
           - {get_param: suffix}
       network: {get_param: overcloud_tenant_net}
+      port_security_enabled: False
 
   public_port:
     type: OS::Neutron::Port
@@ -97,6 +102,7 @@ resources:
           - {get_param: baremetal_prefix}
           - {get_param: suffix}
       network: {get_param: [networks, public]}
+      port_security_enabled: False
 
 outputs:
   ports:

@@ -49,9 +49,9 @@ then
 fi
 echo 'resource_registry:' >> env.yaml
 echo '  OS::OVB::UndercloudFloating: templates/undercloud-floating.yaml' >> env.yaml
-echo '  OS::OVB::BaremetalPorts: templates/baremetal-ports-default-port-security.yaml' >> env.yaml
-echo '  OS::OVB::BMCPort: templates/bmc-port-port-security.yaml' >> env.yaml
-echo '  OS::OVB::UndercloudPorts: templates/undercloud-ports-port-security.yaml' >> env.yaml
+echo '  OS::OVB::BaremetalPorts: templates/baremetal-ports-default.yaml' >> env.yaml
+echo '  OS::OVB::BMCPort: templates/bmc-port.yaml' >> env.yaml
+echo '  OS::OVB::UndercloudPorts: templates/undercloud-ports.yaml' >> env.yaml
 echo '  OS::OVB::PrivateNetwork: templates/private-net-create.yaml' >> env.yaml
 
 cp -r $BIN_DIR ./bin

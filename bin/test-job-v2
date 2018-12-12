@@ -52,7 +52,7 @@ fi
 cp -r $BIN_DIR ./bin
 cp -r $BIN_DIR/../openstack_virtual_baremetal .
 STACK_NAME=$MY_ID
-$BIN_DIR/deploy.py --quintupleo --id $MY_ID --name $STACK_NAME --poll -e env.yaml -e environments/create-private-network.yaml -e environments/all-networks-port-security.yaml
+$BIN_DIR/deploy.py --quintupleo --id $MY_ID --name $STACK_NAME --poll -e env.yaml -e environments/create-private-network.yaml -e environments/all-networks.yaml
 UNDERCLOUD_IP=$(heat output-show $STACK_NAME undercloud_host_floating_ip | sed -e 's/"//g')
 bin/build-nodes-json --env env-$MY_ID.yaml --driver ipmi
 SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=Verbose -o PasswordAuthentication=no -o ConnectionAttempts=32 "

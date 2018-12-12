@@ -19,7 +19,7 @@ however.
    with some older clouds.  See below for details on customizing an OVB
    deployment for your particular situation::
 
-    bin/deploy.py --quintupleo -e env.yaml -e environments/all-networks-port-security.yaml -e environments/create-private-network.yaml
+    bin/deploy.py --quintupleo -e env.yaml -e environments/all-networks.yaml -e environments/create-private-network.yaml
 
    .. note:: There is a quintupleo-specific option ``--id`` in deploy.py.
              It appends the value passed in to the name of all resources
@@ -97,10 +97,10 @@ There are also a number of advanced options that can be enabled for a
 QuintupleO deployment.  For each such option there is a sample environment
 to be passed to the deploy command.
 
-For example, to deploy using the Neutron port-security extension to allow
-DHCP and PXE booting, the following command could be used::
+For example, to deploy all networks needed for TripleO network isolation, the
+following command could be used::
 
-    bin/deploy.py --quintupleo -e env.yaml -e environments/port-security.yaml
+    bin/deploy.py --quintupleo -e env.yaml -e environments/all-networks.yaml
 
 .. important:: When deploying with multiple environment files, ``env.yaml``
                *must* be explicitly passed to the deploy command.
@@ -110,7 +110,7 @@ DHCP and PXE booting, the following command could be used::
 Some options may have additional configuration parameters.  These parameters
 will be listed in the environment file.
 
-A full list of the option environments available can be found at
+A full list of the environments available can be found at
 :doc:`environment-index`.
 
 Network Isolation
@@ -143,19 +143,6 @@ Three primary networking layouts are included:
   interface for the 'public' network that can be used to test bonding in an
   OVB environment.  The ``bond-*`` overcloud templates must be used with this
   type of environment.
-
-Each of the networking layouts has two variations: with and without the use of
-Neutron's port-security extension.  The reason for this is that older releases
-of OpenStack did not support port-security, so those templates cannot be used.
-However, use of the port-security extension allows OVB to work on a much larger
-number of clouds because it does not require insecure Neutron settings.
-
-While the port-security extension existed as far back as the Liberty release,
-it has only been successfully tested with OVB on Newton and above.
-
-The port-security environments can be recognized by the presence of
-`port-security` somewhere in the filename.  Network environments without that
-substring are the standard ones that require the noop Neutron firewall driver.
 
 QuintupleO and routed networks
 ------------------------------
@@ -195,7 +182,7 @@ OVB as well.
 
      ./bin/deploy.py --env env.yaml \
                      --quintupleo \
-                     --env environments/all-networks-port-security.yaml \
+                     --env environments/all-networks.yaml \
                      --env environments/routed-networks.yaml \
                      --env env-routed-networks.yaml \
                      --role env-leaf1.yaml
