@@ -89,14 +89,13 @@ class TestProcessArgs(unittest.TestCase):
         self.assertRaises(ValueError, deploy._process_args, mock_args)
 
 
-test_env = u"""parameters:
+test_env = u"""parameter_defaults:
   provision_net: provision
   public_net: public
   baremetal_prefix: baremetal
   bmc_prefix: bmc
 """
-test_env_param_defaults = u"""
-parameter_defaults:
+test_env_extra = u"""
   overcloud_internal_net: internalapi
   role: ''
 """
@@ -115,21 +114,13 @@ test_env_output = {
 
 class TestIdEnv(unittest.TestCase):
     def test_add_identifier(self):
-        env_data = {'parameters': {'foo': 'bar'}}
-        deploy._add_identifier(env_data, 'foo', 'baz')
-        self.assertEqual('bar-baz', env_data['parameters']['foo'])
-        self.assertEqual('bar-baz', env_data['parameter_defaults']['foo'])
-
-    def test_add_identifier_defaults(self):
         env_data = {'parameter_defaults': {'foo': 'bar'}}
         deploy._add_identifier(env_data, 'foo', 'baz')
-        self.assertNotIn('foo', env_data['parameters'])
         self.assertEqual('bar-baz', env_data['parameter_defaults']['foo'])
 
     def test_add_identifier_different_section(self):
         env_data = {'parameter_defaults': {'foo': 'bar'}}
         deploy._add_identifier(env_data, 'foo', 'baz')
-        self.assertNotIn('foo', env_data['parameters'])
         self.assertEqual('bar-baz', env_data['parameter_defaults']['foo'])
 
     @mock.patch('openstack_virtual_baremetal.deploy._build_env_data')
@@ -138,14 +129,11 @@ class TestIdEnv(unittest.TestCase):
         mock_args = mock.Mock()
         mock_args.id = 'foo'
         mock_args.env = ['foo.yaml']
-        env = test_env + 'parameter_defaults:'
-        mock_bed.return_value = yaml.safe_load(env)
+        mock_bed.return_value = yaml.safe_load(test_env)
         path = deploy._generate_id_env(mock_args)
         self.assertEqual(['foo.yaml', 'env-foo.yaml'], path)
         dumped_dict = mock_safe_dump.call_args_list[0][0][0]
         for k, v in test_env_output.items():
-            if k in mock_bed.return_value['parameters']:
-                self.assertEqual(v, dumped_dict['parameters'][k])
             self.assertEqual(v, dumped_dict['parameter_defaults'][k])
 
     @mock.patch('openstack_virtual_baremetal.deploy._build_env_data')
@@ -154,7 +142,7 @@ class TestIdEnv(unittest.TestCase):
         mock_args = mock.Mock()
         mock_args.id = 'foo'
         mock_args.env = ['foo.yaml']
-        env = (test_env + test_env_param_defaults +
+        env = (test_env + test_env_extra +
                '  undercloud_name: test-undercloud\n')
         mock_bed.return_value = yaml.safe_load(env)
         env_output = dict(test_env_output)
@@ -164,8 +152,6 @@ class TestIdEnv(unittest.TestCase):
         self.assertEqual(['foo.yaml', 'env-foo.yaml'], path)
         dumped_dict = mock_safe_dump.call_args_list[0][0][0]
         for k, v in env_output.items():
-            if k in mock_bed.return_value['parameters']:
-                self.assertEqual(v, dumped_dict['parameters'][k])
             self.assertEqual(v, dumped_dict['parameter_defaults'][k])
 
     @mock.patch('openstack_virtual_baremetal.deploy._build_env_data')
@@ -174,7 +160,7 @@ class TestIdEnv(unittest.TestCase):
         mock_args = mock.Mock()
         mock_args.id = 'foo'
         mock_args.env = ['foo.yaml']
-        env = (test_env + test_env_param_defaults)
+        env = (test_env + test_env_extra)
         mock_bed.return_value = yaml.safe_load(env)
         mock_bed.return_value['parameter_defaults']['role'] = 'compute'
         env_output = dict(test_env_output)
@@ -184,8 +170,6 @@ class TestIdEnv(unittest.TestCase):
         self.assertEqual(['foo.yaml', 'env-foo.yaml'], path)
         dumped_dict = mock_safe_dump.call_args_list[0][0][0]
         for k, v in env_output.items():
-            if k in mock_bed.return_value['parameters']:
-                self.assertEqual(v, dumped_dict['parameters'][k])
             self.assertEqual(v, dumped_dict['parameter_defaults'][k])
 
 
@@ -200,8 +184,6 @@ role_base_data = {
         'public_net': 'public-foo',
         'private_net': 'private',
         'role': 'control',
-    },
-    'parameters': {
         'os_user': 'admin',
         'key_name': 'default',
         'undercloud_name': 'undercloud-foo',
@@ -229,10 +211,9 @@ role_base_data = {
 role_specific_data = {
     'parameter_defaults': {
         'role': 'compute',
-    },
-    'parameters': {
         'key_name': 'default',
         'baremetal_flavor': 'baremetal',
+        'baremetal_image': 'centos',
         'bmc_image': 'bmc-base',
         'bmc_prefix': 'bmc',
         'node_count': 2,
@@ -250,8 +231,6 @@ role_original_data = {
         'public_net': 'public',
         'private_net': 'private',
         'provision_net': 'provision',
-    },
-    'parameters': {
         'os_user': 'admin',
         'key_name': 'default',
         'undercloud_name': 'undercloud',
@@ -288,8 +267,8 @@ class TestDeploy(testtools.TestCase):
             template_files, template
         )
         env_files = {'templates/resource_registry.yaml': {'bar': 'baz'},
-                     'env.yaml': {'parameters': {}}}
-        env = {'parameters': {}}
+                     'env.yaml': {'parameter_defaults': {}}}
+        env = {'parameter_defaults': {}}
         mock_tu.process_multiple_environments_and_files.return_value = (
             env_files, env
         )
@@ -393,11 +372,10 @@ class TestDeploy(testtools.TestCase):
         output = mock_write.call_args[0][0]
         # These values are computed in _process_role
         self.assertEqual('baremetal-foo-compute',
-                         output['parameters']['baremetal_prefix'])
+                         output['parameter_defaults']['baremetal_prefix'])
         self.assertEqual('bmc-foo-compute',
-                         output['parameters']['bmc_prefix'])
+                         output['parameter_defaults']['bmc_prefix'])
         # These should be inherited
-        self.assertEqual('ipxe-boot', output['parameters']['baremetal_image'])
         self.assertEqual('tenant-' + args.id,
                          output['parameter_defaults']['overcloud_tenant_net'])
         self.assertEqual('internal-' + args.id,
@@ -408,6 +386,9 @@ class TestDeploy(testtools.TestCase):
         self.assertEqual('storage_mgmt-' + args.id,
                          output['parameter_defaults'][
                              'overcloud_storage_mgmt_net'])
+        # This parameter should be overrideable
+        self.assertEqual('centos',
+                         output['parameter_defaults']['baremetal_image'])
         # This should not be present in a role env, even if set in the file
         self.assertNotIn('OS::OVB::BaremetalNetworks',
                          output['resource_registry'])
@@ -418,39 +399,6 @@ class TestDeploy(testtools.TestCase):
         # This should be inherited from the base env
         self.assertEqual('templates/bmc-port-port-security.yaml',
                          output['resource_registry']['OS::OVB::BMCPort'])
-
-    @mock.patch('openstack_virtual_baremetal.deploy._write_role_file')
-    @mock.patch('openstack_virtual_baremetal.deploy._load_role_data')
-    def test_process_role_param_defaults(self, mock_load, mock_write):
-        def move_params_to_param_defaults(d):
-            data = copy.deepcopy(d)
-            for k, v in data['parameters'].items():
-                data['parameter_defaults'][k] = v
-            data.pop('parameters', None)
-            return data
-
-        pd_base_data = move_params_to_param_defaults(role_base_data)
-        pd_specific_data = move_params_to_param_defaults(role_specific_data)
-        pd_original_data = move_params_to_param_defaults(role_original_data)
-        pd_specific_data['parameter_defaults']['baremetal_image'] = 'centos'
-        mock_load.return_value = (pd_base_data, pd_specific_data,
-                                  pd_original_data)
-        args = mock.Mock()
-        args.id = 'foo'
-        role_file, role = deploy._process_role('foo-compute.yaml', 'foo.yaml',
-                                               'foo', args)
-        mock_load.assert_called_once_with('foo.yaml', 'foo-compute.yaml', args)
-        self.assertEqual('env-foo-compute.yaml', role_file)
-        self.assertEqual('compute', role)
-        output = mock_write.call_args[0][0]
-        # These values are computed in _process_role
-        self.assertEqual('baremetal-foo-compute',
-                         output['parameters']['baremetal_prefix'])
-        self.assertEqual('bmc-foo-compute',
-                         output['parameters']['bmc_prefix'])
-        # This parameter should be inherited (as tested above) but overrideable
-        self.assertEqual('centos',
-                         output['parameter_defaults']['baremetal_image'])
 
     @mock.patch('openstack_virtual_baremetal.deploy._load_role_data')
     def test_process_role_invalid_name(self, mock_load):
@@ -484,10 +432,10 @@ class TestDeploy(testtools.TestCase):
         deploy._deploy_roles('foo', args, 'foo.yaml')
         mock_process.assert_not_called()
 
-    def _test_validate_env_ends_with_profile(self, mock_id, mock_bed,
-                                             section='parameters'):
+    def _test_validate_env_ends_with_profile(self, mock_id, mock_bed):
         test_env = dict(role_original_data)
-        test_env[section]['baremetal_prefix'] = 'baremetal-control'
+        test_env['parameter_defaults']['baremetal_prefix'] = (
+            'baremetal-control')
         mock_bed.return_value = test_env
         args = mock.Mock()
         args.id = mock_id
@@ -500,11 +448,6 @@ class TestDeploy(testtools.TestCase):
     @mock.patch('openstack_virtual_baremetal.deploy._build_env_data')
     def test_validate_env_fails(self, mock_bed):
         self._test_validate_env_ends_with_profile(None, mock_bed)
-
-    @mock.patch('openstack_virtual_baremetal.deploy._build_env_data')
-    def test_validate_env_fails_param_defaults(self, mock_bed):
-        self._test_validate_env_ends_with_profile(None, mock_bed,
-                                                  'parameter_defaults')
 
     @mock.patch('openstack_virtual_baremetal.deploy._build_env_data')
     def test_validate_env_with_id(self, mock_bed):

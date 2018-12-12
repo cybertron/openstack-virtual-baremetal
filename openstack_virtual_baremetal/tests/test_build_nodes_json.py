@@ -92,26 +92,6 @@ class TestBuildNodesJson(testtools.TestCase):
     @mock.patch('openstack_virtual_baremetal.build_nodes_json.open',
                 create=True)
     @mock.patch('yaml.safe_load')
-    def test_get_names_old_env(self, mock_load, mock_open):
-        args = mock.Mock()
-        args.env = 'foo.yaml'
-        args.add_undercloud = False
-        mock_env = {
-            'parameters': {
-                'bmc_prefix': 'bmc-foo',
-                'baremetal_prefix': 'baremetal-foo',
-            },
-        }
-        mock_load.return_value = mock_env
-        bmc_base, baremetal_base, undercloud_name = (
-            build_nodes_json._get_names(args))
-        self.assertEqual('bmc-foo', bmc_base)
-        self.assertEqual('baremetal-foo', baremetal_base)
-        self.assertIsNone(undercloud_name)
-
-    @mock.patch('openstack_virtual_baremetal.build_nodes_json.open',
-                create=True)
-    @mock.patch('yaml.safe_load')
     def test_get_names_env(self, mock_load, mock_open):
         args = mock.Mock()
         args.env = 'foo.yaml'

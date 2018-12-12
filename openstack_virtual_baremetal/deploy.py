@@ -103,32 +103,16 @@ def _process_args(args):
 def _add_identifier(env_data, name, identifier, default=None):
     """Append identifier to the end of parameter name in env_data
 
-    Look for ``name`` in either the ``parameters`` or ``parameter_defaults``
-    key of ``env_data`` and append '-``identifier``' to it.
+    Look for ``name`` in the ``parameter_defaults`` key of ``env_data`` and
+    append '-``identifier``' to it.
     """
-    # We require both sections for id environments
-    if not env_data.get('parameters'):
-        env_data['parameters'] = {}
-    if not env_data.get('parameter_defaults'):
-        env_data['parameter_defaults'] = {}
-    parameter = False
-    try:
-        value = env_data['parameters'][name]
-        parameter = True
-    except KeyError:
-        value = env_data['parameter_defaults'].get(name)
+    value = env_data['parameter_defaults'].get(name)
     if value is None:
         value = default
     if value is None:
         raise RuntimeError('No base value found when adding id')
     if identifier:
         value = '%s-%s' % (value, identifier)
-
-    # If it was passed in as a parameter we need to set it in the parameters
-    # section or it will be overridden by the original value.  We can't always
-    # do that though because some parameters are not exposed at the top-level.
-    if parameter:
-        env_data['parameters'][name] = value
     env_data['parameter_defaults'][name] = value
 
 
@@ -201,10 +185,7 @@ def _validate_env(args, env_paths):
     if not args.id:
         env_data = _build_env_data(env_paths)
         role = env_data.get('parameter_defaults', {}).get('role')
-        try:
-            prefix = env_data['parameters']['baremetal_prefix']
-        except KeyError:
-            prefix = env_data['parameter_defaults']['baremetal_prefix']
+        prefix = env_data['parameter_defaults']['baremetal_prefix']
         if role and prefix.endswith('-' + role):
             raise RuntimeError('baremetal_prefix ends with role name.  This '
                                'will break build-nodes-json.  Please choose '
@@ -312,15 +293,15 @@ def _process_role(role_file, base_envs, stack_name, args):
     allowed_registry_keys = ['OS::OVB::BaremetalPorts', 'OS::OVB::BMCPort',
                              'OS::OVB::UndercloudNetworks',
                              ]
+    # NOTE(bnemec): Not sure what purpose this serves. Can probably be removed.
     role_env = role_data
     # resource_registry is intentionally omitted as it should not be inherited
-    for section in ['parameters', 'parameter_defaults']:
-        role_env.setdefault(section, {}).update({
-            k: v for k, v in base_data.get(section, {}).items()
-            if k in inherited_keys and
-            (k not in role_env.get(section, {}) or
-             k not in allowed_parameter_keys)
-        })
+    role_env.setdefault('parameter_defaults', {}).update({
+        k: v for k, v in base_data.get('parameter_defaults', {}).items()
+        if k in inherited_keys and
+        (k not in role_env.get('parameter_defaults', {}) or
+         k not in allowed_parameter_keys)
+    })
     # Most of the resource_registry should not be included in role envs.
     # Only allow specific entries that may be needed.
     role_env.setdefault('resource_registry', {})
@@ -333,24 +314,20 @@ def _process_role(role_file, base_envs, stack_name, args):
         if k not in role_reg and k in base_reg:
             role_reg[k] = base_reg[k]
     # We need to start with the unmodified prefix
-    try:
-        base_prefix = orig_data['parameters']['baremetal_prefix']
-    except KeyError:
-        base_prefix = orig_data['parameter_defaults']['baremetal_prefix']
+    base_prefix = orig_data['parameter_defaults']['baremetal_prefix']
     # But we do need to add the id if one is in use
     if args.id:
         base_prefix += '-%s' % args.id
-    try:
-        bmc_prefix = base_data['parameters']['bmc_prefix']
-    except KeyError:
-        bmc_prefix = base_data['parameter_defaults']['bmc_prefix']
+    bmc_prefix = base_data['parameter_defaults']['bmc_prefix']
     role = role_data['parameter_defaults']['role']
     if '_' in role:
         raise RuntimeError('_ character not allowed in role name "%s".' % role)
-    role_env['parameters']['baremetal_prefix'] = '%s-%s' % (base_prefix, role)
-    role_env['parameters']['bmc_prefix'] = '%s-%s' % (bmc_prefix, role)
+    role_env['parameter_defaults']['baremetal_prefix'] = ('%s-%s' %
+                                                          (base_prefix, role))
+    role_env['parameter_defaults']['bmc_prefix'] = '%s-%s' % (bmc_prefix, role)
     # At this time roles are only attached to a single set of networks, so
     # we use just the primary network parameters.
+
     def maybe_add_id(role_env, name, args):
         """Add id only if one is not already present
 
@@ -364,6 +341,7 @@ def _process_role(role_file, base_envs, stack_name, args):
                 not role_env['parameter_defaults'].get(name, '')
                                                   .endswith('-' + args.id)):
             _add_identifier(role_env, name, args.id)
+
     maybe_add_id(role_env, 'provision_net', args)
     maybe_add_id(role_env, 'overcloud_internal_net', args)
     maybe_add_id(role_env, 'overcloud_storage_net', args)
