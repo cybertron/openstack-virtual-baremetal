@@ -82,6 +82,8 @@ network_config:
 EOF_CAT
 sudo os-net-config -c /tmp/eth2.cfg -v
 sudo iptables -A POSTROUTING -s 10.0.0.0/24 ! -d 10.0.0.0/24 -j MASQUERADE -t nat
+sudo iptables -I FORWARD -s 10.0.0.0/24 -j ACCEPT
+sudo iptables -I FORWARD -d 10.0.0.0/24 -j ACCEPT
 
 timer 'undercloud install'
 timer
