@@ -136,6 +136,21 @@ do
     unit="openstack-bmc-$bm_port.service"
     systemctl enable $unit
     systemctl start $unit
-    systemctl status $unit
 done
+
+sleep 5
+
+for i in $(seq 1 $bm_node_count)
+do
+    bm_port="$bm_prefix_$(($i-1))"
+    unit="openstack-bmc-$bm_port.service"
+    if ! systemctl status $unit
+    then
+        $signal_command --data-binary '{"status": "FAILURE"}'
+        echo "********** $unit failed to start **********"
+        exit 1
+    fi
+done
+
+$signal_command --data-binary '{"status": "SUCCESS"}'
 

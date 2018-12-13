@@ -163,6 +163,15 @@ resources:
               - _%index%
           network: {get_param: private_net}
 
+  bmc_handle:
+    type: OS::Heat::WaitConditionHandle
+
+  bmc_wait_condition:
+    type: OS::Heat::WaitCondition
+    properties:
+      handle: {get_resource: bmc_handle}
+      timeout: 600
+
   bmc_server:
     type: OS::Nova::Server
     depends_on: [openstack_baremetal_servers, bmc_other_ports, bmc_port]
@@ -191,6 +200,7 @@ resources:
             $private_net: {get_param: private_net}
             $openstackbmc_script: {get_file: ../bin/openstackbmc}
             $cloud_data: {get_param: cloud_data}
+            $signal_command: {get_attr: [bmc_handle, curl_cli]}
           template: {get_file: ../bin/install_openstackbmc.sh}
 
   baremetal_networks:
