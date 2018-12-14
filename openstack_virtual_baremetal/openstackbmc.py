@@ -28,8 +28,6 @@ import os
 import sys
 import time
 
-import novaclient as nc
-from novaclient import client as novaclient
 from novaclient import exceptions
 import os_client_config
 import pyghmi.ipmi.bmc as bmc
