@@ -190,6 +190,14 @@ def _validate_env(args, env_paths):
             raise RuntimeError('baremetal_prefix ends with role name.  This '
                                'will break build-nodes-json.  Please choose '
                                'a different baremetal_prefix or role name.')
+    for path in env_paths:
+        if 'port-security.yaml' in path:
+            print('WARNING: port-security environment file detected. '
+                  'port-security is now the default. The existing '
+                  'port-security environment files are deprecated and may be '
+                  'removed in the future. Please use the environment files '
+                  'without "port-security" in their filename instead.'
+                  )
 
 
 def _get_heat_client():
