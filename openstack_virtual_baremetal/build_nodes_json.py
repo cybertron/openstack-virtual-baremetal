@@ -135,7 +135,6 @@ def _build_nodes(nova, glance, bmc_ports, bm_ports, provision_net_map,
     if physical_network:
         node_template.pop('mac')
     nodes = []
-    bmc_bm_pairs = []
     cache = {}
     network_details = {}
     for bmc_port, baremetal_port in zip(bmc_ports, bm_ports):
@@ -145,7 +144,6 @@ def _build_nodes(nova, glance, bmc_ports, bm_ports, provision_net_map,
         network_details[baremetal.name]['ips'] = baremetal.addresses
         node = dict(node_template)
         node['pm_addr'] = bmc_port['fixed_ips'][0]['ip_address']
-        bmc_bm_pairs.append((node['pm_addr'], baremetal.name))
         provision_net = provision_net_map.get(baremetal_port['id'])
         mac = baremetal.addresses[provision_net][0]['OS-EXT-IPS-MAC:mac_addr']
         if physical_network:
@@ -216,7 +214,7 @@ def _build_nodes(nova, glance, bmc_ports, bm_ports, provision_net_map,
             network_details[undercloud_name] = dict(
                 id=undercloud_instance.id,
                 ips=undercloud_instance.addresses)
-    return nodes, bmc_bm_pairs, extra_nodes, network_details
+    return nodes, extra_nodes, network_details
 
 
 def _write_nodes(nodes, extra_nodes, network_details, args):
@@ -261,21 +259,6 @@ def _write_role_nodes(nodes, args):
                   (profile, outfile))
 
 
-# TODO(bnemec): This functionality was deprecated 2018-01-24.  Remove it in
-# about six months.
-def _write_pairs(bmc_bm_pairs):
-    filename = 'bmc_bm_pairs'
-    with open(filename, 'w') as pairs_file:
-        pairs_file.write('# This file is DEPRECATED.  The mapping is now '
-                         'available in nodes.json.\n')
-        pairs_file.write('# A list of BMC addresses and the name of the '
-                         'instance that BMC manages.\n')
-        for i in bmc_bm_pairs:
-            pair = '%s %s' % i
-            pairs_file.write(pair + '\n')
-            print(pair)
-        print('Wrote BMC to instance mapping file to %s' % filename)
-
 
 def main():
     args = _parse_args()
@@ -284,7 +267,6 @@ def main():
     bmc_ports, bm_ports, provision_net_map = _get_ports(neutron, bmc_base,
                                                         baremetal_base)
     (nodes,
-     bmc_bm_pairs,
      extra_nodes,
      network_details) = _build_nodes(nova, glance, bmc_ports, bm_ports,
                                      provision_net_map, baremetal_base,
@@ -292,7 +274,6 @@ def main():
                                      args.physical_network)
     _write_nodes(nodes, extra_nodes, network_details, args)
     _write_role_nodes(nodes, args)
-    _write_pairs(bmc_bm_pairs)
 
 
 if __name__ == '__main__':

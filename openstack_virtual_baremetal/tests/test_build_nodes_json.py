@@ -312,7 +312,6 @@ class TestBuildNodesJson(testtools.TestCase):
         glance = mock.Mock()
 
         (nodes,
-         bmc_bm_pairs,
          extra_nodes,
          network_details) = build_nodes_json._build_nodes(
             nova, glance, bmc_ports, bm_ports, provision_net_map, 'bm',
@@ -320,8 +319,6 @@ class TestBuildNodesJson(testtools.TestCase):
         expected_nodes = copy.deepcopy(TEST_NODES)
         expected_nodes[1]['disk'] = 100
         self.assertEqual(expected_nodes, nodes)
-        self.assertEqual([('1.1.1.1', 'bm_0'), ('1.1.1.2', 'bm_1')],
-                         bmc_bm_pairs)
         self.assertEqual(1, len(extra_nodes))
         self.assertEqual('undercloud', extra_nodes[0]['name'])
         self.assertEqual(
@@ -364,7 +361,6 @@ class TestBuildNodesJson(testtools.TestCase):
         glance = mock.Mock()
 
         (nodes,
-         bmc_bm_pairs,
          extra_nodes,
          network_details) = build_nodes_json._build_nodes(
             nova, glance, bmc_ports, bm_ports, provision_net_map, 'bm',
@@ -374,8 +370,6 @@ class TestBuildNodesJson(testtools.TestCase):
         for node in expected_nodes:
             node['pm_type'] = 'ipmi'
         self.assertEqual(expected_nodes, nodes)
-        self.assertEqual([('1.1.1.1', 'bm_0'), ('1.1.1.2', 'bm_1')],
-                         bmc_bm_pairs)
         self.assertEqual(1, len(extra_nodes))
         self.assertEqual('undercloud', extra_nodes[0]['name'])
         self.assertEqual(
@@ -406,7 +400,7 @@ class TestBuildNodesJson(testtools.TestCase):
         mock_image_get.get.return_value = 'uefi'
         glance.images.get.return_value = mock_image_get
 
-        nodes, bmc_bm_pairs, extra_nodes, _ = build_nodes_json._build_nodes(
+        nodes, extra_nodes, _ = build_nodes_json._build_nodes(
             nova, glance, bmc_ports, bm_ports, provision_net_map, 'bm-foo',
             None, 'pxe_ipmitool', physical_network)
         expected_nodes = copy.deepcopy(TEST_NODES)
@@ -419,9 +413,6 @@ class TestBuildNodesJson(testtools.TestCase):
                                              'boot_mode:uefi,'
                                              'profile:control')
         self.assertEqual(expected_nodes, nodes)
-        self.assertEqual([('1.1.1.1', 'bm-foo-control_0'),
-                          ('1.1.1.2', 'bm-foo-control_1')],
-                         bmc_bm_pairs)
 
     @mock.patch('openstack_virtual_baremetal.build_nodes_json.open',
                 create=True)
@@ -482,23 +473,6 @@ class TestBuildNodesJson(testtools.TestCase):
         f.write.assert_any_call(json.dumps({'nodes': [test_nodes[1]]},
                                            indent=2))
 
-    @mock.patch('openstack_virtual_baremetal.build_nodes_json.open',
-                create=True)
-    def test_write_pairs(self, mock_open):
-        pairs = [('1.1.1.1', 'bm_0'), ('1.1.1.2', 'bm_1')]
-        mock_open.return_value = mock.MagicMock()
-        build_nodes_json._write_pairs(pairs)
-        calls = [mock.call('# This file is DEPRECATED.  The mapping is now '
-                           'available in nodes.json.\n'),
-                 mock.call('# A list of BMC addresses and the name of the '
-                           'instance that BMC manages.\n'),
-                 mock.call('1.1.1.1 bm_0\n'),
-                 mock.call('1.1.1.2 bm_1\n'),
-                 ]
-        f = mock_open.return_value.__enter__.return_value
-        self.assertEqual(calls, f.write.mock_calls)
-
-    @mock.patch('openstack_virtual_baremetal.build_nodes_json._write_pairs')
     @mock.patch('openstack_virtual_baremetal.build_nodes_json.'
                 '_write_role_nodes')
     @mock.patch('openstack_virtual_baremetal.build_nodes_json._write_nodes')
@@ -509,7 +483,7 @@ class TestBuildNodesJson(testtools.TestCase):
     @mock.patch('openstack_virtual_baremetal.build_nodes_json._parse_args')
     def test_main(self, mock_parse_args, mock_get_names, mock_get_clients,
                   mock_get_ports, mock_build_nodes, mock_write_nodes,
-                  mock_write_role_nodes, mock_write_pairs):
+                  mock_write_role_nodes):
         args = mock.Mock()
         mock_parse_args.return_value = args
         bmc_base = mock.Mock()
@@ -526,10 +500,9 @@ class TestBuildNodesJson(testtools.TestCase):
         bm_ports = mock.Mock()
         mock_get_ports.return_value = (bmc_ports, bm_ports, provision_net_map)
         nodes = mock.Mock()
-        pairs = mock.Mock()
         extra_nodes = mock.Mock()
         network_details = mock.Mock()
-        mock_build_nodes.return_value = (nodes, pairs, extra_nodes,
+        mock_build_nodes.return_value = (nodes, extra_nodes,
                                          network_details)
 
         build_nodes_json.main()
@@ -548,4 +521,3 @@ class TestBuildNodesJson(testtools.TestCase):
         mock_write_nodes.assert_called_once_with(nodes, extra_nodes,
                                                  network_details, args)
         mock_write_role_nodes.assert_called_once_with(nodes, args)
-        mock_write_pairs.assert_called_once_with(pairs)
