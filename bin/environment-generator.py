@@ -87,7 +87,7 @@ def _generate_environment(input_env, parent_env=None):
     param_names = []
     sample_values = env.get('sample_values', {})
     static_names = env.get('static', [])
-    for template_file, template_data in env['files'].items():
+    for template_file, template_data in env.get('files', {}).items():
         with open(template_file) as f:
             f_data = yaml.safe_load(f)
             f_params = f_data['parameters']

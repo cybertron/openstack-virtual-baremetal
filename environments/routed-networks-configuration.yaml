@@ -1,0 +1,21 @@
+# *******************************************************************
+# This file was created automatically by the sample environment
+# generator. Developers should use `tox -e genconfig` to update it.
+# Users are recommended to make changes to a copy of the file instead
+# of the original, if any customizations are needed.
+# *******************************************************************
+# title: Configuration for Routed Networks
+# description: |
+#   Contains the available parameters that need to be configured when using
+#   a routed networks environment. Requires the routed-networks.yaml
+#   environment.
+parameter_defaults:
+  # The Nova flavor to use for the dhcrelay instance
+  # Type: string
+  dhcp_relay_flavor: m1.small
+
+  # The base image for the dhcrelay instance.  A CentOS 7 image is currently
+  # the only one supported.
+  # Type: string
+  dhcp_relay_image: CentOS-7-x86_64-GenericCloud
+

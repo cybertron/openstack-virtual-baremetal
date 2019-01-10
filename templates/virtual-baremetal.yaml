@@ -45,22 +45,15 @@ parameters:
     default: 1
     description: Number of baremetal nodes to deploy
 
-  public_net:
-    type: string
-    description: |
-      An additional network that will be attached to the baremetal instances,
-      intended to be used for non-provisioning traffic
-    default: public
-
   private_net:
     type: string
     default: private
     description: Name of a private network which can have floating ips associated with it
 
-  provision_net:
-    type: string
-    default: provision
-    description: Name of a network that will be used for provisioning traffic
+  networks:
+    type: json
+    default: {"private": "private", "provision": "provision"}
+    description: A map of networks to their names.
 
   bmc_prefix:
     type: string
@@ -121,6 +114,14 @@ parameters:
     default: '{}'
     hidden: true
 
+  dhcp_ips:
+    type: json
+    default:
+    - 192.168.24.1
+    - 192.168.24.10
+    description: |
+      The IP addresses of DHCP servers to relay DHCP requests to.
+
   # Ignored parameters for compatibility with QuintupleO env files
   undercloud_image:
     type: string
@@ -162,6 +163,15 @@ resources:
               - _%index%
           network: {get_param: private_net}
 
+  bmc_handle:
+    type: OS::Heat::WaitConditionHandle
+
+  bmc_wait_condition:
+    type: OS::Heat::WaitCondition
+    properties:
+      handle: {get_resource: bmc_handle}
+      timeout: 600
+
   bmc_server:
     type: OS::Nova::Server
     depends_on: [openstack_baremetal_servers, bmc_other_ports, bmc_port]
@@ -190,6 +200,7 @@ resources:
             $private_net: {get_param: private_net}
             $openstackbmc_script: {get_file: ../bin/openstackbmc}
             $cloud_data: {get_param: cloud_data}
+            $signal_command: {get_attr: [bmc_handle, curl_cli]}
           template: {get_file: ../bin/install_openstackbmc.sh}
 
   baremetal_networks:
@@ -206,7 +217,16 @@ resources:
           baremetal_flavor: {get_param: baremetal_flavor}
           baremetal_image: {get_param: baremetal_image}
           key_name: {get_param: key_name}
-          provision_net: {get_param: provision_net}
-          public_net: {get_param: public_net}
+          networks: {get_param: networks}
           suffix: _%index%
           baremetal_prefix: {get_param: baremetal_prefix}
+
+  dhcp_relay:
+    type: OS::OVB::DHCPRelay
+    properties:
+      networks: {get_param: networks}
+      dhcp_ips: {get_param: dhcp_ips}
+
+outputs:
+  baremetal_networks_routers_addresses:
+    value: {get_attr: [baremetal_networks, routers_addresses]}

@@ -43,15 +43,12 @@ After an OVB environment has been deployed, there are a few things to know.
    this is a brief explanation of each:
 
    - **network-templates:** IPv4 multi-nic.  Usable with the network layout
-     deployed by the ``all-networks.yaml`` and
-     ``all-networks-port-security.yaml`` environments.
+     deployed by the ``all-networks.yaml`` environment.
    - **ipv6-network-templates:** IPv6 multi-nic. Usable with the network layout
-     deployed by the ``all-networks.yaml`` and
-     ``all-networks-port-security.yaml`` environments.
+     deployed by the ``all-networks.yaml`` environment.
    - **bond-network-templates:** IPv4 multi-nic, with duplicate `public`
      interfaces for testing bonded nics.  Usable with the network layout
-     deployed by the ``all-networks-public-bond.yaml`` and
-     ``all-networks-public-bond-port-security.yaml`` environments.
+     deployed by the ``all-networks-public-bond.yaml`` environment.
 
    The undercloud's ``public`` interface should be configured with the address
    of the default route from the templates in use.  Firewall rules for

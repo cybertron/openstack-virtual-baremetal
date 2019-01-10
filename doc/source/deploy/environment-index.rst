@@ -1,30 +1,6 @@
 Sample Environment Index
 ========================
 
-Deploy with All Networks Enabled
---------------------------------
-
-**File:** environments/all-networks-port-security.yaml
-
-**Description:** Deploy an OVB stack that adds interfaces for all the standard TripleO
-network isolation networks.  This version uses the port-security
-Neutron extension to allow OVB to be run on clouds with security
-groups enabled.
-
-
-Deploy with All Networks Enabled and Two Public Interfaces
-----------------------------------------------------------
-
-**File:** environments/all-networks-public-bond-port-security.yaml
-
-**Description:** Deploy an OVB stack that adds interfaces for all the standard TripleO
-network isolation networks.  This version will deploy duplicate
-public network interfaces on the baremetal instances so that the
-public network can be configured as a bond.  It will also use the
-port-security Neutron extension to allow OVB to be run on clouds with
-security groups enabled.
-
-
 Deploy with All Networks Enabled and Two Public Interfaces
 ----------------------------------------------------------
 
@@ -118,13 +94,14 @@ Create a Private Network
 existing one.
 
 
-Deploy a Basic OVB Environment Using Neutron port-security
-----------------------------------------------------------
+Public Network External Router
+------------------------------
 
-**File:** environments/port-security.yaml
+**File:** environments/public-router.yaml
 
-**Description:** Deploy an OVB stack that uses the Neutron port-security extension to
-allow OVB functionality in clouds with security groups enabled.
+**Description:** Deploy a router that connects the public and external networks. This
+allows the public network to be used as a gateway instead of routing all
+traffic through the undercloud.
 
 
 Disable the Undercloud in a QuintupleO Stack
@@ -134,6 +111,38 @@ Disable the Undercloud in a QuintupleO Stack
 
 **Description:** Deploy a QuintupleO environment, but do not create the undercloud
 instance.
+
+
+Configuration for Routed Networks
+---------------------------------
+
+**File:** environments/routed-networks-configuration.yaml
+
+**Description:** Contains the available parameters that need to be configured when using
+a routed networks environment. Requires the routed-networks.yaml
+environment.
+
+
+Base Role Configuration for Routed Networks
+-------------------------------------------
+
+**File:** environments/routed-networks-role.yaml
+
+**Description:** A base role environment that contains the necessary parameters for
+deploying with routed networks.
+
+
+Enable Routed Networks
+----------------------
+
+**File:** environments/routed-networks.yaml
+
+**Description:** Enable use of routed networks, where there may be multiple separate
+networks connected with a router and DHCP relay. Do not pass any other
+network configuration environments after this one or they may override
+the changes made by this environment. When this environment is in use,
+the routed-networks-configuration environment should usually be
+included as well.
 
 
 Assign the Undercloud an Existing Floating IP

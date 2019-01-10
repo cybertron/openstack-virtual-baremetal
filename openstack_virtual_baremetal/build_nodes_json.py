@@ -45,7 +45,7 @@ def _parse_args():
     parser.add_argument('--provision_net',
                         dest='provision_net',
                         default='provision',
-                        help='Provisioning network name')
+                        help='DEPRECATED: This parameter is ignored.')
     parser.add_argument('--nodes_json',
                         dest='nodes_json',
                         default='nodes.json',
@@ -71,31 +71,22 @@ def _parse_args():
     return args
 
 
-def _get_from_env(env, name):
-    try:
-        return env['parameters'][name]
-    except KeyError:
-        return env['parameter_defaults'][name]
-
-
 def _get_names(args):
     if args.env is None:
         bmc_base = args.bmc_prefix
         baremetal_base = args.baremetal_prefix
-        provision_net = args.provision_net
         # FIXME: This is not necessarily true.
         undercloud_name = 'undercloud'
     else:
         with open(args.env) as f:
             e = yaml.safe_load(f)
-        bmc_base = _get_from_env(e, 'bmc_prefix')
-        baremetal_base = _get_from_env(e, 'baremetal_prefix')
-        provision_net = _get_from_env(e, 'provision_net')
+        bmc_base = e['parameter_defaults']['bmc_prefix']
+        baremetal_base = e['parameter_defaults']['baremetal_prefix']
         role = e.get('parameter_defaults', {}).get('role')
         if role and baremetal_base.endswith('-' + role):
             baremetal_base = baremetal_base[:-len(role) - 1]
         undercloud_name = e.get('parameter_defaults', {}).get('undercloud_name')  # noqa: E501
-    return bmc_base, baremetal_base, provision_net, undercloud_name
+    return bmc_base, baremetal_base, undercloud_name
 
 
 def _get_clients():
@@ -116,10 +107,17 @@ def _get_ports(neutron, bmc_base, baremetal_base):
         raise RuntimeError('Found different numbers of baremetal and '
                            'bmc ports. bmc: %s baremetal: %s' % (bmc_ports,
                                                                  bm_ports))
-    return bmc_ports, bm_ports
+    provision_net_map = {}
+    for port in bm_ports:
+        provision_net_map.update({
+            port.get('id'):
+                neutron.list_subnets(
+                    id=port['fixed_ips'][0]['subnet_id'])['subnets'][0].get(
+                    'name')})
+    return bmc_ports, bm_ports, provision_net_map
 
 
-def _build_nodes(nova, glance, bmc_ports, bm_ports, provision_net,
+def _build_nodes(nova, glance, bmc_ports, bm_ports, provision_net_map,
                  baremetal_base, undercloud_name, driver, physical_network):
     node_template = {
         'pm_type': driver,
@@ -136,9 +134,6 @@ def _build_nodes(nova, glance, bmc_ports, bm_ports, provision_net,
     }
     if physical_network:
         node_template.pop('mac')
-        node_template.update(
-            {'ports': [{'address': '', 'physical_network': provision_net}]})
-
     nodes = []
     bmc_bm_pairs = []
     cache = {}
@@ -151,9 +146,11 @@ def _build_nodes(nova, glance, bmc_ports, bm_ports, provision_net,
         node = dict(node_template)
         node['pm_addr'] = bmc_port['fixed_ips'][0]['ip_address']
         bmc_bm_pairs.append((node['pm_addr'], baremetal.name))
+        provision_net = provision_net_map.get(baremetal_port['id'])
         mac = baremetal.addresses[provision_net][0]['OS-EXT-IPS-MAC:mac_addr']
         if physical_network:
-            node['ports'][0]['address'] = mac
+            node.update({'ports': [{'address': mac,
+                                    'physical_network': provision_net}]})
         else:
             node['mac'] = [mac]
         if not cache.get(baremetal.flavor['id']):
@@ -282,14 +279,15 @@ def _write_pairs(bmc_bm_pairs):
 
 def main():
     args = _parse_args()
-    bmc_base, baremetal_base, provision_net, undercloud_name = _get_names(args)
+    bmc_base, baremetal_base, undercloud_name = _get_names(args)
     nova, neutron, glance = _get_clients()
-    bmc_ports, bm_ports = _get_ports(neutron, bmc_base, baremetal_base)
+    bmc_ports, bm_ports, provision_net_map = _get_ports(neutron, bmc_base,
+                                                        baremetal_base)
     (nodes,
      bmc_bm_pairs,
      extra_nodes,
      network_details) = _build_nodes(nova, glance, bmc_ports, bm_ports,
-                                     provision_net, baremetal_base,
+                                     provision_net_map, baremetal_base,
                                      undercloud_name, args.driver,
                                      args.physical_network)
     _write_nodes(nodes, extra_nodes, network_details, args)

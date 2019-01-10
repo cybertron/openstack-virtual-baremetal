@@ -4,11 +4,10 @@
 # Users are recommended to make changes to a copy of the file instead
 # of the original, if any customizations are needed.
 # *******************************************************************
-# title: Deploy a Basic OVB Environment Using Neutron port-security
+# title: Public Network External Router
 # description: |
-#   Deploy an OVB stack that uses the Neutron port-security extension to
-#   allow OVB functionality in clouds with security groups enabled.
+#   Deploy a router that connects the public and external networks. This
+#   allows the public network to be used as a gateway instead of routing all
+#   traffic through the undercloud.
 resource_registry:
-  OS::OVB::BMCPort: ../templates/bmc-port-port-security.yaml
-  OS::OVB::BaremetalPorts: ../templates/baremetal-ports-default-port-security.yaml
-  OS::OVB::UndercloudPorts: ../templates/undercloud-ports-port-security.yaml
+  OS::OVB::UndercloudNetworks: ../templates/undercloud-networks-public-router.yaml

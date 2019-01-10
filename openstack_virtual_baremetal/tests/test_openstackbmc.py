@@ -26,146 +26,10 @@ from openstack_virtual_baremetal import openstackbmc
 @mock.patch('openstack_virtual_baremetal.openstackbmc.OpenStackBmc.'
             'log')
 @mock.patch('pyghmi.ipmi.bmc.Bmc.__init__')
-@mock.patch('novaclient.client.Client')
-@mock.patch('openstack_virtual_baremetal.openstackbmc.OpenStackBmc.'
-            '_find_instance')
-class TestOpenStackBmcInitDeprecated(unittest.TestCase):
-    def _test_init(self, mock_find_instance, mock_nova, mock_bmc_init,
-                   mock_log, old_nova=True):
-        mock_client = mock.Mock()
-        mock_server = mock.Mock()
-        mock_server.name = 'foo-instance'
-        mock_client.servers.get.return_value = mock_server
-        mock_nova.return_value = mock_client
-        mock_find_instance.return_value = 'abc-123'
-        bmc = openstackbmc.OpenStackBmc(authdata={'admin': 'password'},
-                                        port=623,
-                                        address='::ffff:127.0.0.1',
-                                        instance='foo',
-                                        user='admin',
-                                        password='password',
-                                        tenant='admin',
-                                        auth_url='http://keystone:5000',
-                                        project='',
-                                        user_domain='',
-                                        project_domain='',
-                                        cache_status=False,
-                                        os_cloud=None
-                                        )
-        if old_nova:
-            mock_nova.assert_called_once_with(2, 'admin', 'password', 'admin',
-                                              'http://keystone:5000')
-        else:
-            mock_nova.assert_called_once_with(2, 'admin', 'password',
-                                              auth_url='http://keystone:5000',
-                                              project_name='admin')
-        mock_find_instance.assert_called_once_with('foo')
-        self.assertEqual('abc-123', bmc.instance)
-        mock_client.servers.get.assert_called_once_with('abc-123')
-        self.assertEqual([mock.call(openstackbmc.NO_OCC_DEPRECATION),
-                          mock.call('Managing instance: %s UUID: %s' %
-                                    ('foo-instance', 'abc-123'))],
-                         mock_log.mock_calls)
-
-    @mock.patch('openstack_virtual_baremetal.openstackbmc.os_client_config',
-                None)
-    @mock.patch('openstack_virtual_baremetal.openstackbmc.nc.__version__',
-                ('6', '0', '0'))
-    def test_init_6(self, mock_find_instance, mock_nova, mock_bmc_init,
-                    mock_log):
-        self._test_init(mock_find_instance, mock_nova, mock_bmc_init, mock_log)
-
-    @mock.patch('openstack_virtual_baremetal.openstackbmc.os_client_config',
-                None)
-    @mock.patch('openstack_virtual_baremetal.openstackbmc.nc.__version__',
-                ('7', '0', '0'))
-    def test_init_7(self, mock_find_instance, mock_nova, mock_bmc_init,
-                    mock_log):
-        self._test_init(mock_find_instance, mock_nova, mock_bmc_init, mock_log,
-                        old_nova=False)
-
-    @mock.patch('openstack_virtual_baremetal.openstackbmc.os_client_config',
-                None)
-    def test_init_v3(self, mock_find_instance, mock_nova, mock_bmc_init,
-                     mock_log, old_nova=True):
-        mock_client = mock.Mock()
-        mock_server = mock.Mock()
-        mock_server.name = 'foo-instance'
-        mock_client.servers.get.return_value = mock_server
-        mock_nova.return_value = mock_client
-        mock_find_instance.return_value = 'abc-123'
-        bmc = openstackbmc.OpenStackBmc(authdata={'admin': 'password'},
-                                        port=623,
-                                        address='::ffff:127.0.0.1',
-                                        instance='foo',
-                                        user='admin',
-                                        password='password',
-                                        tenant='',
-                                        auth_url='http://keystone:5000/v3',
-                                        project='admin',
-                                        user_domain='default',
-                                        project_domain='default',
-                                        cache_status=False,
-                                        os_cloud=None
-                                        )
-        mock_nova.assert_called_once_with(2, 'admin', 'password',
-                                          auth_url='http://keystone:5000/v3',
-                                          project_name='admin',
-                                          user_domain_name='default',
-                                          project_domain_name='default')
-        mock_find_instance.assert_called_once_with('foo')
-        self.assertEqual('abc-123', bmc.instance)
-        mock_client.servers.get.assert_called_once_with('abc-123')
-        self.assertEqual([mock.call(openstackbmc.NO_OCC_DEPRECATION),
-                          mock.call('Managing instance: %s UUID: %s' %
-                                    ('foo-instance', 'abc-123'))],
-                         mock_log.mock_calls)
-
-
-@mock.patch('openstack_virtual_baremetal.openstackbmc.OpenStackBmc.'
-            'log')
-@mock.patch('pyghmi.ipmi.bmc.Bmc.__init__')
 @mock.patch('openstack_virtual_baremetal.openstackbmc.OpenStackBmc.'
             '_find_instance')
 @mock.patch('os_client_config.make_client')
 class TestOpenStackBmcInit(testtools.TestCase):
-    def test_init_os_client_config(self, mock_make_client, mock_find_instance,
-                                   mock_bmc_init, mock_log):
-        mock_client = mock.Mock()
-        mock_server = mock.Mock()
-        mock_server.name = 'foo-instance'
-        mock_client.servers.get.return_value = mock_server
-        mock_make_client.return_value = mock_client
-        mock_find_instance.return_value = 'abc-123'
-        bmc = openstackbmc.OpenStackBmc(authdata={'admin': 'password'},
-                                        port=623,
-                                        address='::ffff:127.0.0.1',
-                                        instance='foo',
-                                        user='admin',
-                                        password='password',
-                                        tenant='admin',
-                                        auth_url='http://keystone:5000',
-                                        project='',
-                                        user_domain='',
-                                        project_domain='',
-                                        cache_status=False,
-                                        os_cloud=None
-                                        )
-
-        mock_make_client.assert_called_once_with(
-            'compute',
-            os_auth_url='http://keystone:5000',
-            os_password='password',
-            os_project_domain='',
-            os_project_name='admin',
-            os_user_domain='',
-            os_username='admin')
-        mock_find_instance.assert_called_once_with('foo')
-        self.assertEqual('abc-123', bmc.instance)
-        mock_client.servers.get.assert_called_once_with('abc-123')
-        mock_log.assert_called_once_with('Managing instance: %s UUID: %s' %
-                                         ('foo-instance', 'abc-123'))
-
     def test_init_os_cloud(self, mock_make_client, mock_find_instance,
                            mock_bmc_init, mock_log):
         mock_client = mock.Mock()
@@ -178,13 +42,6 @@ class TestOpenStackBmcInit(testtools.TestCase):
                                         port=623,
                                         address='::ffff:127.0.0.1',
                                         instance='foo',
-                                        user='',
-                                        password='',
-                                        tenant='',
-                                        auth_url='',
-                                        project='',
-                                        user_domain='',
-                                        project_domain='',
                                         cache_status=False,
                                         os_cloud='bar'
                                         )
@@ -210,13 +67,6 @@ class TestOpenStackBmcInit(testtools.TestCase):
                                         port=623,
                                         address='::ffff:127.0.0.1',
                                         instance='foo',
-                                        user='',
-                                        password='',
-                                        tenant='',
-                                        auth_url='',
-                                        project='',
-                                        user_domain='',
-                                        project_domain='',
                                         cache_status=False,
                                         os_cloud='foo'
                                         )
@@ -246,15 +96,8 @@ class TestOpenStackBmc(unittest.TestCase):
                                              port=623,
                                              address='::ffff:127.0.0.1',
                                              instance='foo',
-                                             user='admin',
-                                             password='password',
-                                             tenant='admin',
-                                             auth_url='http://keystone:5000',
-                                             project='',
-                                             user_domain='',
-                                             project_domain='',
                                              cache_status=False,
-                                             os_cloud=None
+                                             os_cloud='bar'
                                              )
         self.bmc.novaclient = self.mock_client
         self.bmc.instance = 'abc-123'
@@ -462,13 +305,6 @@ class TestMain(unittest.TestCase):
                                          port=111,
                                          address='::ffff:1.2.3.4',
                                          instance='foobar',
-                                         user='',
-                                         password='',
-                                         tenant='',
-                                         auth_url='',
-                                         project='',
-                                         user_domain='',
-                                         project_domain='',
                                          cache_status=False,
                                          os_cloud='foo'
                                          )
@@ -479,21 +315,14 @@ class TestMain(unittest.TestCase):
         mock_instance = mock.Mock()
         mock_bmc.return_value = mock_instance
         mock_argv = ['openstackbmc', '--port', '111',
-                     '--instance', 'foobar']
+                     '--instance', 'foobar', '--os-cloud', 'bar']
         with mock.patch.object(sys, 'argv', mock_argv):
             openstackbmc.main()
         mock_bmc.assert_called_once_with({'admin': 'password'},
                                          port=111,
                                          address='::',
                                          instance='foobar',
-                                         user='',
-                                         password='',
-                                         tenant='',
-                                         auth_url='',
-                                         project='',
-                                         user_domain='',
-                                         project_domain='',
                                          cache_status=False,
-                                         os_cloud=None
+                                         os_cloud='bar'
                                          )
         mock_instance.listen.assert_called_once_with()

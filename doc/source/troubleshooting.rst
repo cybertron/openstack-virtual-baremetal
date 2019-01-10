@@ -49,10 +49,8 @@ VM, but responses never get to the baremetal instances.
 
 **Cause**: Neutron port security blocking DHCP from the undercloud.
 
-**Solution**: Neutron either needs to be configured to use the Noop firewall
-driver, or the port-security extension must be used to disable
-port-security on the appropriate ports.  As of this writing that
-requires use of the port-security branch of OVB.
+**Solution**: Ensure that the Neutron port-security extension is present in
+the host cloud. It is required for OVB to function properly.
 
 The BMC does not respond to IPMI requests
 -----------------------------------------
@@ -62,11 +60,10 @@ on arbitrary addresses.  The BMC deployment may have failed for some
 reason.
 
 **Solution**: Neutron must be configured to allow the BMC to listen on
-arbitrary addresses.  This requires use of the Noop firewall driver
-or port-security extension as in the previous solution.  If this
-is already configured correctly, then the BMC may have failed to
-deploy properly.  This can usually be determined by looking at the
-nova console-log of the BMC instance.  A correctly working BMC will
+arbitrary addresses.  This requires the port-security extension as in the
+previous solution.  If this is already configured correctly, then the BMC may
+have failed to deploy properly.  This can usually be determined by looking at
+the nova console-log of the BMC instance.  A correctly working BMC will
 display 'Managing instance [uuid]' for each baremetal node in the
 environment.  If those messages are not found, then the BMC has
 failed to start properly.  The relevant error messages should be

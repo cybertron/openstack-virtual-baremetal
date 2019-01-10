@@ -28,63 +28,19 @@ import os
 import sys
 import time
 
-import novaclient as nc
-from novaclient import client as novaclient
 from novaclient import exceptions
-try:
-    import os_client_config
-except ImportError:
-    os_client_config = None
+import os_client_config
 import pyghmi.ipmi.bmc as bmc
 
 
-NO_OCC_DEPRECATION = ('WARNING: Creating novaclient without os-client-config '
-                      'is deprecated.  Please install os-client-config on the '
-                      'BMC image.')
-
-
 class OpenStackBmc(bmc.Bmc):
-    def __init__(self, authdata, port, address, instance, user, password,
-                 tenant, auth_url, project, user_domain, project_domain,
-                 cache_status, os_cloud):
+    def __init__(self, authdata, port, address, instance, cache_status,
+                 os_cloud):
         super(OpenStackBmc, self).__init__(authdata,
                                            port=port,
                                            address=address)
-        if os_client_config:
-            if user:
-                # NOTE(bnemec): This is deprecated.  clouds.yaml is a much
-                # more robust way to specify auth details.
-                kwargs = dict(os_username=user,
-                              os_password=password,
-                              os_project_name=tenant,
-                              os_auth_url=auth_url,
-                              os_user_domain=user_domain,
-                              os_project_domain=project_domain)
-                self.novaclient = os_client_config.make_client('compute',
-                                                               **kwargs)
-            else:
-                self.novaclient = os_client_config.make_client('compute',
-                                                               cloud=os_cloud)
-        else:
-            # NOTE(bnemec): This path was deprecated 2017-7-17
-            self.log(NO_OCC_DEPRECATION)
-            if '/v3' not in auth_url:
-                # novaclient 7+ is backwards-incompatible :-(
-                if int(nc.__version__[0]) <= 6:
-                    self.novaclient = novaclient.Client(2, user, password,
-                                                        tenant, auth_url)
-                else:
-                    self.novaclient = novaclient.Client(2, user, password,
-                                                        auth_url=auth_url,
-                                                        project_name=tenant)
-            else:
-                self.novaclient = novaclient.Client(
-                    2, user, password,
-                    auth_url=auth_url,
-                    project_name=project,
-                    user_domain_name=user_domain,
-                    project_domain_name=project_domain
-                )
+        self.novaclient = os_client_config.make_client('compute',
+                                                       cloud=os_cloud)
         self.instance = None
         self.cache_status = cache_status
         self.cached_status = None
@@ -234,55 +190,6 @@ def main():
                         required=True,
                         help='The uuid or name of the OpenStack instance '
                         'to manage')
-    parser.add_argument('--os-user',
-                        dest='user',
-                        required=False,
-                        default='',
-                        help='DEPRECATED: Use --os-cloud to specify auth '
-                             'details. '
-                             'The user for connecting to OpenStack')
-    parser.add_argument('--os-password',
-                        dest='password',
-                        required=False,
-                        default='',
-                        help='DEPRECATED: Use --os-cloud to specify auth '
-                             'details. '
-                             'The password for connecting to OpenStack')
-    parser.add_argument('--os-tenant',
-                        dest='tenant',
-                        required=False,
-                        default='',
-                        help='DEPRECATED: Use --os-cloud to specify auth '
-                             'details. '
-                             'The tenant for connecting to OpenStack')
-    parser.add_argument('--os-auth-url',
-                        dest='auth_url',
-                        required=False,
-                        default='',
-                        help='DEPRECATED: Use --os-cloud to specify auth '
-                             'details. '
-                             'The OpenStack Keystone auth url')
-    parser.add_argument('--os-project',
-                        dest='project',
-                        required=False,
-                        default='',
-                        help='DEPRECATED: Use --os-cloud to specify auth '
-                             'details. '
-                             'The project for connecting to OpenStack')
-    parser.add_argument('--os-user-domain',
-                        dest='user_domain',
-                        required=False,
-                        default='',
-                        help='DEPRECATED: Use --os-cloud to specify auth '
-                             'details. '
-                             'The user domain for connecting to OpenStack')
-    parser.add_argument('--os-project-domain',
-                        dest='project_domain',
-                        required=False,
-                        default='',
-                        help='DEPRECATED: Use --os-cloud to specify auth '
-                             'details. '
-                             'The project domain for connecting to OpenStack')
     parser.add_argument('--cache-status',
                         dest='cache_status',
                         default=False,
@@ -293,7 +200,6 @@ def main():
                              'it may become out of sync.')
     parser.add_argument('--os-cloud',
                         dest='os_cloud',
-                        required=False,
                         default=os.environ.get('OS_CLOUD'),
                         help='Use the specified cloud from clouds.yaml. '
                              'Defaults to the OS_CLOUD environment variable.')
@@ -306,13 +212,6 @@ def main():
     mybmc = OpenStackBmc({'admin': 'password'}, port=args.port,
                          address=addr_format % args.address,
                          instance=args.instance,
-                         user=args.user,
-                         password=args.password,
-                         tenant=args.tenant,
-                         auth_url=args.auth_url,
-                         project=args.project,
-                         user_domain=args.user_domain,
-                         project_domain=args.project_domain,
                          cache_status=args.cache_status,
                          os_cloud=args.os_cloud)
     mybmc.listen()

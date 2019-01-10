@@ -3,3 +3,5 @@ heat_template_version: 2014-10-16
 outputs:
   networks:
     value: {}
+  routers_addresses:
+    value: {}

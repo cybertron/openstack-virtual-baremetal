@@ -5,7 +5,7 @@ set -x
 # install python2-crypto from EPEL
 # python-[nova|neutron]client are in a similar situation.  They were renamed
 # in RDO to python2-*
-required_packages="python-pip os-net-config git jq python2-os-client-config"
+required_packages="python-pip os-net-config git jq python2-os-client-config python2-openstackclient"
 
 function have_packages() {
     for i in $required_packages; do
@@ -59,12 +59,9 @@ print(yaml.safe_dump(clouds, default_flow_style=False))' > ~/.config/openstack/c
 rm -f /tmp/bmc-cloud-data
 export OS_CLOUD=host_cloud
 
-# At some point neutronclient started returning a python list repr from this
-# command instead of just the value.  This sed will strip off the bits we
-# don't care about without messing up the output from older clients.
-private_subnet=$(neutron net-show -f value -c subnets $private_net | sed "s/\[u'\(.*\)'\]/\1/")
-default_gw=$(neutron subnet-show $private_subnet -f value -c gateway_ip)
-prefix_len=$(neutron subnet-show -f value -c cidr $private_subnet | awk -F / '{print $2}')
+private_subnet=$(openstack network show -f value -c subnets $private_net)
+default_gw=$(openstack subnet show -f value -c gateway_ip $private_subnet)
+prefix_len=$(openstack subnet show -f value -c cidr $private_subnet | awk -F / '{print $2}')
 cache_status=
 if [ "$bmc_use_cache" != "False" ]; then
     cache_status="--cache-status"
@@ -103,14 +100,9 @@ EOF
 for i in $(seq 1 $bm_node_count)
 do
     bm_port="$bm_prefix_$(($i-1))"
-    bm_instance=$(neutron port-show $bm_port -c device_id -f value)
+    bm_instance=$(openstack port show -c device_id -f value $bm_port)
     bmc_port="$bmc_prefix_$(($i-1))"
-    bmc_ip=$(neutron port-show $bmc_port -c fixed_ips -f value | jq -r .ip_address)
-    # Newer neutronclient requires explicit json output and a slightly
-    # different jq query
-    if [ -z "$bmc_ip" ]; then
-        bmc_ip=$(neutron port-show $bmc_port -c fixed_ips -f json | jq -r .fixed_ips[0].ip_address)
-    fi
+    bmc_ip=$(openstack port show -c fixed_ips -f value $bmc_port | awk -F \' '{print $2}')
     unit="openstack-bmc-$bm_port.service"
 
     cat <<EOF >/usr/lib/systemd/system/$unit
@@ -144,6 +136,21 @@ do
     unit="openstack-bmc-$bm_port.service"
     systemctl enable $unit
     systemctl start $unit
-    systemctl status $unit
 done
+
+sleep 5
+
+for i in $(seq 1 $bm_node_count)
+do
+    bm_port="$bm_prefix_$(($i-1))"
+    unit="openstack-bmc-$bm_port.service"
+    if ! systemctl status $unit
+    then
+        $signal_command --data-binary '{"status": "FAILURE"}'
+        echo "********** $unit failed to start **********"
+        exit 1
+    fi
+done
+
+$signal_command --data-binary '{"status": "SUCCESS"}'
 
