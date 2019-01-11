@@ -76,7 +76,7 @@ parameters:
     description: The maximum transmission unit (MTU) size(in bytes) that is
       guaranteed to pass through the data path of the segments in the
       storage_mgmt network.
-   type: number
+    type: number
   TenantIpSubnet:
     default: ''
     description: IP address/subnet on the tenant network
@@ -94,7 +94,7 @@ parameters:
     description: The maximum transmission unit (MTU) size(in bytes) that is
       guaranteed to pass through the data path of the segments in the
       tenant network.
-   type: number
+    type: number
   ManagementIpSubnet: # Only populated when including environments/network-management.yaml
     default: ''
     description: IP address/subnet on the management network
@@ -112,7 +112,7 @@ parameters:
     description: The maximum transmission unit (MTU) size(in bytes) that is
       guaranteed to pass through the data path of the segments in the
       management network.
-   type: number
+    type: number
   BondInterfaceOvsOptions:
     default: 'bond_mode=active-backup'
     description: The ovs_options string for the bond interface. Set things like
