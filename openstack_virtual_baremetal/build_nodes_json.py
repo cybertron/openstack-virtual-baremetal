@@ -259,7 +259,6 @@ def _write_role_nodes(nodes, args):
                   (profile, outfile))
 
 
-
 def main():
     args = _parse_args()
     bmc_base, baremetal_base, undercloud_name = _get_names(args)
